@@ -1,0 +1,129 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "DSL to DesignSpace",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "dsl-converter.py",
+                "${input:dslFile}",
+                "-o",
+                "${input:dslFile}.designspace",
+                "--format",
+                "designspace"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "DesignSpace to DSL",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "dsl-converter.py",
+                "${input:designspaceFile}",
+                "-o",
+                "${input:designspaceFile}.dsl",
+                "--format",
+                "dsl"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "DSL to DesignSpace (optimized)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "dsl-converter.py",
+                "${input:dslFile}",
+                "-o",
+                "${input:dslFile}.designspace",
+                "--format",
+                "designspace",
+                "--optimize"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "DesignSpace to DSL (optimized)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "dsl-converter.py",
+                "${input:designspaceFile}",
+                "-o",
+                "${input:designspaceFile}.dsl",
+                "--format",
+                "dsl",
+                "--optimize"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Convert Active File (Auto-detect)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "dsl-converter.py",
+                "${file}",
+                "--format",
+                "auto"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "dslFile",
+            "description": "Select DSL file to convert",
+            "type": "promptString",
+            "default": "examples/wildcard-test.dsl"
+        },
+        {
+            "id": "designspaceFile", 
+            "description": "Select DesignSpace file to convert",
+            "type": "promptString",
+            "default": "examples/wildcard-test.designspace"
+        }
+    ]
+}
