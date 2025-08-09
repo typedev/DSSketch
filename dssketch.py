@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """
-DSL ↔ DesignSpace Converter
-Converts between compact DSL format and fonttools .designspace XML format
+DesignSpace Sketch (DSSketch)
+A compact, human-readable format for DesignSpace files with bidirectional conversion
 
 Key concepts:
 - User Space: values users see (font-weight: 400)
-- Design Space: real coordinates in file (can be 125, 380, anything)
+- Design Space: real coordinates in file (can be 125, 380, anything)  
 - Mapping: Regular 400 > 125 means user requests 400, master is at 125
 
 Features:
-- Bidirectional conversion
+- Bidirectional conversion between .dsl and .designspace formats
 - Smart defaults for standard weights/widths
 - Compact DSL syntax with auto-expansion
 - Proper user/design space mapping
+- Shortened axis names for registered axes (wght, ital, opsz, slnt, wdth)
+- Uppercase notation for custom axes (CONTRAST CNTR)
 """
 
 import re
-import os
 import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any, Set
 from dataclasses import dataclass, field
-from xml.etree import ElementTree as ET
 
 # For proper DesignSpace handling
 from fontTools.designspaceLib import (
@@ -31,7 +31,6 @@ from fontTools.designspaceLib import (
     InstanceDescriptor,
     RuleDescriptor,
     AxisLabelDescriptor,
-    AxisMappingDescriptor,
 )
 
 
@@ -99,6 +98,7 @@ class DSLDocument:
     """Complete DSL document structure"""
     family: str
     suffix: str = ""
+    path: str = ""  # Path to masters directory (relative to .dssketch file or absolute)
     axes: List[DSLAxis] = field(default_factory=list)
     masters: List[DSLMaster] = field(default_factory=list)
     instances: List[DSLInstance] = field(default_factory=list)
@@ -108,36 +108,277 @@ class DSLDocument:
 
 
 # ============================================================================
+# UFO Validation
+# ============================================================================
+
+@dataclass
+class ValidationReport:
+    """Report of UFO file validation"""
+    missing_files: List[str] = field(default_factory=list)
+    invalid_ufos: List[str] = field(default_factory=list)
+    path_errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+    
+    @property
+    def has_errors(self) -> bool:
+        return len(self.missing_files) > 0 or len(self.invalid_ufos) > 0 or len(self.path_errors) > 0
+    
+    @property
+    def has_warnings(self) -> bool:
+        return len(self.warnings) > 0
+
+class UFOValidator:
+    """Validate UFO files existence and basic structure"""
+    
+    @staticmethod
+    def validate_ufo_files(dsl_doc: DSLDocument, dssketch_file_path: str) -> ValidationReport:
+        """Validate UFO files existence and basic structure"""
+        report = ValidationReport()
+        
+        # Determine base path for masters
+        dssketch_dir = Path(dssketch_file_path).parent
+        
+        if dsl_doc.path:
+            # Path specified in DSSketch file
+            if Path(dsl_doc.path).is_absolute():
+                base_path = Path(dsl_doc.path)
+            else:
+                base_path = dssketch_dir / dsl_doc.path
+        else:
+            # Default: same directory as .dssketch file
+            base_path = dssketch_dir
+        
+        # Validate base path exists
+        if not base_path.exists():
+            report.path_errors.append(f"Masters path does not exist: {base_path}")
+            return report
+        
+        if not base_path.is_dir():
+            report.path_errors.append(f"Masters path is not a directory: {base_path}")
+            return report
+        
+        # Check each master file
+        for master in dsl_doc.masters:
+            ufo_path = base_path / master.filename
+            
+            if not ufo_path.exists():
+                report.missing_files.append(str(ufo_path))
+                continue
+            
+            # Basic UFO validation
+            if not UFOValidator._is_valid_ufo(ufo_path):
+                report.invalid_ufos.append(str(ufo_path))
+            
+            # Check if filename ends with .ufo
+            if not master.filename.endswith('.ufo'):
+                report.warnings.append(f"Master filename should end with .ufo: {master.filename}")
+        
+        return report
+    
+    @staticmethod
+    def _is_valid_ufo(ufo_path: Path) -> bool:
+        """Basic UFO structure validation"""
+        if not ufo_path.is_dir():
+            return False
+            
+        # Check for required UFO files
+        required_files = ['metainfo.plist', 'fontinfo.plist']
+        for req_file in required_files:
+            if not (ufo_path / req_file).exists():
+                return False
+        
+        # Check for glyphs directory or layer contents
+        if not (ufo_path / 'glyphs').exists() and not (ufo_path / 'glyphs.contents.plist').exists():
+            return False
+        
+        return True
+
+
+# ============================================================================
 # Standard Mappings and Defaults
 # ============================================================================
 
-class Standards:
-    """Standard weight, width and axis mappings"""
+class UnifiedMappings:
+    """Unified mappings for font attributes: name ↔ OS/2 ↔ user_space"""
     
-    # Standard weight mappings (user value -> name)
-    WEIGHTS = {
-        50: 'Hairline', 100: 'Thin', 200: 'Extralight', 300: 'Light',
-        350: 'Book', 400: 'Regular', 500: 'Medium', 600: 'Semibold',
-        700: 'Bold', 800: 'Extrabold', 900: 'Black'
-    }
+    # Will be loaded from JSON file
+    MAPPINGS = {}
+    DEFAULTS = {}
     
-    # Standard width mappings
-    WIDTHS = {
-        60: 'Compressed', 70: 'SemiCompressed', 80: 'Condensed',
-        90: 'SemiCondensed', 100: 'Normal', 125: 'SemiExpanded',
-        150: 'Expanded', 200: 'ExtraExpanded'
-    }
+    @classmethod
+    def _load_mappings(cls):
+        """Load mappings from JSON or YAML file"""
+        if cls.MAPPINGS:  # Already loaded
+            return
+            
+        data_dir = Path(__file__).parent / "data"
+        
+        # Try YAML first (if available), then JSON
+        yaml_file = data_dir / "unified-mappings.yaml"
+        json_file = data_dir / "unified-mappings.json"
+        
+        data = None
+        
+        # Try YAML if available
+        if yaml_file.exists():
+            try:
+                import yaml
+                with open(yaml_file, 'r', encoding='utf-8') as f:
+                    data = yaml.safe_load(f)
+            except ImportError:
+                # yaml module not available, fall back to JSON
+                pass
+            except Exception:
+                # YAML parsing failed, fall back to JSON
+                pass
+        
+        # Try JSON if YAML didn't work
+        if data is None and json_file.exists():
+            try:
+                with open(json_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except Exception:
+                pass
+        
+        if data:
+            # Extract main mappings (weight, width)
+            cls.MAPPINGS = {
+                key: value for key, value in data.items() 
+                if key not in ['metadata']
+            }
+            
+            # Extract defaults from metadata
+            if 'metadata' in data and 'defaults' in data['metadata']:
+                cls.DEFAULTS = data['metadata']['defaults']
+            else:
+                # Fallback defaults
+                cls.DEFAULTS = {
+                    "weight": {"os2": 400, "user_space": 400.0},
+                    "width": {"os2": 5, "user_space": 100.0}
+                }
+        else:
+            # Fallback to minimal hardcoded data if no file found
+            cls.MAPPINGS = {
+                "weight": {
+                    "Regular": {"os2": 400, "user_space": 400},
+                    "Bold": {"os2": 700, "user_space": 700}
+                },
+                "width": {
+                    "Normal": {"os2": 5, "user_space": 100}
+                }
+            }
+            cls.DEFAULTS = {
+                "weight": {"os2": 400, "user_space": 400.0},
+                "width": {"os2": 5, "user_space": 100.0}
+            }
     
-    # Reverse lookups
-    WEIGHT_NAMES = {v: k for k, v in WEIGHTS.items()}
-    WIDTH_NAMES = {v: k for k, v in WIDTHS.items()}
+    @classmethod
+    def _resolve_alias(cls, name: str, axis_type: str) -> Dict[str, Any]:
+        """Resolve alias to actual entry data"""
+        if axis_type not in cls.MAPPINGS or name not in cls.MAPPINGS[axis_type]:
+            return {}
+            
+        entry = cls.MAPPINGS[axis_type][name]
+        
+        # If this is an alias, resolve it
+        if "alias_of" in entry:
+            target_name = entry["alias_of"]
+            if target_name in cls.MAPPINGS[axis_type]:
+                # Get the target entry and merge with alias entry
+                target_entry = cls.MAPPINGS[axis_type][target_name].copy()
+                # Overlay any additional properties from the alias
+                for key, value in entry.items():
+                    if key != "alias_of":
+                        target_entry[key] = value
+                return target_entry
+        
+        return entry
+
+    @classmethod
+    def get_user_space_value(cls, name: str, axis_type: str) -> float:
+        """Get user_space coordinate value by name"""
+        cls._load_mappings()
+        axis_type = axis_type.lower()
+        
+        entry = cls._resolve_alias(name, axis_type)
+        
+        if entry:
+            # Try user_space first, then fallback to os2
+            if "user_space" in entry:
+                return float(entry["user_space"])
+            elif "os2" in entry:
+                return float(entry["os2"])  # Fallback: use os2 as user_space
+        
+        # Default fallback from metadata
+        return cls.DEFAULTS.get(axis_type, {}).get("user_space", 400.0 if axis_type == "weight" else 100.0)
     
-    # Common variations in naming
-    WEIGHT_ALIASES = {
-        'ExtraLight': 'Extralight',
-        'SemiBold': 'Semibold',
-        'ExtraBold': 'Extrabold',
-    }
+    @classmethod
+    def get_os2_value(cls, name: str, axis_type: str) -> int:
+        """Get OS/2 table value by name"""
+        cls._load_mappings()
+        axis_type = axis_type.lower()
+        
+        entry = cls._resolve_alias(name, axis_type)
+        
+        if entry:
+            # Try os2 first, then fallback to user_space
+            if "os2" in entry:
+                return int(entry["os2"])
+            elif "user_space" in entry:
+                return int(entry["user_space"])  # Fallback: use user_space as os2
+        
+        # Default fallback from metadata
+        return cls.DEFAULTS.get(axis_type, {}).get("os2", 400 if axis_type == "weight" else 5)
+    
+    @classmethod
+    def get_name_by_user_space(cls, value: float, axis_type: str) -> str:
+        """Get name by user_space coordinate value"""
+        cls._load_mappings()
+        axis_type = axis_type.lower()
+        if axis_type in cls.MAPPINGS:
+            for name, entry in cls.MAPPINGS[axis_type].items():
+                # Skip aliases - we want to find the canonical name
+                if "alias_of" in entry:
+                    continue
+                    
+                resolved_entry = cls._resolve_alias(name, axis_type)
+                if resolved_entry:
+                    # Check user_space first, then os2 as fallback
+                    user_space_val = resolved_entry.get("user_space") or resolved_entry.get("os2")
+                    if user_space_val and float(user_space_val) == value:
+                        return name
+        # Fallback to numeric name
+        return f"{axis_type.title()}{int(value)}"
+    
+    @classmethod
+    def get_name_by_os2(cls, value: int, axis_type: str) -> str:
+        """Get name by OS/2 table value"""
+        cls._load_mappings()
+        axis_type = axis_type.lower()
+        if axis_type in cls.MAPPINGS:
+            for name, entry in cls.MAPPINGS[axis_type].items():
+                # Skip aliases - we want to find the canonical name
+                if "alias_of" in entry:
+                    continue
+                    
+                resolved_entry = cls._resolve_alias(name, axis_type)
+                if resolved_entry:
+                    # Check os2 first, then user_space as fallback
+                    os2_val = resolved_entry.get("os2") or resolved_entry.get("user_space")
+                    if os2_val and int(os2_val) == value:
+                        return name
+        # Fallback to numeric name  
+        return f"{axis_type.title()}{value}"
+    
+    @classmethod
+    def get_user_value_for_name(cls, name: str, axis_name: str) -> float:
+        """Legacy compatibility method - maps to get_user_space_value"""
+        return cls.get_user_space_value(name, axis_name)
+    
+    @classmethod
+    def get_name_for_user_value(cls, value: float, axis_name: str) -> str:
+        """Legacy compatibility method - maps to get_name_by_user_space"""
+        return cls.get_name_by_user_space(value, axis_name)
 
 
 # ============================================================================
@@ -222,27 +463,8 @@ class PatternMatcher:
         return None
 
 
-# Add the missing methods to Standards class
-def _get_user_value_for_name(cls, name: str, axis_name: str) -> float:
-    """Get standard user value for a weight/width name"""
-    name = cls.WEIGHT_ALIASES.get(name, name)
-    
-    if axis_name.lower() == 'weight':
-        return cls.WEIGHT_NAMES.get(name, 400)
-    elif axis_name.lower() == 'width':
-        return cls.WIDTH_NAMES.get(name, 100)
-    return 400 if axis_name.lower() == 'weight' else 100
-
-def _get_name_for_user_value(cls, value: float, axis_name: str) -> str:
-    """Get standard name for a user value"""
-    if axis_name.lower() == 'weight':
-        return cls.WEIGHTS.get(int(value), f"Weight{int(value)}")
-    elif axis_name.lower() == 'width':
-        return cls.WIDTHS.get(int(value), f"Width{int(value)}")
-    return str(int(value))
-
-Standards.get_user_value_for_name = classmethod(_get_user_value_for_name)
-Standards.get_name_for_user_value = classmethod(_get_name_for_user_value)
+# Backward compatibility alias
+Standards = UnifiedMappings
 
 
 # ============================================================================
@@ -257,21 +479,14 @@ class DesignSpaceToDSL:
         self.load_external_data()
     
     def load_external_data(self):
-        """Load external weight/width mappings from JSON files"""
+        """Load external font resource translations"""
         data_dir = Path(__file__).parent / "data"
         
         self.font_resources = {}
-        self.stylenames = {}
         
         try:
             with open(data_dir / "font-resources-translations.json", 'r') as f:
                 self.font_resources = json.load(f)
-        except FileNotFoundError:
-            pass
-            
-        try:
-            with open(data_dir / "stylenames.json", 'r') as f:
-                self.stylenames = json.load(f)
         except FileNotFoundError:
             pass
     
@@ -444,6 +659,15 @@ class DesignSpaceToDSL:
 class DSLWriter:
     """Write DSL document to string format"""
     
+    # Registered axis names that can be omitted for brevity
+    REGISTERED_AXES = {
+        'italic': 'ital',
+        'optical': 'opsz', 
+        'slant': 'slnt',
+        'width': 'wdth',
+        'weight': 'wght'
+    }
+    
     def __init__(self, optimize: bool = True):
         self.optimize = optimize
     
@@ -455,6 +679,8 @@ class DSLWriter:
         lines.append(f"family {dsl_doc.family}")
         if dsl_doc.suffix:
             lines.append(f"suffix {dsl_doc.suffix}")
+        if dsl_doc.path:
+            lines.append(f"path {dsl_doc.path}")
         lines.append("")
         
         # Axes section
@@ -492,12 +718,21 @@ class DSLWriter:
         """Format axis definition"""
         lines = []
         
+        # Determine axis name for output (shortened if registered)
+        axis_name = self._get_axis_display_name(axis.name, axis.tag)
+        
         # Axis header with range
         if axis.minimum == axis.default == axis.maximum:
             # Binary axis
-            lines.append(f"    {axis.name} {axis.tag} binary")
+            if axis_name:
+                lines.append(f"    {axis_name} {axis.tag} binary")
+            else:
+                lines.append(f"    {axis.tag} binary")
         else:
-            lines.append(f"    {axis.name} {axis.tag} {axis.minimum}:{axis.default}:{axis.maximum}")
+            if axis_name:
+                lines.append(f"    {axis_name} {axis.tag} {axis.minimum}:{axis.default}:{axis.maximum}")
+            else:
+                lines.append(f"    {axis.tag} {axis.minimum}:{axis.default}:{axis.maximum}")
         
         # Mappings
         if axis.mappings:
@@ -513,6 +748,24 @@ class DSLWriter:
                     lines.append(f"        {mapping.user_value} {mapping.label} > {mapping.design_value}")
         
         return lines
+    
+    def _get_axis_display_name(self, axis_name: str, axis_tag: str) -> str:
+        """Get the display name for an axis - omit registered names, use uppercase for custom"""
+        axis_name_lower = axis_name.lower()
+        
+        # Check if it's a registered axis (can be omitted)
+        if self.optimize and axis_name_lower in self.REGISTERED_AXES:
+            expected_tag = self.REGISTERED_AXES[axis_name_lower]
+            # Only omit if the tag matches the expected registered tag
+            if axis_tag == expected_tag:
+                return ""  # Will be handled in the caller
+        
+        # For non-registered axes, use uppercase
+        if axis_name_lower not in self.REGISTERED_AXES:
+            return axis_name.upper()
+        
+        # For registered axes with non-standard tags, keep original name
+        return axis_name
     
     def _format_master(self, master: DSLMaster, axes: List[DSLAxis]) -> str:
         """Format master definition"""
@@ -590,8 +843,7 @@ class DSLWriter:
         if len(substitutions) < 2:
             return None
         
-        from_glyphs = [sub[0] for sub in substitutions]  
-        to_glyphs = [sub[1] for sub in substitutions]
+        from_glyphs = [sub[0] for sub in substitutions]
         
         # Check if all have the same suffix transformation
         # e.g., dollar -> dollar.rvrn, cent -> cent.rvrn
@@ -659,6 +911,15 @@ class DSLWriter:
 class DSLParser:
     """Parse DSL format into structured data"""
     
+    # Tag to standard name mapping for registered axes
+    TAG_TO_NAME = {
+        'ital': 'italic',
+        'opsz': 'optical', 
+        'slnt': 'slant',
+        'wdth': 'width',
+        'wght': 'weight'
+    }
+    
     def __init__(self):
         self.document = DSLDocument(family="")
         self.current_section = None
@@ -701,6 +962,9 @@ class DSLParser:
         elif line.startswith('suffix '):
             self.document.suffix = line[7:].strip()
             
+        elif line.startswith('path '):
+            self.document.path = line[5:].strip()
+            
         elif line == 'axes' or line.startswith('axes '):
             self.current_section = 'axes'
             
@@ -731,8 +995,15 @@ class DSLParser:
     def _parse_axis_line(self, line: str):
         """Parse axis definition lines"""
         
-        # New axis definition: "weight wght 100:400:900"
+        # Check for axis definition patterns
+        # Pattern 1: "weight wght 100:400:900" (full form)
+        # Pattern 2: "CONTRAST CNTR 0:0:100" (custom axis)  
+        # Pattern 3: "wght 100:400:900" (registered axis, name omitted)
+        # Pattern 4: "ital binary" (registered binary axis)
+        # Pattern 5: "weight 100:400:900" (legacy form with inferred tag)
+        
         if re.match(r'^\w+\s+\w{4}\s+', line):
+            # Full form: name tag range
             parts = line.split()
             name = parts[0]
             tag = parts[1]
@@ -751,16 +1022,74 @@ class DSLParser:
                     minimum = default = maximum = float(range_part)
             else:
                 minimum = default = maximum = 0
+                
+        elif re.match(r'^\w{4}\s+', line) and '>' not in line:
+            # Shortened form: tag range (for registered axes)
+            # But not if it contains '>' (that's a mapping)
+            parts = line.split()
+            tag = parts[0]
             
-            self.current_axis = DSLAxis(
-                name=name, tag=tag,
-                minimum=minimum, default=default, maximum=maximum
-            )
-            self.document.axes.append(self.current_axis)
+            # Get standard name from tag
+            name = self.TAG_TO_NAME.get(tag, tag.upper())
             
-        # Axis mapping: "300 Light > 0" or "Light > 0"
-        elif '>' in line and self.current_axis:
-            self._parse_axis_mapping(line)
+            # Parse range or binary
+            if len(parts) > 1:
+                range_part = parts[1]
+                if range_part == 'binary':
+                    minimum, default, maximum = 0, 0, 1
+                elif ':' in range_part:
+                    values = range_part.split(':')
+                    minimum = float(values[0])
+                    default = float(values[1]) if len(values) > 2 else minimum
+                    maximum = float(values[-1])
+                else:
+                    minimum = default = maximum = float(range_part)
+            else:
+                minimum = default = maximum = 0
+        elif re.match(r'^\w+\s+([\d.:-]+|binary)', line) and '>' not in line:
+            # Legacy form: "weight 100:400:900" (infer tag from name)
+            parts = line.split()
+            name = parts[0]
+            
+            # Infer tag from name
+            if name.lower() == 'weight':
+                tag = 'wght'
+            elif name.lower() == 'width':
+                tag = 'wdth'
+            elif name.lower() == 'italic':
+                tag = 'ital'
+            elif name.lower() == 'slant':
+                tag = 'slnt'
+            elif name.lower() == 'optical':
+                tag = 'opsz'
+            else:
+                tag = name[:4].upper()  # Use first 4 chars as tag
+            
+            # Parse range or binary
+            if len(parts) > 1:
+                range_part = parts[1]
+                if range_part == 'binary':
+                    minimum, default, maximum = 0, 0, 1
+                elif ':' in range_part:
+                    values = range_part.split(':')
+                    minimum = float(values[0])
+                    default = float(values[1]) if len(values) > 2 else minimum
+                    maximum = float(values[-1])
+                else:
+                    minimum = default = maximum = float(range_part)
+            else:
+                minimum = default = maximum = 0
+        else:
+            # Not an axis definition, might be a mapping
+            if '>' in line and self.current_axis:
+                self._parse_axis_mapping(line)
+            return
+        
+        self.current_axis = DSLAxis(
+            name=name, tag=tag,
+            minimum=minimum, default=default, maximum=maximum
+        )
+        self.document.axes.append(self.current_axis)
     
     def _parse_axis_mapping(self, line: str):
         """Parse axis mapping line"""
@@ -1008,25 +1337,66 @@ class DSLToDesignSpace:
         axis = AxisDescriptor()
         axis.name = dsl_axis.name
         axis.tag = dsl_axis.tag
+        
+        # Add labelname (localized axis name)
+        axis.labelNames = {
+            'en': dsl_axis.name.title()  # Weight, Italic, etc.
+        }
+        
+        # Check if this is a binary/discrete axis (like italic)
+        is_binary = (dsl_axis.minimum == 0 and dsl_axis.maximum == 1 and 
+                    dsl_axis.name.lower() in ['italic', 'ital'])
+        
+        # Always set basic properties first
         axis.minimum = dsl_axis.minimum
-        axis.default = dsl_axis.default
+        axis.default = dsl_axis.default 
         axis.maximum = dsl_axis.maximum
         
-        # Add mappings and labels
-        axis.map = []
-        axis.axisLabels = []
-        
-        for mapping in dsl_axis.mappings:
-            # Add mapping as tuple (older format)
-            axis.map.append((mapping.user_value, mapping.design_value))
+        if is_binary:
+            # For binary axis, also add values (both are supported)
+            axis.values = [0, 1]
             
-            # Add label
-            label_desc = AxisLabelDescriptor(
-                name=mapping.label,
-                userValue=mapping.user_value,
-                elidable=(mapping.user_value == dsl_axis.default)
-            )
-            axis.axisLabels.append(label_desc)
+            # Add standard binary labels if no custom mappings provided
+            axis.axisLabels = []
+            
+            if not dsl_axis.mappings:
+                # Default binary labels for italic
+                upright_label = AxisLabelDescriptor(
+                    name="Upright",
+                    userValue=0,
+                    elidable=True
+                )
+                italic_label = AxisLabelDescriptor(
+                    name="Italic", 
+                    userValue=1,
+                    elidable=False
+                )
+                axis.axisLabels = [upright_label, italic_label]
+            else:
+                # Use custom mappings
+                for mapping in dsl_axis.mappings:
+                    label_desc = AxisLabelDescriptor(
+                        name=mapping.label,
+                        userValue=mapping.user_value,
+                        elidable=(mapping.user_value == dsl_axis.default)
+                    )
+                    axis.axisLabels.append(label_desc)
+        else:
+            # Continuous axis - add mappings and labels
+            axis.map = []
+            axis.axisLabels = []
+            
+            for mapping in dsl_axis.mappings:
+                # Add mapping as tuple (older format)
+                axis.map.append((mapping.user_value, mapping.design_value))
+                
+                # Add label
+                label_desc = AxisLabelDescriptor(
+                    name=mapping.label,
+                    userValue=mapping.user_value,
+                    elidable=(mapping.user_value == dsl_axis.default)
+                )
+                axis.axisLabels.append(label_desc)
         
         return axis
     
@@ -1135,18 +1505,25 @@ class DSLToDesignSpace:
 # ============================================================================
 
 def main():
-    """Command-line interface"""
+    """Command-line interface for DesignSpace Sketch"""
     import argparse
     
-    parser = argparse.ArgumentParser(description='Convert between DSL and DesignSpace formats')
-    parser.add_argument('input', help='Input file (.dsl or .designspace)')
+    parser = argparse.ArgumentParser(
+        prog='dssketch',
+        description='DesignSpace Sketch - Convert between .dssketch and .designspace formats'
+    )
+    parser.add_argument('input', help='Input file (.dssketch or .designspace)')
     parser.add_argument('-o', '--output', help='Output file (optional)')
-    parser.add_argument('--format', choices=['dsl', 'designspace', 'auto'], 
-                       default='auto', help='Output format')
+    parser.add_argument('--format', choices=['dssketch', 'dsl', 'designspace', 'auto'], 
+                       default='auto', help='Output format (dsl is alias for dssketch)')
     parser.add_argument('--optimize', action='store_true', default=True,
-                       help='Optimize DSL output (default: True)')
+                       help='Optimize DSSketch output (default: True)')
     parser.add_argument('--no-optimize', action='store_false', dest='optimize',
-                       help='Disable DSL optimization')
+                       help='Disable DSSketch optimization')
+    parser.add_argument('--validate-ufos', action='store_true', 
+                       help='Validate UFO master files existence and structure')
+    parser.add_argument('--strict', action='store_true',
+                       help='Fail on missing UFO files (use with --validate-ufos)')
     
     args = parser.parse_args()
     
@@ -1157,35 +1534,88 @@ def main():
         return 1
     
     try:
+        # Determine output format
+        output_format = args.format
+        if output_format == 'auto':
+            # Auto-detect based on input extension
+            if input_path.suffix.lower() == '.dssketch':
+                output_format = 'designspace'
+            elif input_path.suffix.lower() == '.designspace':
+                output_format = 'dssketch'
+            else:
+                print(f"Error: Cannot auto-detect format for {input_path.suffix}")
+                print("Supported input formats: .dssketch, .designspace")
+                print("Use --format to specify output format explicitly")
+                return 1
+        
+        # Normalize dsl to dssketch
+        if output_format == 'dsl':
+            output_format = 'dssketch'
+        
         # Determine conversion direction
-        if input_path.suffix.lower() == '.dsl':
-            # DSL to DesignSpace
-            parser = DSLParser()
-            dsl_doc = parser.parse_file(str(input_path))
+        if output_format == 'designspace':
+            # Convert to DesignSpace
+            if input_path.suffix.lower() == '.dssketch':
+                parser = DSLParser()
+                dsl_doc = parser.parse_file(str(input_path))
+                
+                # Validate UFO files if requested
+                if args.validate_ufos:
+                    validation_report = UFOValidator.validate_ufo_files(dsl_doc, str(input_path))
+                    
+                    # Print validation results
+                    if validation_report.has_errors:
+                        print("❌ UFO Validation Errors:")
+                        for error in validation_report.path_errors:
+                            print(f"  - Path error: {error}")
+                        for missing in validation_report.missing_files:
+                            print(f"  - Missing UFO: {missing}")
+                        for invalid in validation_report.invalid_ufos:
+                            print(f"  - Invalid UFO: {invalid}")
+                        
+                        if args.strict:
+                            return 1
+                    
+                    if validation_report.has_warnings:
+                        print("⚠️  UFO Validation Warnings:")
+                        for warning in validation_report.warnings:
+                            print(f"  - {warning}")
+                    
+                    if not validation_report.has_errors and not validation_report.has_warnings:
+                        print("✅ All UFO files validated successfully")
+                
+                converter = DSLToDesignSpace()
+                ds_doc = converter.convert(dsl_doc)
+                
+                output_path = args.output or input_path.with_suffix('.designspace')
+                ds_doc.write(str(output_path))
+                print(f"Converted {input_path} -> {output_path}")
+            else:
+                print(f"Error: Cannot convert {input_path.suffix} to .designspace")
+                print("Input must be .dssketch file for conversion to .designspace")
+                return 1
             
-            converter = DSLToDesignSpace()
-            ds_doc = converter.convert(dsl_doc)
-            
-            output_path = args.output or input_path.with_suffix('.designspace')
-            ds_doc.write(str(output_path))
-            print(f"Converted {input_path} -> {output_path}")
-            
-        elif input_path.suffix.lower() == '.designspace':
-            # DesignSpace to DSL
-            converter = DesignSpaceToDSL()
-            dsl_doc = converter.convert_file(str(input_path))
-            
-            writer = DSLWriter(optimize=args.optimize)
-            dsl_content = writer.write(dsl_doc)
-            
-            output_path = args.output or input_path.with_suffix('.dsl')
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(dsl_content)
-            print(f"Converted {input_path} -> {output_path}")
+        elif output_format == 'dssketch':
+            # Convert to DSSketch/DSL
+            if input_path.suffix.lower() == '.designspace':
+                converter = DesignSpaceToDSL()
+                dsl_doc = converter.convert_file(str(input_path))
+                
+                writer = DSLWriter(optimize=args.optimize)
+                dsl_content = writer.write(dsl_doc)
+                
+                output_path = args.output or input_path.with_suffix('.dssketch')
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(dsl_content)
+                print(f"Converted {input_path} -> {output_path}")
+            else:
+                print(f"Error: Cannot convert {input_path.suffix} to .dssketch")
+                print("Input must be .designspace file for conversion to .dssketch")
+                return 1
             
         else:
-            print(f"Error: Unknown input format: {input_path.suffix}")
-            print("Supported formats: .dsl, .designspace")
+            print(f"Error: Unknown output format: {output_format}")
+            print("Supported formats: dssketch, dsl, designspace, auto")
             return 1
             
     except Exception as e:

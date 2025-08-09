@@ -1,0 +1,208 @@
+# Unified Font Attribute Mappings (Compact Schema v2.0)
+# Maps style names to OS/2 table values and user space coordinates
+# 
+# COMPACT SCHEMA:
+# - For weight: only user_space values (os2 = user_space for weight)
+# - For width: both os2 and user_space (they differ significantly)
+# - Aliases: entries with only 'alias_of' inherit all values from referenced entry
+# - Fallback: if user_space missing, use os2; if os2 missing, use user_space
+
+weight:
+  # Basic weights - only user_space needed (os2 values are identical)
+  Hairline:
+    user_space: 50
+    
+  Thin:
+    user_space: 100
+    
+  Extralight:
+    user_space: 200
+    
+  ExtraLight:  # Common alias - inherits from Extralight
+    alias_of: Extralight
+    
+  Light:
+    user_space: 300
+    
+  Book:
+    user_space: 350
+    
+  Regular:
+    user_space: 400
+    
+  Medium:
+    user_space: 500
+    
+  Semibold:
+    user_space: 600
+    
+  SemiBold:  # Common alias - inherits from Semibold
+    alias_of: Semibold
+    
+  Bold:
+    user_space: 700
+    
+  Extrabold:
+    user_space: 800
+    
+  ExtraBold:  # Common alias - inherits from Extrabold
+    alias_of: Extrabold
+    
+  Heavy:
+    user_space: 800
+    
+  Black:
+    user_space: 900
+
+  # Italic variants - only user_space needed
+  "Hairline Italic":
+    user_space: 50
+    style: italic
+    
+  "Thin Italic":
+    user_space: 100
+    style: italic
+    
+  "Extralight Italic":
+    user_space: 200
+    style: italic
+    
+  "ExtraLight Italic":  # Alias - inherits from "Extralight Italic"
+    alias_of: "Extralight Italic"
+    
+  "Light Italic":
+    user_space: 300
+    style: italic
+    
+  "Book Italic":
+    user_space: 350
+    style: italic
+    
+  Italic:
+    user_space: 400
+    style: italic
+    
+  "Medium Italic":
+    user_space: 500
+    style: italic
+    
+  "Semibold Italic":
+    user_space: 600
+    style: italic
+    
+  "SemiBold Italic":  # Alias - inherits from "Semibold Italic"
+    alias_of: "Semibold Italic"
+    
+  "Bold Italic":
+    user_space: 700
+    style: italic
+    
+  "Extrabold Italic":
+    user_space: 800
+    style: italic
+    
+  "ExtraBold Italic":  # Alias - inherits from "Extrabold Italic"
+    alias_of: "Extrabold Italic"
+    
+  "Heavy Italic":
+    user_space: 800
+    style: italic
+    
+  "Black Italic":
+    user_space: 900
+    style: italic
+
+width:
+  # Width values show the key difference:
+  # OS/2 uses 1-9 scale, user_space uses design coordinates
+  # Both values needed since they differ significantly
+  
+  Compressed:
+    os2: 1          # Ultra-condensed in OS/2 spec
+    user_space: 60  # Design space coordinate
+    
+  SemiCompressed:
+    os2: 2          # Extra-condensed in OS/2 spec  
+    user_space: 70
+    
+  ExtraCondensed:   # Alternative name - inherits from SemiCompressed
+    alias_of: SemiCompressed
+    
+  Condensed:
+    os2: 3          # Condensed in OS/2 spec
+    user_space: 80
+    
+  SemiCondensed:
+    os2: 4          # Semi-condensed in OS/2 spec
+    user_space: 90
+    
+  Narrow:           # Alternative name - inherits from SemiCondensed
+    alias_of: SemiCondensed
+    
+  Normal:
+    os2: 5          # Medium/Normal in OS/2 spec
+    user_space: 100 # Standard design coordinate
+    
+  Wide:
+    os2: 6          # Semi-expanded in OS/2 spec
+    user_space: 115
+    
+  SemiExpanded:
+    os2: 7          # Expanded in OS/2 spec
+    user_space: 125
+    
+  SemiExtended:     # Alternative name - inherits from SemiExpanded
+    alias_of: SemiExpanded
+    
+  Expanded:
+    os2: 8          # Extra-expanded in OS/2 spec
+    user_space: 150
+    
+  Extended:         # Alternative name - inherits from Expanded
+    alias_of: Expanded
+    
+  UltraExpanded:
+    os2: 9          # Ultra-expanded in OS/2 spec
+    user_space: 200
+    
+  UltraExtended:    # Alternative name - inherits from UltraExpanded
+    alias_of: UltraExpanded
+    
+  ExtraExpanded:    # Legacy name - inherits from UltraExpanded
+    alias_of: UltraExpanded
+
+# Metadata about this mapping
+metadata:
+  version: "2.0"
+  description: "Unified font attribute mappings between style names, OS/2 table values, and user space coordinates"
+  
+  # Compact schema description
+  schema:
+    compact: true
+    fallback_logic: "If user_space is missing, use os2 value. If os2 is missing, use user_space value."
+    weight_axis: "Uses user_space values (os2 values are the same for weight)"
+    width_axis: "Uses both os2 and user_space (they differ significantly)"
+    aliases: "Entries with only 'alias_of' inherit all values from the referenced entry"
+  
+  sources:
+    - "OpenType specification"
+    - "CSS Fonts specification" 
+    - "fontTools designspace format"
+    - "Original Standards class"
+    - "stylenames.json"
+  
+  # Default fallback values for unknown names
+  defaults:
+    weight:
+      os2: 400
+      user_space: 400.0
+    width:
+      os2: 5
+      user_space: 100.0
+  
+  notes:
+    - "COMPACT SCHEMA v2.0: Eliminates redundancy between os2 and user_space"
+    - "For weight: Only user_space values stored (os2 = user_space for weight axis)"
+    - "For width: Both values stored (OS/2 uses 1-9 scale, user_space uses design coordinates)"
+    - "Aliases inherit all properties from referenced entries"
+    - "Automatic fallback: missing user_space uses os2, missing os2 uses user_space"

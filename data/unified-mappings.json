@@ -1,0 +1,79 @@
+{
+  "weight": {
+    "Hairline": {"user_space": 50},
+    "Thin": {"user_space": 100},
+    "Extralight": {"user_space": 200},
+    "ExtraLight": {"alias_of": "Extralight"},
+    "Light": {"user_space": 300},
+    "Book": {"user_space": 350},
+    "Regular": {"user_space": 400},
+    "Medium": {"user_space": 500},
+    "Semibold": {"user_space": 600},
+    "SemiBold": {"alias_of": "Semibold"},
+    "Bold": {"user_space": 700},
+    "Extrabold": {"user_space": 800},
+    "ExtraBold": {"alias_of": "Extrabold"},
+    "Heavy": {"user_space": 800},
+    "Black": {"user_space": 900},
+    "Hairline Italic": {"user_space": 50, "style": "italic"},
+    "Thin Italic": {"user_space": 100, "style": "italic"},
+    "Extralight Italic": {"user_space": 200, "style": "italic"},
+    "ExtraLight Italic": {"alias_of": "Extralight Italic"},
+    "Light Italic": {"user_space": 300, "style": "italic"},
+    "Book Italic": {"user_space": 350, "style": "italic"},
+    "Italic": {"user_space": 400, "style": "italic"},
+    "Medium Italic": {"user_space": 500, "style": "italic"},
+    "Semibold Italic": {"user_space": 600, "style": "italic"},
+    "SemiBold Italic": {"alias_of": "Semibold Italic"},
+    "Bold Italic": {"user_space": 700, "style": "italic"},
+    "Extrabold Italic": {"user_space": 800, "style": "italic"},
+    "ExtraBold Italic": {"alias_of": "Extrabold Italic"},
+    "Heavy Italic": {"user_space": 800, "style": "italic"},
+    "Black Italic": {"user_space": 900, "style": "italic"}
+  },
+  "width": {
+    "Compressed": {"os2": 1, "user_space": 60},
+    "SemiCompressed": {"os2": 2, "user_space": 70},
+    "ExtraCondensed": {"alias_of": "SemiCompressed"},
+    "Condensed": {"os2": 3, "user_space": 80},
+    "SemiCondensed": {"os2": 4, "user_space": 90},
+    "Narrow": {"alias_of": "SemiCondensed"},
+    "Normal": {"os2": 5, "user_space": 100},
+    "Wide": {"os2": 6, "user_space": 115},
+    "SemiExpanded": {"os2": 7, "user_space": 125},
+    "SemiExtended": {"alias_of": "SemiExpanded"},
+    "Expanded": {"os2": 8, "user_space": 150},
+    "Extended": {"alias_of": "Expanded"},
+    "UltraExpanded": {"os2": 9, "user_space": 200},
+    "UltraExtended": {"alias_of": "UltraExpanded"},
+    "ExtraExpanded": {"alias_of": "UltraExpanded"}
+  },
+  "metadata": {
+    "version": "2.0",
+    "description": "Unified font attribute mappings between style names, OS/2 table values, and user space coordinates",
+    "schema": {
+      "compact": true,
+      "fallback_logic": "If user_space is missing, use os2 value. If os2 is missing, use user_space value.",
+      "weight_axis": "Uses user_space values (os2 values are the same for weight)",
+      "width_axis": "Uses both os2 and user_space (they differ significantly)",
+      "aliases": "Entries with only 'alias_of' inherit all values from the referenced entry"
+    },
+    "sources": [
+      "OpenType specification",
+      "CSS Fonts specification", 
+      "fontTools designspace format",
+      "Original Standards class",
+      "stylenames.json"
+    ],
+    "defaults": {
+      "weight": {
+        "os2": 400,
+        "user_space": 400.0
+      },
+      "width": {
+        "os2": 5,
+        "user_space": 100.0
+      }
+    }
+  }
+}

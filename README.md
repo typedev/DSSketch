@@ -1,10 +1,10 @@
-# DSL ↔ DesignSpace Converter
+# DesignSpace Sketch
 
-Двунаправленный конвертер между компактным DSL форматом и стандартным fontTools .designspace XML для работы с вариативными шрифтами.
+Компактный, человеко-читаемый формат для DesignSpace файлов с двунаправленным преобразованием. Сокращает многословные .designspace файлы в 10-20 раз при сохранении полной функциональности.
 
 ## Основные возможности
 
-- **Компактность**: DSL сокращает многословные .designspace файлы в 10-20 раз
+- **Компактность**: DSSketch сокращает многословные .designspace файлы в 10-20 раз
 - **Читаемость**: понятная структура с человеческими именами
 - **Правильный маппинг**: корректное разделение User Space (CSS) и Design Space (интерполяция)
 - **Автоматизация**: автогенерация повторяющихся элементов
@@ -13,23 +13,23 @@
 ## Использование
 
 ```bash
-# DesignSpace → DSL
-python dsl-converter.py font.designspace
+# DesignSpace → DSSketch
+python dssketch.py font.designspace
 
-# DSL → DesignSpace  
-python dsl-converter.py font.dsl
+# DSSketch → DesignSpace  
+python dssketch.py font.dssketch
 
 # С явным указанием выходного файла
-python dsl-converter.py input.designspace -o output.dsl
+python dssketch.py input.designspace -o output.dssketch
 ```
 
-## Пример DSL формата
+## Пример DSSketch формата
 
-```dsl
+```dssketch
 family KazimirText
 
 axes
-    weight wght 50:400:900
+    wght 50:400:900
         Hairline > 0
         Thin > 68
         Light > 196
@@ -38,7 +38,7 @@ axes
         Bold > 732
         Black > 1000
     
-    italic ital binary
+    ital binary
 
 masters
     Hairline        [0, 0]
@@ -99,11 +99,11 @@ Regular > 362  означает:
 - `DSLToDesignSpace` - конвертер DSL → .designspace
 - `Standards` - встроенные маппинги весов и ширин
 
-## Возможности DSL
+## Возможности DSSketch
 
 ### Компактные формы записи
 
-```dsl
+```dssketch
 # Вместо длинного XML можно писать:
 weight wght 100:400:900
     Thin > 0
@@ -116,14 +116,14 @@ weight standard  # использует линейный маппинг 100-900
 
 ### Автоматизация
 
-```dsl
+```dssketch
 instances auto          # генерирует все разумные комбинации
 masters scan *.ufo      # автопоиск мастеров по паттерну
 ```
 
 ### Правила подстановки
 
-```dsl
+```dssketch
 rules
     # Переключение для тяжелых весов
     dollar > dollar.heavy @ weight >= 480
@@ -142,6 +142,6 @@ rules
 | Формат | Строки | Размер | Читаемость |
 |--------|--------|---------|------------|
 | .designspace | 266 | 11.2 KB | ⭐⭐ |
-| .dsl | 21 | 0.8 KB | ⭐⭐⭐⭐⭐ |
+| .dssketch | 21 | 0.8 KB | ⭐⭐⭐⭐⭐ |
 
 **Экономия: 93% размера, 10x читаемость**

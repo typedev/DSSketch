@@ -218,7 +218,7 @@ class AxisMapping:
 
 ---
 
-## ИТОГ - правильный Kazimir DSL
+## ИТОГ - правильный Kazimir DSSketch
 
 ```dsl
 family Kazimir

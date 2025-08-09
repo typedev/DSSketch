@@ -1,12 +1,12 @@
-# DSL Converter - Next Steps & Recommendations
+# DesignSpace Sketch - Next Steps & Recommendations
 
 ## 🎉 Текущий статус проекта
 
-**DSL ↔ DesignSpace конвертер полностью функционален и готов к продакшену!**
+**DesignSpace Sketch полностью функционален и готов к продакшену!**
 
 ### ✅ Реализованные возможности
 
-- ✅ **Bidirectional conversion** - DSL ↔ DesignSpace
+- ✅ **Bidirectional conversion** - DSSketch ↔ DesignSpace
 - ✅ **User/Design Space mapping** - правильное понимание координат
 - ✅ **Multi-dimensional support** - до 4D осей (weight × width × contrast × slant)
 - ✅ **Rules with conditions** - простые и составные условия (`>=`, `<=`, `==`, `&&`)
@@ -22,9 +22,9 @@
 | Проект | Формат | Размер | Строк | Сжатие |
 |--------|--------|--------|-------|--------|
 | KazimirText | DesignSpace | 11.2 KB | 266 | - |
-| KazimirText | DSL | 1.8 KB | 40 | **84%** |
+| KazimirText | DSSketch | 1.8 KB | 40 | **84%** |
 | Onweer 4D | DesignSpace | 204 KB | 4,119 | - |
-| Onweer 4D | DSL | 5.6 KB | 102 | **97%** |
+| Onweer 4D | DSSketch | 5.6 KB | 102 | **97%** |
 
 ## 🔧 Рекомендации для продолжения
 
@@ -106,11 +106,11 @@ def detect_advanced_patterns(substitutions: List[Tuple]) -> Optional[str]:
 
 ```bash
 # Новые команды
-dsl2designspace validate font.dsl --strict
-dsl2designspace analyze font.dsl --coverage --visual  
-dsl2designspace init ./sources/ --scan-ufos
-dsl2designspace optimize font.designspace --compress
-dsl2designspace diff old.dsl new.dsl
+dssketch validate font.dssketch --strict
+dssketch analyze font.dssketch --coverage --visual  
+dssketch init ./sources/ --scan-ufos
+dssketch optimize font.designspace --compress
+dssketch diff old.dssketch new.dssketch
 ```
 
 ### 5. Error Handling & Diagnostics (Приоритет: MEDIUM)
@@ -134,10 +134,10 @@ def generate_diagnostic_report(dsl_doc: DSLDocument) -> ConversionReport:
 
 ### 6. Advanced DSL Features (Приоритет: LOW)
 
-```dsl
+```dssketch
 # Include system
-include common-axes.dsl
-include brand-weights.dsl
+include common-axes.dssketch
+include brand-weights.dssketch
 
 # Variables
 $brand-weight = 425
@@ -164,7 +164,7 @@ rules
 ### ✅ Ready for Production
 
 - [x] Core conversion functionality
-- [x] Bidirectional DSL ↔ DesignSpace
+- [x] Bidirectional DSSketch ↔ DesignSpace
 - [x] Wildcard patterns with compression
 - [x] Complex rules with conditions
 - [x] Multi-dimensional axis support
@@ -184,14 +184,14 @@ rules
 
 ```
 DSSketch/
-├── dsl-converter.py          # Main converter (ready)
+├── dssketch.py               # Main converter (ready)
 ├── README.md                 # User documentation
 ├── PERFORMANCE.md            # Performance benchmarks
 ├── examples/
 │   ├── KazimirText-Variable.* # Real-world example
 │   ├── Onweer_v2_RAIN.*      # Complex 4D example
-│   ├── wildcard-test.dsl     # Wildcard demonstrations
-│   └── complex-rules.dsl     # Advanced rules examples
+│   ├── wildcard-test.dssketch # Wildcard demonstrations
+│   └── complex-rules.dssketch # Advanced rules examples
 └── data/
     ├── stylenames.json       # Default weight/width mappings
     └── font-resources-translations.json
@@ -208,13 +208,13 @@ DSSketch/
 
 ```bash
 # Test current functionality
-python dsl-converter.py examples/KazimirText-Variable.designspace
-python dsl-converter.py examples/KazimirText-Variable.dsl
-python dsl-converter.py examples/wildcard-showcase.dsl
+python dssketch.py examples/KazimirText-Variable.designspace
+python dssketch.py examples/KazimirText-Variable.dssketch
+python dssketch.py examples/wildcard-showcase.dssketch
 
 # Future enhanced validation
-python dsl-converter.py font.dsl --validate-ufos --strict
-python dsl-converter.py font.dsl --load-real-glyphs --report
+python dssketch.py font.dssketch --validate-ufos --strict
+python dssketch.py font.dssketch --load-real-glyphs --report
 ```
 
 **🎉 Конвертер уже сейчас революционизирует работу с DesignSpace файлами, обеспечивая 84-97% компрессию при сохранении полной функциональности!**

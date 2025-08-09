@@ -284,19 +284,19 @@ validate
 
 ```bash
 # Основные команды
-dsl2designspace convert font.dsl -o font.designspace
-dsl2designspace reverse font.designspace -o font.dsl
+dssketch font.dssketch
+dssketch font.designspace -o font.dssketch
 
 # Валидация
-dsl2designspace validate font.dsl
-dsl2designspace coverage font.dsl --visual
+dssketch validate font.dssketch
+dssketch coverage font.dssketch --visual
 
 # Генерация
-dsl2designspace init ./sources/  # создать DSL из папки с UFO
-dsl2designspace generate font.dsl --instances all
+dssketch init ./sources/  # создать DSSketch из папки с UFO
+dssketch generate font.dssketch --instances all
 
 # Watch режим для разработки
-dsl2designspace watch font.dsl --auto-compile
+dssketch watch font.dssketch --auto-compile
 ```
 
 ## 8. ТЕСТОВЫЕ СЛУЧАИ

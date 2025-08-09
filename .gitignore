@@ -1,4 +1,5 @@
 .DS_Store
 .venv
 .env
-
+/examples/
+/__pycache__/

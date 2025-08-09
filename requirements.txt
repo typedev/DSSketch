@@ -1,0 +1,5 @@
+fonttools
+fontParts
+designspaceProblems @ git+https://github.com/LettError/DesignspaceProblems.git
+
+icecream

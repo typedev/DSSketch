@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "python3",
             "args": [
-                "dsl-converter.py",
+                "dssketch.py",
                 "${input:dslFile}",
                 "-o",
                 "${input:dslFile}.designspace",
@@ -28,10 +28,8 @@
             "type": "shell",
             "command": "python3",
             "args": [
-                "dsl-converter.py",
+                "dssketch.py",
                 "${input:designspaceFile}",
-                "-o",
-                "${input:designspaceFile}.dsl",
                 "--format",
                 "dsl"
             ],
@@ -50,7 +48,7 @@
             "type": "shell",
             "command": "python3",
             "args": [
-                "dsl-converter.py",
+                "dssketch.py",
                 "${input:dslFile}",
                 "-o",
                 "${input:dslFile}.designspace",
@@ -73,10 +71,8 @@
             "type": "shell",
             "command": "python3",
             "args": [
-                "dsl-converter.py",
+                "dssketch.py",
                 "${input:designspaceFile}",
-                "-o",
-                "${input:designspaceFile}.dsl",
                 "--format",
                 "dsl",
                 "--optimize"
@@ -96,7 +92,7 @@
             "type": "shell",
             "command": "python3",
             "args": [
-                "dsl-converter.py",
+                "dssketch.py",
                 "${file}",
                 "--format",
                 "auto"
