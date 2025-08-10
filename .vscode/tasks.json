@@ -2,177 +2,237 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "🔄 Convert Current File",
+            "label": "DSSketch: Convert DesignSpace → DSSketch",
             "type": "shell",
-            "command": "bash",
-            "args": ["-c", "source .venv/bin/activate 2>/dev/null || true && python dssketch_cli.py '${file}'"],
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "dssketch_cli.py",
+                "${input:designSpaceFile}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "group": "build",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": false,
                 "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
+                "showReuseMessage": true,
+                "clear": false
             },
             "problemMatcher": [],
-            "detail": "Convert currently open .designspace or .dssketch file (requires open file in editor)"
+            "detail": "Convert DesignSpace file to DSSketch format (saves in same directory)"
         },
         {
-            "label": "🎯 Convert Examples (Quick Demo)",
+            "label": "DSSketch: Convert DSSketch → DesignSpace",
             "type": "shell",
-            "command": "bash",
-            "args": ["-c", "source .venv/bin/activate 2>/dev/null || true && python dssketch_cli.py examples/KazimirText-Variable.designspace --allow-missing-ufos"],
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "dssketch_cli.py",
+                "${input:dssFile}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
             },
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
-            },
-            "problemMatcher": [],
-            "detail": "Quick demo: Convert KazimirText example (default build task)"
-        },
-        {
-            "label": "📁 Convert Current File to Custom Location",
-            "type": "shell",
-            "command": "bash",
-            "args": ["-c", "source .venv/bin/activate 2>/dev/null || true && python dssketch_cli.py '${file}' -o '${fileBasenameNoExtension}-custom.dssketch'"],
             "group": "build",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": false,
                 "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
+                "showReuseMessage": true,
+                "clear": false
             },
             "problemMatcher": [],
-            "detail": "Convert open file with -custom suffix (requires open file in editor)"
+            "detail": "Convert DSSketch file to DesignSpace format (saves in same directory)"
         },
         {
-            "label": "⚠️ Convert Current File (Allow Missing UFOs)",
+            "label": "DSSketch: Convert Current File",
             "type": "shell",
-            "command": "bash",
-            "args": ["-c", "source .venv/bin/activate 2>/dev/null || true && python dssketch_cli.py '${file}' --allow-missing-ufos"],
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "dssketch_cli.py",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "group": "build",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": false,
                 "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
+                "showReuseMessage": true,
+                "clear": false
             },
             "problemMatcher": [],
-            "detail": "Convert open file even if UFO files are missing (requires open file)"
+            "detail": "Convert currently open file (auto-detects format and saves in same directory)"
         },
         {
-            "label": "🚫 Convert Current File (No Validation)",
+            "label": "DSSketch: Test with Examples",
             "type": "shell",
-            "command": "bash",
-            "args": ["-c", "source .venv/bin/activate 2>/dev/null || true && python dssketch_cli.py '${file}' --no-validation"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "dssketch_cli.py",
+                "examples/KazimirText-Variable.designspace"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": [],
-            "detail": "Convert open file without UFO validation (not recommended, requires open file)"
-        },
-        {
-            "label": "📂 Convert Specific File",
-            "type": "shell",
-            "command": "bash",
-            "args": ["-c", "echo 'Available files:' && ls -1 examples/*.designspace 2>/dev/null || echo 'No .designspace files found in examples/' && echo 'Enter filename (or full path):' && read -r filename && source .venv/bin/activate 2>/dev/null || true && python dssketch_cli.py \"$filename\" --allow-missing-ufos"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
-            },
-            "problemMatcher": [],
-            "detail": "Convert any file by entering its path interactively"
-        },
-        {
-            "label": "🧪 Test - KazimirText Example",
-            "type": "shell",
-            "command": "bash",
-            "args": ["-c", "source .venv/bin/activate 2>/dev/null || true && python dssketch_cli.py examples/KazimirText-Variable.designspace --allow-missing-ufos"],
             "group": "test",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": false,
                 "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
+                "showReuseMessage": true,
+                "clear": false
             },
             "problemMatcher": [],
-            "detail": "Test conversion with KazimirText example (allows missing UFOs)"
+            "detail": "Quick test conversion with Kazimir example"
         },
         {
-            "label": "🔁 Test - Roundtrip Conversion",
+            "label": "DSSketch: Round-trip Test",
             "type": "shell",
             "command": "bash",
-            "args": ["-c", "source .venv/bin/activate 2>/dev/null || true && echo '=== Testing Roundtrip Conversion ===' && python dssketch_cli.py examples/KazimirText-Variable.designspace -o roundtrip-test.dssketch --allow-missing-ufos && echo '✓ Step 1: DesignSpace → DSSketch complete' && python dssketch_cli.py roundtrip-test.dssketch -o roundtrip-test.designspace --allow-missing-ufos && echo '✓ Step 2: DSSketch → DesignSpace complete' && echo '✅ Roundtrip conversion successful!' && echo 'Generated files: roundtrip-test.dssketch, roundtrip-test.designspace'"],
+            "args": [
+                "-c",
+                "cd ${workspaceFolder} && echo 'Starting round-trip test...' && ${workspaceFolder}/.venv/bin/python dssketch_cli.py ${input:testFile} && echo 'Converting back...' && ${workspaceFolder}/.venv/bin/python dssketch_cli.py examples/*.dssketch | head -1 && echo '✅ Round-trip test completed'"
+            ],
             "group": "test",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": false,
                 "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
+                "showReuseMessage": true,
+                "clear": false
             },
             "problemMatcher": [],
-            "detail": "Full roundtrip conversion test (allows missing UFOs for demo)"
+            "detail": "Test round-trip conversion (auto-detects formats)"
         },
         {
-            "label": "📊 Test All Examples",
+            "label": "DSSketch: Install Package (Dev)",
             "type": "shell",
-            "command": "bash",
-            "args": ["-c", "source .venv/bin/activate 2>/dev/null || true && echo '=== Testing All Examples ===' && ls examples/*.designspace 2>/dev/null | while read file; do echo \"Testing: $file\"; python dssketch_cli.py \"$file\" -o \"${file%.designspace}-test.dssketch\" --allow-missing-ufos && echo \"✅ $file converted successfully\" || echo \"❌ $file conversion failed\"; done && echo '=== Test Complete ==='"],
-            "group": "test", 
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
+            "command": "${workspaceFolder}/.venv/bin/pip",
+            "args": [
+                "install",
+                "-e",
+                "."
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": [],
-            "detail": "Convert all example .designspace files (allows missing UFOs for demo)"
-        },
-        {
-            "label": "🧹 Clean Test Files",
-            "type": "shell",
-            "command": "bash",
-            "args": ["-c", "rm -f *-test.dssketch *-test.designspace roundtrip-test.* temp.* && echo '🗑️ All test files cleaned up'"],
             "group": "build",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": false,
-                "panel": "shared", 
-                "showReuseMessage": false,
-                "clear": true
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
             },
             "problemMatcher": [],
-            "detail": "Clean up all temporary test files"
+            "detail": "Install DSSketch in development mode"
+        },
+        {
+            "label": "DSSketch: Build Package",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-m",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Build wheel and source distribution"
+        },
+        {
+            "label": "DSSketch: Show Help",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "dssketch_cli.py",
+                "--help"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Show DSSketch CLI help"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "designSpaceFile",
+            "description": "Select DesignSpace file",
+            "type": "pickString",
+            "options": [
+                "examples/KazimirText-Variable.designspace",
+                "examples/KazimirText-Variable-original.designspace", 
+                "examples/KazimirText-Variable-test.designspace",
+                "examples/complex-rules.designspace",
+                "examples/Onweer_v2_RAIN.designspace"
+            ],
+            "default": "examples/KazimirText-Variable.designspace"
+        },
+        {
+            "id": "dssFile",
+            "description": "Select DSS file",
+            "type": "pickString",
+            "options": [
+                "examples/complex-rules.dssketch",
+                "examples/KazimirText-Variable-test.dssketch",
+                "examples/Onweer_v2_RAIN.dssketch",
+                "examples/wildcard-test.dss",
+                "output/test_output.dssketch"
+            ],
+            "default": "examples/complex-rules.dssketch"
+        },
+        {
+            "id": "inputFile",
+            "description": "Enter input file path",
+            "type": "promptString",
+            "default": "examples/"
+        },
+        {
+            "id": "outputName",
+            "description": "Enter output filename",
+            "type": "promptString",
+            "default": "converted_output"
+        },
+        {
+            "id": "testFile",
+            "description": "Select file for round-trip test",
+            "type": "pickString",
+            "options": [
+                "examples/KazimirText-Variable.designspace",
+                "examples/complex-rules.designspace",
+                "examples/complex-rules.dssketch"
+            ],
+            "default": "examples/KazimirText-Variable.designspace"
         }
     ]
 }

@@ -1,0 +1,59 @@
+{
+  "weight_names": {
+    "Hairline": 50,
+    "Thin": 100,
+    "Extralight": 200,
+    "ExtraLight": 200,
+    "Light": 300,
+    "Book": 350,
+    "Regular": 400,
+    "Medium": 500,
+    "Semibold": 600,
+    "SemiBold": 600,
+    "Bold": 700,
+    "Extrabold": 800,
+    "ExtraBold": 800,
+    "Heavy": 800,
+    "Black": 900,
+    
+    "Hairline Italic": 50,
+    "Thin Italic": 100,
+    "Extralight Italic": 200,
+    "ExtraLight Italic": 200,
+    "Light Italic": 300,
+    "Book Italic": 350,
+    "Italic": 400,
+    "Medium Italic": 500,
+    "Semibold Italic": 600,
+    "SemiBold Italic": 600,
+    "Bold Italic": 700,
+    "Extrabold Italic": 800,
+    "ExtraBold Italic": 800,
+    "Heavy Italic": 800,
+    "Black Italic": 900
+  },
+  "width_names": {
+    "Compressed": 1,
+    "SemiCompressed": 2,
+    "ExtraCondensed": 2,
+    "Condensed": 3,
+    "SemiCondensed": 4,
+    "Narrow": 4,
+    "Normal": 5,
+    "Wide": 6,
+    "SemiExpanded": 7,
+    "SemiExtended": 7,
+    "Expanded": 8,
+    "Extended": 8,
+    "UltraExpanded": 9,
+    "UltraExtended": 9
+  },
+  "italic_names": [
+    "Italic",
+    "Oblique",
+    "Slanted"
+  ],
+  "extra_italic_names": [
+    "ExtraOblique"
+  ]
+} 

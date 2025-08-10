@@ -7,7 +7,7 @@ Command-line interface for converting between .dssketch and .designspace formats
 import argparse
 from pathlib import Path
 
-from src.dssketch import (
+from . import (
     DesignSpaceToDSS,
     DSSParser,
     DSSToDesignSpace,
@@ -25,6 +25,10 @@ def main():
     )
     parser.add_argument('input', help='Input file (.dssketch or .designspace)')
     parser.add_argument('-o', '--output', help='Output file (optional, defaults to same directory)')
+    parser.add_argument('--no-validation', action='store_true', 
+                       help='Skip UFO validation (not recommended)')
+    parser.add_argument('--allow-missing-ufos', action='store_true',
+                       help='Allow missing UFO files')
 
     args = parser.parse_args()
 
@@ -45,50 +49,41 @@ def main():
             print("Supported formats: .dssketch, .dss, .designspace")
             return 1
 
+        # Determine output path
+        if args.output:
+            output_path = Path(args.output)
+        else:
+            if output_format == 'designspace':
+                output_path = input_path.with_suffix('.designspace')
+            else:
+                output_path = input_path.with_suffix('.dssketch')
+
         # Convert based on detected format
         if output_format == 'designspace':
             # Convert .dssketch/.dss to .designspace
             parser = DSSParser()
-            dss_doc = parser.parse_file(str(input_path))
-
-            # Simple UFO validation with basic error handling
-            validation_report = UFOValidator.validate_ufo_files(dss_doc, str(input_path))
-            if validation_report.has_errors:
-                print("⚠️  Some UFO files may be missing or invalid, but continuing conversion...")
-
-            base_path = input_path.parent
-            converter = DSSToDesignSpace(base_path)
-            ds_doc = converter.convert(dss_doc)
-
-            output_path = args.output or input_path.with_suffix('.designspace')
-            ds_doc.write(str(output_path))
-            print(f"✅ Converted {input_path.name} -> {output_path.name}")
-
-        elif output_format == 'dssketch':
+            dss_data = parser.parse_file(str(input_path))
+            
+            converter = DSSToDesignSpace()
+            doc = converter.convert(dss_data)
+            doc.write(output_path)
+            
+        else:
             # Convert .designspace to .dssketch
             converter = DesignSpaceToDSS()
-            dss_doc = converter.convert_file(str(input_path))
+            dss_data = converter.convert(str(input_path), 
+                                       validate_ufos=not args.no_validation,
+                                       allow_missing_ufos=args.allow_missing_ufos)
+            
+            writer = DSSWriter()
+            writer.write_file(str(output_path), dss_data)
 
-            # Load DesignSpace document for glyph validation
-            from fontTools.designspaceLib import DesignSpaceDocument
-            ds_doc = DesignSpaceDocument.fromfile(str(input_path))
-
-            writer = DSSWriter(optimize=True, ds_doc=ds_doc, base_path=str(input_path.parent))
-            dss_content = writer.write(dss_doc)
-
-            output_path = args.output or input_path.with_suffix('.dssketch')
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(dss_content)
-            print(f"✅ Converted {input_path.name} -> {output_path.name}")
+        print(f"Conversion completed: {input_path} → {output_path}")
+        return 0
 
     except Exception as e:
-        import traceback
         print(f"Error during conversion: {e}")
-        print("\nFull traceback:")
-        traceback.print_exc()
         return 1
-
-    return 0
 
 
 if __name__ == '__main__':

@@ -1,0 +1,119 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dssketch"
+version = "1.0.0"
+description = "Human-friendly alternative to DesignSpace XML - provides simple, intuitive text format for variable font design with 84-97% size reduction"
+authors = [{name = "Alexander Lubovenko", email = "lubovenko@gmail.com"}]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+keywords = ["fonts", "designspace", "variable-fonts", "typography", "font-design", "ufo-fonts"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Text Processing :: Fonts",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "fonttools>=4.38.0",
+    "defcon>=0.10.0",
+    "fontParts>=0.12.0",
+    "designspaceProblems>=0.1.0",
+    "pyyaml>=6.0",
+    "icecream>=2.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/typedev/dssketch"
+Documentation = "https://github.com/typedev/dssketch#readme"
+Repository = "https://github.com/typedev/dssketch.git"
+Issues = "https://github.com/typedev/dssketch/issues"
+
+[project.scripts]
+dssketch = "dssketch.cli:main"
+dss = "dssketch.cli:main"
+dssketch-data = "dssketch.data_cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["dssketch*"]
+exclude = ["tests*", "docs*", "*.egg-info*"]
+
+[tool.setuptools.package-data]
+dssketch = ["data/*.json", "data/*.yaml", "data/*.yml"]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "*.md",
+    "CLAUDE.md",
+    "*.txt",
+    ".gitignore",
+    ".gitattributes",
+    "*.pyc",
+    "__pycache__",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "PT", "SIM", "PD"]
+ignore = ["E501", "B008", "B905"]
+target-version = "py38"
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401", "F403"]
+"tests/*" = ["S101"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true

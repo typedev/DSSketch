@@ -1,0 +1,20 @@
+# Standard labels for discrete axes
+# Format: axis_tag -> {value: [possible_names...]}
+
+ital:
+  0:
+    - "Upright"
+    - "Roman" 
+    - "Normal"
+  1:
+    - "Italic"
+
+slnt:
+  0:
+    - "Upright"
+    - "Normal"
+  1:
+    - "Slanted"
+    - "Oblique"
+
+# Add more discrete axes as needed

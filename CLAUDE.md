@@ -6,6 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 DesignSpace Sketch (DSSketch) is a Python tool that provides bidirectional conversion between compact `.dssketch` format and verbose `.designspace` XML files. It achieves 84-97% size reduction while maintaining full functionality for variable font design.
 
+**Key Philosophy:**
+The core idea of DSSketch is to provide a **human-friendly, simple, and intuitive** way to describe variable font design spaces, replacing the overly complex and verbose XML format with a clean, readable text format that font designers can easily understand and edit by hand. This makes variable font development more accessible and less error-prone.
+
 ## Key Commands
 
 ### Running the converter
@@ -14,17 +17,12 @@ DesignSpace Sketch (DSSketch) is a Python tool that provides bidirectional conve
 python dssketch_cli.py font.designspace
 python dssketch_cli.py font.dssketch
 
-# Backwards compatibility
-python dssketch.py font.designspace  # still works
+# Import as package (after pip install -e .)
+from dssketch import DSSParser, DSSWriter
+from dssketch.converters import DesignSpaceToDSS, DSSToDesignSpace
 
 # With output file
 python dssketch_cli.py input.designspace -o output.dssketch
-
-# Skip UFO validation (not recommended)
-python dssketch_cli.py font.dssketch --no-validation
-
-# Allow missing UFO files
-python dssketch_cli.py font.dssketch --allow-missing-ufos
 ```
 
 ### Development setup
@@ -47,17 +45,34 @@ python dssketch_cli.py examples/wildcard-test.dss
 
 ### Main Components
 
-**Module Structure:**
-- `dssketch.py` - Core library with conversion classes
-- `dssketch_cli.py` - Command-line interface (preferred for CLI usage)
+**Module Structure (after refactoring):**
+- `dssketch_cli.py` - Main command-line interface
+- `src/dssketch/` - Package root
+  - `cli.py` - CLI implementation
+  - `converters/` - Conversion modules
+  - `parsers/` - Parsing modules
+  - `writers/` - Writing modules
+  - `utils/` - Utility functions
+  - `core/` - Core models and validation
 
-**Core Classes:**
-- `DSSParser` - Parses .dssketch format into structured data
-- `DSSWriter` - Generates .dssketch from structured data  
-- `DesignSpaceToDSS` - Converts .designspace → DSSketch
-- `DSSToDesignSpace` - Converts DSSketch → .designspace (supports discrete axes)
-- `UFOValidator` - Validates UFO master files existence and structure
-- `Standards` - Built-in weight/width mappings (100=Thin, 400=Regular, etc.)
+**Core Classes (refactored structure):**
+- `src/dssketch/parsers/dss_parser.py`:
+  - `DSSParser` - Parses .dssketch format into structured data
+- `src/dssketch/writers/dss_writer.py`:
+  - `DSSWriter` - Generates .dssketch from structured data
+- `src/dssketch/converters/designspace_to_dss.py`:
+  - `DesignSpaceToDSS` - Converts .designspace → DSSketch
+- `src/dssketch/converters/dss_to_designspace.py`:
+  - `DSSToDesignSpace` - Converts DSSketch → .designspace
+- `src/dssketch/core/validation.py`:
+  - `UFOValidator` - Validates UFO master files
+  - `UFOGlyphExtractor` - Extracts glyph lists from UFO files
+- `src/dssketch/core/mappings.py`:
+  - `Standards` - Built-in weight/width mappings
+- `src/dssketch/utils/patterns.py`:
+  - `PatternMatcher` - Wildcard pattern matching for glyphs
+- `src/dssketch/utils/discrete.py`:
+  - `DiscreteAxisLabels` - Manages discrete axis labels
 
 ### Critical Design Concepts
 
@@ -107,16 +122,38 @@ masters
 rules
     dollar > dollar.rvrn (weight >= 480) "dollar alternates"
     cent* > .rvrn (weight >= 480) "cent patterns"  # wildcard patterns
+    A* > .alt (weight <= 500)  # all glyphs starting with A
+    * > .rvrn (weight >= 600)  # all glyphs that have .rvrn variants
 
 instances auto  # or explicit list
 ```
 
 ### Key Features
 
-**Wildcard Patterns:**
-- Pattern detection in rules (line ~1100)
-- Supports `*` wildcards: `dollar* cent*`
-- Target patterns: `.rvrn` suffix
+**Substitution Rules (Critical for Variable Fonts):**
+Rules define glyph substitutions based on axis conditions. The syntax is:
+`pattern > target (condition) "optional name"`
+
+**Pattern Types:**
+- **Exact glyph**: `dollar > dollar.rvrn` - single glyph substitution
+- **Prefix wildcard**: `A* > .alt` - all glyphs starting with 'A' (A, AE, Aacute, etc.)
+- **Multiple glyphs**: `dollar cent > .heavy` - specific list of glyphs
+- **Universal wildcard**: `* > .rvrn` - ALL glyphs in the font
+
+**Target Types:**
+- **Suffix append**: `.rvrn` - adds suffix to source glyph (dollar → dollar.rvrn)
+- **Full replacement**: `dollar.heavy` - replaces with specific glyph
+
+**Smart Wildcard Expansion:**
+- When converting DSSketch → DesignSpace, wildcards are expanded to actual glyphs
+- `A*` finds all glyphs starting with 'A' in the UFO files
+- `*` matches all glyphs but only creates substitutions where target exists
+- Example: `* > .rvrn` only creates rules for glyphs that have .rvrn variants
+
+**Target Validation:**
+- System checks if target glyphs exist in UFO files
+- Skips invalid substitutions with warnings
+- Prevents broken DesignSpace rules
 
 **Rule Conditions:**
 - Simple: `(weight >= 480)`
@@ -134,20 +171,26 @@ instances auto  # or explicit list
 - Supports mixed paths for masters in different directories
 - `path` parameter in DSSketch format for common directory
 
-**UFO Validation (enabled by default):**
-- Automatically checks UFO file existence and structure
-- Fails conversion on missing files by default
-- `--no-validation` skips validation (not recommended)
-- `--allow-missing-ufos` continues even with missing files
-- Validates metainfo.plist, fontinfo.plist, and glyphs directory
+**UFO Validation:**
+- Automatically extracts glyph names from UFO files for wildcard expansion
+- Validates target glyphs exist before creating substitution rules
+- Shows warnings for missing target glyphs but continues conversion
+- Uses UFOGlyphExtractor to safely read glyph lists from sources
 
 ## Important Implementation Details
 
-### Current Limitations (from NEXT_STEPS.md)
+### Implementation Notes for Rules
 
-1. **Hardcoded glyph names** (line ~1104): Wildcard expansion uses fixed list instead of reading from UFO files
-2. **No UFO validation**: Missing files aren't detected during conversion
-3. **Limited pattern detection**: Only supports prefix/suffix wildcards
+**Code Location:**
+- Rule parsing: `src/dssketch/parsers/dss_parser.py:402` (_parse_rule_line)
+- Wildcard expansion: `src/dssketch/converters/dss_to_designspace.py:247` (_expand_wildcard_pattern)
+- Pattern matching: `src/dssketch/utils/patterns.py` (PatternMatcher class)
+
+**Recent Fix (важно!):**
+- Fixed wildcard detection for single patterns like `A*` without spaces
+- Changed condition from `if ' ' in from_part and ('*' in from_part...)` 
+- To: `if '*' in from_part or (' ' in from_part...)`
+- This ensures patterns like `A*` are properly recognized as wildcards
 
 ### Data Files
 

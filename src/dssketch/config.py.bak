@@ -1,0 +1,163 @@
+"""Configuration and data management for DSSketch
+
+This module handles loading data files with fallback to defaults and user overrides.
+"""
+
+import os
+import json
+import yaml
+from pathlib import Path
+from typing import Dict, Any, Optional
+import shutil
+
+
+class DataManager:
+    """Manages data files with support for user customization"""
+    
+    def __init__(self):
+        # Путь к встроенным данным в пакете
+        self.package_data_dir = Path(__file__).parent / "data"
+        
+        # Путь к пользовательским данным
+        self.user_data_dir = self._get_user_data_dir()
+        
+        # Инициализация пользовательской директории при первом запуске
+        self._ensure_user_data_dir()
+    
+    def _get_user_data_dir(self) -> Path:
+        """Get user data directory based on OS"""
+        # Проверяем переменную окружения для кастомного пути
+        if custom_path := os.environ.get('DSSKETCH_DATA_DIR'):
+            return Path(custom_path)
+        
+        # Стандартные пути для разных ОС
+        if os.name == 'nt':  # Windows
+            base = Path(os.environ.get('APPDATA', '~'))
+        elif os.name == 'posix':
+            if 'Darwin' in os.uname().sysname:  # macOS
+                base = Path('~/Library/Application Support')
+            else:  # Linux
+                base = Path(os.environ.get('XDG_CONFIG_HOME', '~/.config'))
+        else:
+            base = Path('~')
+        
+        return base.expanduser() / 'dssketch'
+    
+    def _ensure_user_data_dir(self):
+        """Create user data directory and copy default files if needed"""
+        if not self.user_data_dir.exists():
+            self.user_data_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Копируем дефолтные файлы при первой установке
+            print(f"📁 Creating user data directory: {self.user_data_dir}")
+            self.reset_to_defaults()
+    
+    def reset_to_defaults(self, file_name: Optional[str] = None):
+        """Reset user data files to package defaults
+        
+        Args:
+            file_name: Specific file to reset, or None for all files
+        """
+        if file_name:
+            src = self.package_data_dir / file_name
+            dst = self.user_data_dir / file_name
+            if src.exists():
+                shutil.copy2(src, dst)
+                print(f"✅ Reset {file_name} to defaults")
+        else:
+            # Копируем все файлы данных
+            for src_file in self.package_data_dir.glob("*.json"):
+                shutil.copy2(src_file, self.user_data_dir / src_file.name)
+            for src_file in self.package_data_dir.glob("*.yaml"):
+                shutil.copy2(src_file, self.user_data_dir / src_file.name)
+            print(f"✅ Reset all data files to defaults")
+    
+    def load_data_file(self, filename: str) -> Dict[str, Any]:
+        """Load data file with fallback to package defaults
+        
+        Priority:
+        1. User's custom file (if exists)
+        2. Package default file
+        3. Empty dict if nothing found
+        """
+        # Сначала проверяем пользовательский файл
+        user_file = self.user_data_dir / filename
+        if user_file.exists():
+            try:
+                return self._load_file(user_file)
+            except Exception as e:
+                print(f"⚠️  Error loading user file {user_file}: {e}")
+                print(f"   Falling back to package defaults")
+        
+        # Fallback на встроенный файл
+        package_file = self.package_data_dir / filename
+        if package_file.exists():
+            try:
+                return self._load_file(package_file)
+            except Exception as e:
+                print(f"⚠️  Error loading package file {package_file}: {e}")
+        
+        # Если ничего не найдено
+        print(f"⚠️  Data file not found: {filename}")
+        return {}
+    
+    def _load_file(self, filepath: Path) -> Dict[str, Any]:
+        """Load JSON or YAML file"""
+        with open(filepath, 'r', encoding='utf-8') as f:
+            if filepath.suffix == '.json':
+                return json.load(f)
+            elif filepath.suffix in ['.yaml', '.yml']:
+                return yaml.safe_load(f)
+            else:
+                raise ValueError(f"Unsupported file type: {filepath.suffix}")
+    
+    def save_user_data(self, filename: str, data: Dict[str, Any]):
+        """Save custom data to user directory"""
+        user_file = self.user_data_dir / filename
+        
+        with open(user_file, 'w', encoding='utf-8') as f:
+            if filename.endswith('.json'):
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            elif filename.endswith(('.yaml', '.yml')):
+                yaml.safe_dump(data, f, allow_unicode=True, default_flow_style=False)
+        
+        print(f"💾 Saved custom data to: {user_file}")
+    
+    def get_data_info(self) -> Dict[str, Any]:
+        """Get information about data files locations"""
+        return {
+            'package_data_dir': str(self.package_data_dir),
+            'user_data_dir': str(self.user_data_dir),
+            'user_files': [f.name for f in self.user_data_dir.glob("*")],
+            'package_files': [f.name for f in self.package_data_dir.glob("*")],
+        }
+
+
+# Global instance
+_data_manager = None
+
+def get_data_manager() -> DataManager:
+    """Get or create global DataManager instance"""
+    global _data_manager
+    if _data_manager is None:
+        _data_manager = DataManager()
+    return _data_manager
+
+
+# Convenience functions
+def load_mappings() -> Dict[str, Any]:
+    """Load unified mappings with user overrides"""
+    dm = get_data_manager()
+    return dm.load_data_file("unified-mappings.yaml")
+
+
+def load_discrete_labels() -> Dict[str, Any]:
+    """Load discrete axis labels with user overrides"""
+    dm = get_data_manager()
+    return dm.load_data_file("discrete-axis-labels.yaml")
+
+
+def load_stylenames() -> Dict[str, Any]:
+    """Load stylenames with user overrides"""
+    dm = get_data_manager()
+    return dm.load_data_file("stylenames.json")
