@@ -61,10 +61,10 @@ class DSSWriter:
 
         # Masters section
         if dss_doc.masters:
-            # Add masters keyword with axis order comment
+            # Add masters keyword with explicit axis order
             if dss_doc.axes:
-                axis_names = [axis.name for axis in dss_doc.axes]
-                lines.append(f"masters # Axis order: [{', '.join(axis_names)}]")
+                axis_tags = [self._get_axis_tag(axis.name) for axis in dss_doc.axes]
+                lines.append(f"masters [{', '.join(axis_tags)}]")
             else:
                 lines.append("masters")
 
@@ -360,3 +360,26 @@ class DSSWriter:
             coords.append(str(int(value) if value.is_integer() else value))
 
         return f"    {instance.stylename} [{', '.join(coords)}]"
+    
+    def _get_axis_tag(self, axis_name: str) -> str:
+        """Convert axis name to standard tag format, supporting both short and long forms"""
+        # Standard axis mappings
+        axis_mappings = {
+            'weight': 'wght',
+            'width': 'wdth', 
+            'italic': 'ital',
+            'slant': 'slnt',
+            'optical': 'opsz',
+            'opticalsize': 'opsz',
+        }
+        
+        # Convert to lowercase for lookup
+        lower_name = axis_name.lower()
+        
+        # For standard axes, return the mapped tag
+        if lower_name in axis_mappings:
+            return axis_mappings[lower_name]
+        
+        # For custom axes, match the display name format (uppercase)
+        # This ensures consistency with _get_axis_display_name output
+        return self._get_axis_display_name(axis_name, "")

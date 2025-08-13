@@ -30,6 +30,7 @@ class DSSParser:
         self.document = DSSDocument(family="")
         self.current_section = None
         self.current_axis = None
+        self.master_axis_order = None  # Explicit axis order from masters section
         self.discrete_labels = self._load_discrete_labels()
         # Note: Rule names now handled via @name syntax instead of comments
 
@@ -111,6 +112,12 @@ class DSSParser:
 
         elif line == "masters" or line.startswith("masters "):
             self.current_section = "masters"
+            # Parse explicit axis order if present: masters [wght, ital]
+            if "[" in line and "]" in line:
+                axis_order_str = line[line.index("[") + 1 : line.index("]")]
+                axis_tags = [tag.strip() for tag in axis_order_str.split(",")]
+                # Convert tags to full axis names
+                self.master_axis_order = [self._tag_to_axis_name(tag) for tag in axis_tags]
 
         elif line == "instances" or line.startswith("instances "):
             self.current_section = "instances"
@@ -318,11 +325,22 @@ class DSSParser:
             name = parts[0]
             coords = [float(x) for x in parts[1:] if x.replace(".", "").replace("-", "").isdigit()]
 
-        # Create location dict
+        # Create location dict using explicit axis order if available
         location = {}
-        for i, axis in enumerate(self.document.axes):
-            if i < len(coords):
-                location[axis.name] = coords[i]
+        if self.master_axis_order:
+            # Use explicit axis order from masters section
+            for i, axis_name in enumerate(self.master_axis_order):
+                if i < len(coords):
+                    # Find the matching axis in document.axes to get the full axis object
+                    for axis in self.document.axes:
+                        if axis.name == axis_name:
+                            location[axis.name] = coords[i]
+                            break
+        else:
+            # Fallback to document.axes order (backward compatibility)
+            for i, axis in enumerate(self.document.axes):
+                if i < len(coords):
+                    location[axis.name] = coords[i]
 
         # Determine filename and name
         if "/" in name:
@@ -389,6 +407,45 @@ class DSSParser:
                     conditions.append({"axis": axis, "minimum": value, "maximum": value})
 
         return conditions
+    
+    def _tag_to_axis_name(self, tag: str) -> str:
+        """Convert axis tag to actual axis name, matching existing axes in document"""
+        # Standard tag mappings (reverse of TAG_TO_NAME)
+        tag_mappings = {
+            'wght': 'weight',
+            'wdth': 'width',
+            'ital': 'italic', 
+            'slnt': 'slant',
+            'opsz': 'optical',
+        }
+        
+        # Convert to lowercase for lookup
+        lower_tag = tag.lower()
+        
+        # First, try to find axis by its tag (most important for custom axes)
+        for axis in self.document.axes:
+            if hasattr(axis, 'tag') and axis.tag and axis.tag.lower() == tag.lower():
+                return axis.name
+        
+        # Second, try to find exact match in existing axes by name
+        for axis in self.document.axes:
+            if axis.name.lower() == lower_tag:
+                return axis.name
+            # Also check if tag matches the actual axis name (case-insensitive)
+            if tag.lower() == axis.name.lower():
+                return axis.name
+        
+        # If it's a standard tag, return the full name
+        if lower_tag in tag_mappings:
+            return tag_mappings[lower_tag]
+        
+        # If it's already a full name, check if it maps back to a standard tag
+        for standard_tag, full_name in tag_mappings.items():
+            if lower_tag == full_name:
+                return full_name
+        
+        # Return original for custom axes
+        return tag
 
     def _parse_rule_line(self, line: str):
         """Parse rule definition line with parentheses syntax: pattern > target (condition) "name" """

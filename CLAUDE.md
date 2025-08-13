@@ -100,6 +100,10 @@ dssketch-data reset --all
   - `PatternMatcher` - Wildcard pattern matching for glyphs
 - `src/dssketch/utils/discrete.py`:
   - `DiscreteAxisHandler` - Manages discrete axis detection and labels
+- `src/dssketch/core/instances.py`:
+  - `createInstances` - Automatic instance generation from axis combinations
+  - `sortAxisOrder` - Standard axis ordering for instances
+  - `getElidabledNames` - Generates elidable style name variations
 - `src/dssketch/config.py`:
   - `DataManager` - Handles user data file overrides and customization
 
@@ -140,13 +144,13 @@ axes
         Upright    # simplified format (no > 0.0 needed)
         Italic     # simplified format (no > 1.0 needed)
 
-masters
+masters [wght, ital]  # explicit axis order for coordinates
     # If path is set, just filename needed:
     MasterName [362, 0] @base  # [coordinates] @flags
     
     # Or individual paths per master:
-    # upright/Light [100]
-    # italic/Bold [900]
+    # upright/Light [100, 0]
+    # italic/Bold [900, 1]
     
 rules
     dollar > dollar.rvrn (weight >= 480) "dollar alternates"
@@ -206,6 +210,23 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Shows warnings for missing target glyphs but continues conversion
 - Uses UFOGlyphExtractor to safely read glyph lists from sources
 
+**Explicit Axis Order (New Feature):**
+- Masters section now supports explicit axis order: `masters [wght, ital]`
+- Decouples coordinate interpretation from axes section order
+- Supports both short tags (`wght`, `ital`) and long names (`weight`, `italic`)
+- Allows users to reorder axes in axes section without breaking master coordinates
+- Backward compatible: `masters` without brackets continues to work with axes order
+- Example: axes can be `ital`, `wght` but coordinates follow `masters [wght, ital]` order
+
+**Automatic Instance Generation (`instances auto`):**
+- Uses sophisticated `instances.py` module for generating all meaningful instance combinations
+- Creates instances from all axis mapping combinations automatically
+- Handles elidable style names (removes redundant parts like "Regular" from "Regular Italic" → "Italic")
+- Follows standard axis ordering: Optical → Contrast → Width → Weight → Italic → Slant
+- Supports filtering and skipping unwanted combinations
+- Generates proper PostScript names and file paths
+- Integration: `dss_to_designspace.py:67` calls `createInstances()` when `instances_auto=True`
+
 ## Important Implementation Details
 
 ### Implementation Notes for Rules
@@ -220,6 +241,49 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Changed condition from `if ' ' in from_part and ('*' in from_part...)` 
 - To: `if '*' in from_part or (' ' in from_part...)`
 - This ensures patterns like `A*` are properly recognized as wildcards
+
+### Implementation Notes for Explicit Axis Order
+
+**Code Location:**
+- Writer axis order output: `src/dssketch/writers/dss_writer.py:66` (_get_axis_tag method)
+- Parser axis order parsing: `src/dssketch/parsers/dss_parser.py:115` (masters section parsing)
+- Coordinate parsing with axis order: `src/dssketch/parsers/dss_parser.py:330` (_parse_master_line)
+
+**Key Implementation Details:**
+- `DSSWriter._get_axis_tag()` converts axis names to standard tags for output
+- `DSSParser.master_axis_order` stores explicit axis order when `masters [tags]` format is used
+- `DSSParser._tag_to_axis_name()` converts tags back to full axis names
+- Master coordinate parsing uses explicit order when available, falls back to axes order
+- Supports mapping between short tags (`wght`) and long names (`weight`)
+- Full backward compatibility maintained for legacy `masters` format
+
+### Implementation Notes for Automatic Instance Generation
+
+**Code Location:**
+- Core instance logic: `src/dssketch/core/instances.py` (full module)
+- Integration point: `src/dssketch/converters/dss_to_designspace.py:67` (createInstances call)
+- DSS parsing: `src/dssketch/parsers/dss_parser.py:486` (_generate_auto_instances fallback)
+
+**Key Functions:**
+- `createInstances(dssource, defaultFolder, skipFilter, filter)` - Main function for generating all combinations
+- `sortAxisOrder(ds)` - Orders axes according to `DEFAULT_AXIS_ORDER` standard
+- `getElidabledNames(ds, axisOrder, ignoreAxis)` - Finds elidable labels for style name cleanup
+- `getInstancesMapping(ds, axisName)` - Extracts axis value mappings from DesignSpace
+- `createInstance(location, familyName, styleName, defaultFolder)` - Creates single instance descriptor
+
+**Algorithm:**
+1. Copy DesignSpace without instances
+2. Sort axes in standard order (Optical → Contrast → Width → Weight → Italic → Slant)
+3. Extract all axis label combinations using `itertools.product()`
+4. Apply skip filters for unwanted combinations
+5. Generate elidable names to clean up style names (e.g., "Regular Italic" → "Italic")
+6. Create instance descriptors with proper locations and names
+7. Return enhanced DesignSpace with all generated instances
+
+**Constants:**
+- `DEFAULT_AXIS_ORDER` - Standard axis ordering for consistent instance generation
+- `ELIDABLE_MAJOR_AXIS = "weight"` - Primary axis that should not be elidable
+- `DEFAULT_INSTANCE_FOLDER = "instances"` - Default output folder for generated instances
 
 ### Data Files
 

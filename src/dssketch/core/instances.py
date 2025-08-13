@@ -164,7 +164,15 @@ def createInstances(
     elidableStyleNames = getElidabledNames(ds, axisOrder, ignoreAxis=["weight"])
 
     defaultSource = ds.findDefault()
-    defaultFamilyName = defaultSource.familyName
+    if not defaultSource and ds.sources:
+        # If no default source is found, use the first source
+        defaultSource = ds.sources[0]
+
+    if defaultSource:
+        defaultFamilyName = defaultSource.familyName
+    else:
+        # Fallback to document family name if no sources
+        defaultFamilyName = "UnknownFamily"
     locations = {}
     labelsmap = []
     report = []
