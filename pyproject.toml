@@ -101,7 +101,7 @@ extend-exclude = '''
 [tool.ruff]
 line-length = 100
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "PT", "SIM", "PD"]
-ignore = ["E501", "B008", "B905"]
+ignore = ["E501", "B008", "B905", "N801", "N802", "N803", "N804", "N805", "N806", "N807", "N812", "N813", "N814", "N815", "N816", "N817", "N818"]
 target-version = "py38"
 
 [tool.ruff.per-file-ignores]

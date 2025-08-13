@@ -121,7 +121,7 @@ class DSSParser:
         elif line == 'instances' or line.startswith('instances '):
             self.current_section = 'instances'
             if 'auto' in line:
-                self._generate_auto_instances()
+                self.document.instances_auto = True
 
         elif line.startswith('rules'):
             self.current_section = 'rules'

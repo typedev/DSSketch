@@ -36,6 +36,9 @@ from ..core.validation import UFOGlyphExtractor
 # Import utility classes
 from ..utils.patterns import PatternMatcher
 
+# Import instances module
+from ..core.instances import createInstances
+
 
 class DSSToDesignSpace:
     """Convert DSS to DesignSpace format"""
@@ -59,9 +62,21 @@ class DSSToDesignSpace:
             doc.addSource(source)
 
         # Convert instances
-        for dss_instance in dss_doc.instances:
-            instance = self._convert_instance(dss_instance, dss_doc)
-            doc.addInstance(instance)
+        if dss_doc.instances_auto:
+            # Use sophisticated instance generation from instances module
+            enhanced_doc, _ = createInstances(
+                doc,
+                defaultFolder='instances',
+                skipFilter={},
+                filter={}
+            )
+            # Copy the generated instances back to our document
+            doc.instances = enhanced_doc.instances
+        else:
+            # Use explicit instances from DSS document
+            for dss_instance in dss_doc.instances:
+                instance = self._convert_instance(dss_instance, dss_doc)
+                doc.addInstance(instance)
 
         # Convert rules
         for dss_rule in dss_doc.rules:
