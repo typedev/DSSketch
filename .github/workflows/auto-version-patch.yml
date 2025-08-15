@@ -2,7 +2,7 @@ name: Auto Version Increment (Patch)
 
 on:
   push:
-    branches: [main]
+    branches: ['**']  # Trigger on push to ANY branch
     paths-ignore:
       - '.bumpversion.cfg'
       - '.github/**'
@@ -35,11 +35,23 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
 
+    - name: Check if main branch - sync first
+      if: github.ref_name == 'main'
+      run: |
+        git pull origin main
+
     - name: Bump patch version
       run: |
         bump2version patch --verbose
 
-    - name: Push changes
+    - name: Push changes to current branch
       run: |
-        git push
+        git push origin ${{ github.ref_name }}
+        
+    - name: Create and push tag only from main branch
+      if: github.ref_name == 'main'
+      run: |
+        # Extract new version from updated config
+        NEW_VERSION=$(grep "current_version" .bumpversion.cfg | cut -d' ' -f3)
+        git tag "v${NEW_VERSION}" -m "Bump version: ${NEW_VERSION}"
         git push --tags
