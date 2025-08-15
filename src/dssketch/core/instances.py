@@ -123,7 +123,7 @@ def getInstancesMapping(designSpaceDocument: DesignSpaceDocument, axisName="weig
 
         reverseMap[axisvalue] = uservalue
     # logger.warning(f'reverseMap: {reverseMap}')
-    return dict(reverseMap=reverseMap, axisLabels=axisLabelsList)
+    return {"reverseMap": reverseMap, "axisLabels": axisLabelsList}
 
 
 def createInstance(location: dict, familyName: str, styleName: str, defaultFolder="instances"):
@@ -147,7 +147,7 @@ def createInstances(
     dss_doc: "DSSDocument" = None,
     defaultFolder="instances",
     skipFilter: dict = {},
-    filter: dict = {},
+    # filter: dict = {},
 ):
     """
     Creates all possible instance combinations from the designspace with given axis order.
@@ -175,11 +175,8 @@ def createInstances(
         # If no default source is found, use the first source
         defaultSource = ds.sources[0]
 
-    if defaultSource:
-        defaultFamilyName = defaultSource.familyName
-    else:
-        # Fallback to document family name if no sources
-        defaultFamilyName = "UnknownFamily"
+    # Fallback to document family name if no sources
+    defaultFamilyName = defaultSource.familyName if defaultSource else "UnknownFamily"
     locations = {}
     labelsmap = []
     report = []
@@ -201,9 +198,8 @@ def createInstances(
         itemlist = list(item.items())
 
         styleNameInstance = " ".join([name for name, _ in itemlist])
-        if skippedInstances:
-            if styleNameInstance in skippedInstances:
-                continue
+        if skippedInstances and styleNameInstance in skippedInstances:
+            continue
         if elidableStyleNames:
             for removeStyleName in elidableStyleNames:
                 if removeStyleName in styleNameInstance:
@@ -226,7 +222,7 @@ def createInstances(
                 for axisLabel in axisDescriptor.axisLabels:
                     mapAxis[axisLabel.userValue] = axisLabel.userValue
             locationsInstance[axisName] = mapAxis[uservalue]
-        report.append(dict(styleName=styleNameInstance, location=locationsInstance))
+        report.append({"styleName": styleNameInstance, "location": locationsInstance})
 
         ds.addInstance(
             createInstance(
