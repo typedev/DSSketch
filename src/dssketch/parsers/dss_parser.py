@@ -372,8 +372,8 @@ class DSSParser:
         cond_parts = [part.strip() for part in condition_str.split("&&")]
 
         for cond_part in cond_parts:
-            # Try range condition first: "400 <= weight <= 700"
-            range_match = re.search(r"([\d.]+)\s*<=\s*(\w+)\s*<=\s*([\d.]+)", cond_part)
+            # Try range condition first: "400 <= weight <= 700" or "-100 <= weight <= 200"
+            range_match = re.search(r"([-\d.]+)\s*<=\s*(\w+)\s*<=\s*([-\d.]+)", cond_part)
             if range_match:
                 min_val = float(range_match.group(1))
                 axis = range_match.group(2)
@@ -381,26 +381,36 @@ class DSSParser:
                 conditions.append({"axis": axis, "minimum": min_val, "maximum": max_val})
                 continue
 
-            # Standard conditions: "weight >= 480", "weight <= 400", "weight == 500"
-            std_match = re.search(r"(\w+)\s*(>=|<=|==)\s*([\d.]+)", cond_part)
+            # Standard conditions: "weight >= 480", "weight <= 400", "weight == 500", "weight >= -200"
+            std_match = re.search(r"(\w+)\s*(>=|<=|==)\s*([-\d.]+)", cond_part)
             if std_match:
                 axis = std_match.group(1)
                 operator = std_match.group(2)
                 value = float(std_match.group(3))
+
+                # Find axis bounds from document axes (design space)
+                axis_min = -1000  # Default very low minimum
+                axis_max = 1000   # Default very high maximum
+                
+                for doc_axis in self.document.axes:
+                    if doc_axis.name == axis or doc_axis.tag == axis:
+                        # Get design space bounds from mappings, not user space bounds
+                        axis_min, axis_max = self._get_design_space_bounds(doc_axis)
+                        break
 
                 if operator == ">=":
                     conditions.append(
                         {
                             "axis": axis,
                             "minimum": value,
-                            "maximum": 1000,  # Default high maximum
+                            "maximum": axis_max,
                         }
                     )
                 elif operator == "<=":
                     conditions.append(
                         {
                             "axis": axis,
-                            "minimum": 0,  # Default low minimum
+                            "minimum": axis_min,
                             "maximum": value,
                         }
                     )
@@ -408,6 +418,16 @@ class DSSParser:
                     conditions.append({"axis": axis, "minimum": value, "maximum": value})
 
         return conditions
+
+    def _get_design_space_bounds(self, axis: DSSAxis) -> tuple[float, float]:
+        """Get design space bounds for axis from mappings"""
+        if not axis.mappings:
+            # No mappings, use user space bounds as fallback
+            return axis.minimum, axis.maximum
+        
+        # Extract design space values from all mappings
+        design_values = [mapping.design_value for mapping in axis.mappings]
+        return min(design_values), max(design_values)
 
     def _tag_to_axis_name(self, tag: str) -> str:
         """Convert axis tag to actual axis name, matching existing axes in document"""

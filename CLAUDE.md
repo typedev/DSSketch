@@ -301,10 +301,13 @@ masters [wght, ital]  # explicit axis order for coordinates
     # italic/Bold [900, 1]
 
 rules
-    dollar > dollar.rvrn (weight >= 480) "dollar alternates"
+    dollar > dollar.rvrn (weight >= 480) "dollar alternates"  # 480 = design space coordinate
     cent* > .rvrn (weight >= 480) "cent patterns"  # wildcard patterns
-    A* > .alt (weight <= 500)  # all glyphs starting with A
+    A* > .alt (weight <= 500)  # all glyphs starting with A  
     * > .rvrn (weight >= 600)  # all glyphs that have .rvrn variants
+    # Negative design space coordinates supported:
+    thin* > .ultra (weight >= -100)  # negative design space value
+    slanted* > .back (slnt <= -15)  # negative slant coordinate
 
 instances auto  # instances follow axes section order
 ```
@@ -336,11 +339,14 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Skips invalid substitutions with warnings
 - Prevents broken DesignSpace rules
 
-**Rule Conditions:**
-- Simple: `(weight >= 480)`
-- Compound: `(weight >= 600 && width >= 110)`
-- Exact: `(weight == 500)`
-- Range: `(80 <= width <= 120)`
+**Rule Conditions (Design Space Coordinates):**
+- **IMPORTANT**: Rule conditions always use **design space coordinates**, not user space
+- Simple: `(weight >= 480)` - 480 is design space value, not user space
+- Compound: `(weight >= 600 && width >= 110)` - both values are design space
+- Exact: `(weight == 500)` - exact design space coordinate
+- Range: `(80 <= width <= 120)` - design space range
+- **Negative values supported**: `(weight >= -100)`, `(slnt <= -15)`
+- **Bounds validation**: Conditions must be within axis design space min/max limits
 
 **Optimization:**
 - Auto-compresses multiple similar rules into wildcard patterns
@@ -390,6 +396,15 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Changed condition from `if ' ' in from_part and ('*' in from_part...)`
 - To: `if '*' in from_part or (' ' in from_part...)`
 - This ensures patterns like `A*` are properly recognized as wildcards
+
+**Critical Fix for Rule Conditions (Design Space Coordinates):**
+- **Issue**: Rule condition bounds used user space axis bounds instead of design space bounds
+- **Problem**: `weight >= 480` with axis range 50:900 (user) created condition `minimum="480" maximum="900"` (user space max)
+- **Fix**: Added `_get_design_space_bounds()` method in `dss_parser.py:422-430`
+- **Solution**: Extract min/max from all `mapping.design_value` instead of `axis.minimum/maximum`
+- **Result**: Now correctly uses design space bounds: `minimum="480" maximum="1000"` (design space max)
+- **Code Location**: `src/dssketch/parsers/dss_parser.py:391-399` (condition parsing with design space bounds)
+- **Negative Values**: Fully supported in both rule conditions and axis bounds validation
 
 ### Implementation Notes for Explicit Axis Order
 

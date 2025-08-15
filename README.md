@@ -54,9 +54,9 @@ family MyFont
 axes
     wght 100:400:900
         Light > 100
-        Regular > 400
+        Regular > 400 @elidable
         Bold > 900
-masters
+masters [wght]
     Light.ufo [100]
     Regular.ufo [400] @base
     Bold.ufo [900]
@@ -95,7 +95,7 @@ axes
         Upright @elidable
         Italic
 
-masters
+masters [wght, ital]
     Hairline        [0, 0]
     Regular         [362, 0] @base
     Black           [1000, 0]

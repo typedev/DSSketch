@@ -12,7 +12,7 @@ class ConditionHandler:
     """Centralized handling of rule conditions"""
 
     @staticmethod
-    def parse(condition_str: str) -> List[Dict[str, Any]]:
+    def parse(condition_str: str, axis_ranges: Dict[str, Dict[str, float]] = None) -> List[Dict[str, Any]]:
         """Parse condition string into structured format
 
         Supports:
@@ -23,6 +23,7 @@ class ConditionHandler:
 
         Args:
             condition_str: Condition string to parse
+            axis_ranges: Optional dict of axis ranges {axis: {'minimum': min, 'maximum': max}}
 
         Returns:
             List of condition dictionaries with axis, minimum, maximum
@@ -35,8 +36,8 @@ class ConditionHandler:
         cond_parts = [part.strip() for part in condition_str.split('&&')]
 
         for cond_part in cond_parts:
-            # Try range condition first: "400 <= weight <= 700"
-            range_match = re.search(r'([\d.]+)\s*<=\s*(\w+)\s*<=\s*([\d.]+)', cond_part)
+            # Try range condition first: "400 <= weight <= 700" or "-100 <= weight <= 200"
+            range_match = re.search(r'([-\d.]+)\s*<=\s*(\w+)\s*<=\s*([-\d.]+)', cond_part)
             if range_match:
                 min_val = float(range_match.group(1))
                 axis = range_match.group(2)
@@ -48,23 +49,30 @@ class ConditionHandler:
                 })
                 continue
 
-            # Standard conditions: "weight >= 480", "weight <= 400", "weight == 500"
-            std_match = re.search(r'(\w+)\s*(>=|<=|==)\s*([\d.]+)', cond_part)
+            # Standard conditions: "weight >= 480", "weight <= 400", "weight == 500", "weight >= -200"
+            std_match = re.search(r'(\w+)\s*(>=|<=|==)\s*([-\d.]+)', cond_part)
             if std_match:
                 axis = std_match.group(1)
                 operator = std_match.group(2)
                 value = float(std_match.group(3))
 
+                # Get axis range bounds if available
+                axis_min = -1000  # Default very low minimum
+                axis_max = 1000   # Default very high maximum
+                if axis_ranges and axis in axis_ranges:
+                    axis_min = axis_ranges[axis].get('minimum', axis_min)
+                    axis_max = axis_ranges[axis].get('maximum', axis_max)
+
                 if operator == '>=':
                     conditions.append({
                         'axis': axis,
                         'minimum': value,
-                        'maximum': 1000  # Default high maximum
+                        'maximum': axis_max
                     })
                 elif operator == '<=':
                     conditions.append({
                         'axis': axis,
-                        'minimum': 0,  # Default low minimum
+                        'minimum': axis_min,
                         'maximum': value
                     })
                 elif operator == '==':
