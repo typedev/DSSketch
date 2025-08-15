@@ -147,7 +147,7 @@ def createInstances(
     dss_doc: "DSSDocument" = None,
     defaultFolder="instances",
     skipFilter: dict = {},
-    # filter: dict = {},
+    filterInstances: dict = {},
 ):
     """
     Creates all possible instance combinations from the designspace with given axis order.

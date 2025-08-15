@@ -86,12 +86,14 @@ axes
         Hairline > 0
         Thin > 68
         Light > 196
-        Regular > 362
+        Regular > 362 @elidable
         Medium > 477
         Bold > 732
         Black > 1000
 
-    ital binary
+    ital discrete
+        Upright @elidable
+        Italic
 
 masters
     Hairline        [0, 0]
@@ -102,8 +104,8 @@ masters
     BlackItalic     [1000, 1]
 
 rules
-    dollar > dollar.rvrn @ weight >= 480
-    cent > cent.rvrn @ weight >= 480
+    dollar cent > .rvrn @ weight >= 480
+    * > .alt @ weight >= 600
 
 instances auto
 ```
