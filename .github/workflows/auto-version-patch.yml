@@ -2,7 +2,8 @@ name: Auto Version Increment (Patch)
 
 on:
   push:
-    branches: ['**']  # Trigger on push to ANY branch
+    branches-ignore:
+      - 'dependabot/**'
     paths-ignore:
       - '.bumpversion.cfg'
       - '.github/**'
@@ -16,7 +17,7 @@ permissions:
 jobs:
   bump-patch:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'Bump version:')"
+    if: ${{ !contains(github.event.head_commit.message, 'Bump version:') }}
     
     steps:
     - name: Checkout code
