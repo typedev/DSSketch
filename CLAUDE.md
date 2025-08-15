@@ -31,6 +31,25 @@ python dssketch_cli.py input.designspace -o output.dssketch
 # Import as package:
 from dssketch import DSSParser, DSSWriter
 from dssketch.converters import DesignSpaceToDSS, DSSToDesignSpace
+
+# High-level API functions (recommended):
+import dssketch
+from fontTools.designspaceLib import DesignSpaceDocument
+
+# Convert DesignSpace object to DSSketch file
+ds = DesignSpaceDocument()
+ds.read("font.designspace")
+dssketch.convert_to_dss(ds, "font.dssketch")
+
+# Convert DSSketch file to DesignSpace object
+ds = dssketch.convert_to_designspace("font.dssketch")
+
+# Convert DSSketch string to DesignSpace object
+dss_content = "family MyFont\naxes\n..."
+ds = dssketch.convert_dss_string_to_designspace(dss_content, base_path="./")
+
+# Convert DesignSpace object to DSSketch string
+dss_string = dssketch.convert_designspace_to_dss_string(ds)
 ```
 
 ### Development setup
@@ -67,6 +86,135 @@ dssketch-data edit
 dssketch-data reset --file unified-mappings.yaml
 dssketch-data reset --all
 ```
+
+## API Integration
+
+DSSketch provides a high-level Python API for easy integration into other projects and applications. The API functions work with DesignSpace objects and DSSketch file paths, making it simple to incorporate DSSketch conversion into existing font development workflows.
+
+### Core API Functions
+
+```python
+import dssketch
+from fontTools.designspaceLib import DesignSpaceDocument
+
+# Convert DesignSpace object to DSSketch file
+dssketch.convert_to_dss(designspace: DesignSpaceDocument, dss_path: str, optimize: bool = True) -> str
+
+# Convert DSSketch file to DesignSpace object  
+dssketch.convert_to_designspace(dss_path: str) -> DesignSpaceDocument
+
+# Convert DSSketch string to DesignSpace object
+dssketch.convert_dss_string_to_designspace(dss_content: str, base_path: str = None) -> DesignSpaceDocument
+
+# Convert DesignSpace object to DSSketch string
+dssketch.convert_designspace_to_dss_string(designspace: DesignSpaceDocument, optimize: bool = True) -> str
+```
+
+### Integration Examples
+
+**Basic conversion workflow:**
+```python
+import dssketch
+from fontTools.designspaceLib import DesignSpaceDocument
+
+# Load existing DesignSpace
+ds = DesignSpaceDocument()
+ds.read("MyFont.designspace")
+
+# Convert to compact DSSketch format
+dssketch.convert_to_dss(ds, "MyFont.dssketch")
+
+# Later, load back as DesignSpace object
+ds_loaded = dssketch.convert_to_designspace("MyFont.dssketch") 
+
+# Use the loaded DesignSpace
+print(f"Family: {ds_loaded.default.familyName}")
+print(f"Axes: {[axis.name for axis in ds_loaded.axes]}")
+```
+
+**Working with DSSketch content strings:**
+```python
+import dssketch
+
+# Create DSSketch content programmatically
+dss_content = """
+family MyVariableFont
+axes
+    wght 100:400:900
+        Light > 100
+        Regular > 400
+        Bold > 900
+masters
+    MyFont-Light.ufo [100]
+    MyFont-Regular.ufo [400] @base
+    MyFont-Bold.ufo [900]
+"""
+
+# Convert to DesignSpace object
+ds = dssketch.convert_dss_string_to_designspace(dss_content, base_path="./masters")
+
+# Save as traditional DesignSpace file
+ds.write("MyVariableFont.designspace")
+```
+
+**Integrating with build tools:**
+```python
+import dssketch
+from fontTools.designspaceLib import DesignSpaceDocument
+
+def optimize_designspace_workflow(source_path: str, output_dir: str):
+    """Optimize a DesignSpace by converting through DSSketch format"""
+    
+    # Load original DesignSpace
+    ds = DesignSpaceDocument()
+    ds.read(source_path)
+    
+    # Convert to optimized DSSketch string (84-97% smaller)
+    dss_string = dssketch.convert_designspace_to_dss_string(ds, optimize=True)
+    
+    # Save the compact version
+    with open(f"{output_dir}/optimized.dssketch", "w") as f:
+        f.write(dss_string)
+    
+    # Convert back to DesignSpace with all optimizations applied
+    ds_optimized = dssketch.convert_dss_string_to_designspace(dss_string)
+    ds_optimized.write(f"{output_dir}/optimized.designspace")
+    
+    return len(dss_string)  # Return compressed size for metrics
+```
+
+### Error Handling
+
+The API functions include proper error handling for common issues:
+
+```python
+import dssketch
+from pathlib import Path
+
+try:
+    # Convert DSSketch file
+    ds = dssketch.convert_to_designspace("font.dssketch")
+    print(f"Conversion successful: {len(ds.axes)} axes, {len(ds.sources)} masters")
+    
+except FileNotFoundError:
+    print("DSSketch file not found")
+    
+except ValueError as e:
+    print(f"Invalid DSSketch format: {e}")
+    
+except Exception as e:
+    print(f"Conversion error: {e}")
+```
+
+### Performance Benefits
+
+When integrating DSSketch API into your workflow:
+
+- **Storage**: 84-97% size reduction compared to DesignSpace XML
+- **Parsing**: Faster parsing due to simpler format structure  
+- **Human-readable**: Easy to generate DSSketch content programmatically
+- **Version control**: Much better diffs due to compact, structured format
+- **Validation**: Built-in UFO validation and glyph extraction
 
 ## Architecture & Core Concepts
 

@@ -16,6 +16,8 @@ DSSketch предоставляет простой, интуитивно пон�
 
 ## Использование
 
+### Командная строка
+
 ```bash
 # DesignSpace → DSSketch (с автоматической валидацией UFO)
 python dssketch_cli.py font.designspace
@@ -29,6 +31,50 @@ python dssketch_cli.py input.designspace -o output.dssketch
 # Обратная совместимость (старый способ)
 python dssketch.py font.designspace
 ```
+
+### Python API
+
+DSSketch предоставляет удобный Python API для интеграции в другие проекты:
+
+```python
+import dssketch
+from fontTools.designspaceLib import DesignSpaceDocument
+
+# Загрузить DesignSpace объект и конвертировать в DSSketch файл
+ds = DesignSpaceDocument()
+ds.read("MyFont.designspace")
+dssketch.convert_to_dss(ds, "MyFont.dssketch")
+
+# Конвертировать DSSketch файл в DesignSpace объект
+ds = dssketch.convert_to_designspace("MyFont.dssketch")
+
+# Работа с DSSketch строками (для программной генерации)
+dss_content = """
+family MyFont
+axes
+    wght 100:400:900
+        Light > 100
+        Regular > 400
+        Bold > 900
+masters
+    Light.ufo [100]
+    Regular.ufo [400] @base
+    Bold.ufo [900]
+"""
+
+# Конвертировать DSSketch строку в DesignSpace объект
+ds = dssketch.convert_dss_string_to_designspace(dss_content, base_path="./")
+
+# Конвертировать DesignSpace объект в DSSketch строку
+dss_string = dssketch.convert_designspace_to_dss_string(ds)
+```
+
+**Преимущества API:**
+- Простая интеграция в существующие рабочие процессы
+- Работа с объектами DesignSpace напрямую
+- Программная генерация DSSketch контента
+- Обработка ошибок и валидация
+- 84-97% сокращение размера при конвертации
 
 ## Пример DSSketch формата
 
@@ -100,12 +146,21 @@ Regular > 362  означает:
 
 ## Архитектура
 
+### Основные компоненты
+
 - `DSSParser` - парсер DSS в структурированные данные
 - `DSSWriter` - генератор DSS из структурированных данных  
 - `DesignSpaceToDSS` - конвертер .designspace → DSS
 - `DSSToDesignSpace` - конвертер DSS → .designspace
 - `Standards` - встроенные маппинги весов и ширин
 - `instances` - модуль для управления инстансами шрифтов
+
+### API функции высокого уровня
+
+- `convert_to_dss()` - конвертация DesignSpace объекта в DSSketch файл
+- `convert_to_designspace()` - конвертация DSSketch файла в DesignSpace объект
+- `convert_dss_string_to_designspace()` - конвертация DSSketch строки в DesignSpace объект
+- `convert_designspace_to_dss_string()` - конвертация DesignSpace объекта в DSSketch строку
 
 ### Модуль instances.py
 

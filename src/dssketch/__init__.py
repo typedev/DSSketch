@@ -16,6 +16,14 @@ from .core.validation import UFOValidator, ValidationReport
 from .parsers.dss_parser import DSSParser
 from .writers.dss_writer import DSSWriter
 
+# Import high-level API functions
+from .api import (
+    convert_to_dss,
+    convert_to_designspace,
+    convert_dss_string_to_designspace,
+    convert_designspace_to_dss_string,
+)
+
 # Public API
 __all__ = [
     # Version
@@ -47,7 +55,13 @@ __all__ = [
     # Convenience functions
     'convert_file',
     'parse_dss',
-    'write_dss'
+    'write_dss',
+    
+    # High-level API functions
+    'convert_to_dss',
+    'convert_to_designspace',
+    'convert_dss_string_to_designspace',
+    'convert_designspace_to_dss_string'
 ]
 
 

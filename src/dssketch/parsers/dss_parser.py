@@ -407,26 +407,26 @@ class DSSParser:
                     conditions.append({"axis": axis, "minimum": value, "maximum": value})
 
         return conditions
-    
+
     def _tag_to_axis_name(self, tag: str) -> str:
         """Convert axis tag to actual axis name, matching existing axes in document"""
         # Standard tag mappings (reverse of TAG_TO_NAME)
         tag_mappings = {
-            'wght': 'weight',
-            'wdth': 'width',
-            'ital': 'italic', 
-            'slnt': 'slant',
-            'opsz': 'optical',
+            "wght": "weight",
+            "wdth": "width",
+            "ital": "italic",
+            "slnt": "slant",
+            "opsz": "optical",
         }
-        
+
         # Convert to lowercase for lookup
         lower_tag = tag.lower()
-        
+
         # First, try to find axis by its tag (most important for custom axes)
         for axis in self.document.axes:
-            if hasattr(axis, 'tag') and axis.tag and axis.tag.lower() == tag.lower():
+            if hasattr(axis, "tag") and axis.tag and axis.tag.lower() == tag.lower():
                 return axis.name
-        
+
         # Second, try to find exact match in existing axes by name
         for axis in self.document.axes:
             if axis.name.lower() == lower_tag:
@@ -434,16 +434,16 @@ class DSSParser:
             # Also check if tag matches the actual axis name (case-insensitive)
             if tag.lower() == axis.name.lower():
                 return axis.name
-        
+
         # If it's a standard tag, return the full name
         if lower_tag in tag_mappings:
             return tag_mappings[lower_tag]
-        
+
         # If it's already a full name, check if it maps back to a standard tag
         for standard_tag, full_name in tag_mappings.items():
             if lower_tag == full_name:
                 return full_name
-        
+
         # Return original for custom axes
         return tag
 
