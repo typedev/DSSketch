@@ -46,7 +46,7 @@ jobs:
 
     - name: Bump patch version
       run: |
-        bump2version patch --verbose
+        bump2version patch --verbose --allow-dirty
 
     - name: Push changes to current branch
       run: |

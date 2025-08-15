@@ -35,7 +35,7 @@ jobs:
 
     - name: Bump minor version
       run: |
-        bump2version minor --verbose
+        bump2version minor --verbose --allow-dirty
 
     - name: Push changes
       run: |
