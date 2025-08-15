@@ -37,7 +37,7 @@ def main():
     if not input_path.exists():
         DSSketchLogger.error(f"Input file {input_path} does not exist")
         return 1
-    
+
     # Setup logging for this conversion
     DSSketchLogger.setup_logger(str(input_path))
 
@@ -60,7 +60,7 @@ def main():
                 output_path = input_path.with_suffix(".designspace")
             else:
                 output_path = input_path.with_suffix(".dssketch")
-        
+
         DSSketchLogger.info(f"Converting {input_path.name} to {output_path.name}")
 
         # Convert based on detected format

@@ -35,10 +35,10 @@ from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSMaster, DSSRule
 
 # Import validation components
 from ..core.validation import UFOGlyphExtractor
+from ..utils.logging import DSSketchLogger
 
 # Import utility classes
 from ..utils.patterns import PatternMatcher
-from ..utils.logging import DSSketchLogger
 
 
 class DSSToDesignSpace:
@@ -244,7 +244,9 @@ class DSSToDesignSpace:
 
         # Skip empty rules (no valid substitutions)
         if not rule.subs:
-            DSSketchLogger.warning(f"Skipping rule '{dss_rule.name}' - no valid substitutions found")
+            DSSketchLogger.warning(
+                f"Skipping rule '{dss_rule.name}' - no valid substitutions found"
+            )
             return None
 
         # Add conditions using modern conditionSets format
