@@ -137,8 +137,8 @@ def createInstance(location: dict, familyName: str, styleName: str, defaultFolde
     return instance
 
 
-def combineFilters(filter: dict):
-    values = filter.values()
+def combineFilters(filter_dict: dict):
+    values = filter_dict.values()
     return [" ".join(combination) for combination in itertools.product(*values)]
 
 
@@ -309,7 +309,7 @@ def getElidabledNames(ds: DesignSpaceDocument, axisOrder: list = [], ignoreAxis:
     return elidabledNamesList
 
 
-def removeInstances(ds: DesignSpaceDocument, filter=None):
+def removeInstances(ds: DesignSpaceDocument):
     """
     remove instances from the designspace by the given filter
     """
