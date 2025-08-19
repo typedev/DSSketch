@@ -10,18 +10,63 @@ DSSketch provides a simple, intuitive text format for describing variable fonts,
 
 ### Before: DesignSpace XML (verbose, error-prone)
 ```xml
+<?xml version='1.0' encoding='UTF-8'?>
 <designspace format="5.0">
   <axes>
-    <axis tag="wght" name="Weight" minimum="100" default="400" maximum="900"/>
-    <axis tag="ital" name="Italic" minimum="0" default="0" maximum="1" values="0 1"/>
+    <axis tag="wght" name="weight" minimum="100" maximum="900" default="400">
+      <labelname xml:lang="en">Weight</labelname>
+      <map input="100" output="0"/>
+      <map input="300" output="211"/>
+      <map input="400" output="356"/>
+      <map input="500" output="586"/>
+      <map input="700" output="789"/>
+      <map input="900" output="1000"/>
+      <labels ordering="0">
+        <label uservalue="100" name="Thin"/>
+        <label uservalue="300" name="Light"/>
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="500" name="Medium"/>
+        <label uservalue="700" name="Bold"/>
+        <label uservalue="900" name="Black"/>
+      </labels>
+    </axis>
+    <axis tag="ital" name="italic" values="0 1" default="0">
+      <labelname xml:lang="en">Italic</labelname>
+      <labels ordering="1">
+        <label uservalue="0" name="Upright" elidable="true"/>
+        <label uservalue="1" name="Italic"/>
+      </labels>
+    </axis>
   </axes>
+  <rules>
+    <rule name="heavy alternates">
+      <conditionset>
+        <condition name="weight" minimum="600" maximum="1000"/>
+      </conditionset>
+      <sub name="cent" with="cent.rvrn"/>
+      <sub name="cent.old" with="cent.old.rvrn"/>
+      <sub name="cent.sc" with="cent.sc.rvrn"/>
+      <sub name="cent.tln" with="cent.tln.rvrn"/>
+      <sub name="cent.ton" with="cent.ton.rvrn"/>
+      <sub name="dollar" with="dollar.rvrn"/>
+      <sub name="dollar.old" with="dollar.old.rvrn"/>
+      <sub name="dollar.sc" with="dollar.sc.rvrn"/>
+      <sub name="dollar.tln" with="dollar.tln.rvrn"/>
+      <sub name="dollar.ton" with="dollar.ton.rvrn"/>
+    </rule>
+  </rules>
   <sources>
-    <source filename="masters/Light.ufo" familyname="SuperFont" stylename="Light">
-      <location><dimension name="Weight" xvalue="100"/><dimension name="Italic" xvalue="0"/></location>
+    <source filename="masters/SuperFont-Thin.ufo" familyname="SuperFont" stylename="Thin">
+      <location>
+        <dimension name="Weight" xvalue="0"/>
+        <dimension name="Italic" xvalue="0"/>
+      </location>
     </source>
-    <source filename="masters/Regular.ufo" familyname="SuperFont" stylename="Regular">
-      <location><dimension name="Weight" xvalue="400"/><dimension name="Italic" xvalue="0"/></location>
-      <lib><dict><key>public.skipExportGlyphs</key><array/></dict></lib>
+    <source filename="masters/SuperFont-Regular.ufo" familyname="SuperFont" stylename="Regular">
+      <location>
+        <dimension name="Weight" xvalue="356"/>
+        <dimension name="Italic" xvalue="0"/>
+      </location>
     </source>
     <!-- ... 50+ more lines for simple 2-axis font ... -->
   </sources>
@@ -38,24 +83,26 @@ path masters
 
 axes
     wght 100:400:900
-        Light > 100
-        Regular > 400 @elidable
-        Bold > 900
+        Thin > 0
+        Light > 211
+        Regular > 356 @elidable
+        Medium > 586
+        Bold > 789
+        Black > 1000
     ital discrete
         Upright @elidable
         Italic
 
 masters [wght, ital]
-    Light.ufo [100, 0]
-    Regular.ufo [400, 0] @base
-    Bold.ufo [900, 0]
-    LightItalic.ufo [100, 1]
-    Italic.ufo [400, 1]
-    BoldItalic.ufo [900, 1]
+    SuperFont-Thin [0, 0]
+    SuperFont-Regular [356, 0] @base
+    SuperFont-Black [1000, 0]
+    SuperFont-Thin-Italic [0, 1]
+    SuperFont-Italic [356, 1]
+    SuperFont-Black-Italic [1000, 1]
 
 rules
-    dollar > .rvrn (weight >= 400) "dollar alternates"
-    * > .alt (weight >= 600) "heavy alternates"
+    dollar* cent* > .rvrn (weight >= 600) "heavy alternates"
 
 instances auto
 ```
@@ -110,16 +157,16 @@ rules
 ```dssketch
 # Control instance generation order
 axes
-    ital discrete      # First in names: "Italic Light"
-        Upright
-        Italic
+    wdth 60:100:200    # First in names: "Condensed Light" - "{width} {weight}"
+        Condensed > 350.0
+        Normal > 560.0 @elidable
     wght 100:400:900   # Second in names
         Light > 100
         Bold > 900
 
-masters [wght, ital]   # Coordinates follow this order: [weight, italic]
-    Light.ufo [100, 0]
-    Italic.ufo [400, 1]
+masters [wght, wdth]   # Coordinates follow this order: [weight, width]
+    Light.ufo [100, 350]
+    Regular.ufo [400, 350]
 ```
 
 ### 5. **Robust Error Detection**
