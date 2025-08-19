@@ -169,6 +169,26 @@ masters [wght, wdth]   # Coordinates follow this order: [weight, width]
     Regular.ufo [400, 350]
 ```
 
+#### Custom Axis
+```dssketch
+# Control instance generation order
+axes
+    CONTRAST CNTR 0:0:100 # First in names: "C2 Condensed Light" - "{CNTR} {width} {weight}"
+        0 C0 > 100.0 @elidable
+        50 C1 > 600.0
+        100 C2 > 900.0
+    wdth 60:100:200
+        Condensed > 350.0
+        Normal > 560.0 @elidable
+    wght 100:400:900   # Second in names
+        Light > 100
+        Bold > 900
+
+masters [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width, CONTRAST]
+    Light.ufo [100, 350, 100]
+    Regular.ufo [400, 350, 100]
+```
+
 ### 5. **Robust Error Detection**
 - **Typo detection**: `familly` → "Did you mean 'family'?"
 - **Coordinate validation**: `[abc, def]` → "Invalid coordinate value"
@@ -315,9 +335,9 @@ family AdvancedFont
 axes
     wght 100:400:900
     wdth 60:100:200
-    CONT 0:50:100  # Custom axis (uppercase)
+    CONTRAST CNTR 0:50:100  # Custom axis (uppercase)
 
-masters [wght, wdth, CONT]
+masters [wght, wdth, CONTRAST]
     Light [100, 100, 0] @base
     Bold [900, 100, 100]
 
@@ -330,7 +350,7 @@ rules
 
     # Prefix wildcards (all glyphs starting with pattern)
     A* > .stylistic (weight >= 700)      # A, AE, Aacute, etc.
-    num* > .proportional (CONT >= 50)    # number variants
+    num* > .proportional (CONTRAST >= 50)    # number variants
 
     # Universal wildcard (all glyphs with matching targets)
     * > .rvrn (weight >= 400)            # Only creates rules where .rvrn exists
@@ -341,7 +361,7 @@ rules
 
     # Negative coordinates (supported in design space)
     ultra* > .thin (weight >= -100)
-    back* > .forward (CONT <= -25)
+    back* > .forward (CONTRAST <= -25)
 
 instances auto
 ```
