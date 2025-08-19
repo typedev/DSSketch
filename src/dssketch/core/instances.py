@@ -96,8 +96,9 @@ def getInstancesMapping(designSpaceDocument: DesignSpaceDocument, axisName="weig
 
     axisMap = axisDescriptor.map
     if not axisMap:
+        axis_labels_info = [(label.userValue, label.name) for label in axisDescriptor.axisLabels]
         DSSketchLogger.warning(
-            f"there is no map, use the axis labels and their user values {axisDescriptor.axisLabels}"
+            f"there is no map, use the axis labels and their user values {axis_labels_info}"
         )
         axisMap = []
         for axisLabel in axisDescriptor.axisLabels:

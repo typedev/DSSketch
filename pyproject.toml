@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dssketch"
-version = "1.0.8"
+version = "1.0.11"
 description = "Human-friendly alternative to DesignSpace XML - provides simple, intuitive text format for variable font design with 84-97% size reduction"
 authors = [{name = "Alexander Lubovenko", email = "lubovenko@gmail.com"}]
 readme = "README.md"
@@ -101,7 +101,7 @@ extend-exclude = '''
 [tool.ruff]
 line-length = 100
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "PT", "SIM", "PD"]
-ignore = ["E501", "B008", "B905", "N801", "N802", "N803", "N804", "N805", "N806", "N807", "N812", "N813", "N814", "N815", "N816", "N817", "N818"]
+ignore = ["E501", "B008", "B905", "N801", "N802", "N803", "N804", "N805", "N806", "N807", "N812", "N813", "N814", "N815", "N816", "N817", "N818", "W293"]
 target-version = "py38"
 
 [tool.ruff.per-file-ignores]

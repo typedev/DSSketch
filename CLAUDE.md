@@ -185,12 +185,14 @@ def optimize_designspace_workflow(source_path: str, output_dir: str):
 
 ### Error Handling
 
-The API functions include proper error handling for common issues:
+The API functions include robust error handling and validation:
 
 ```python
 import dssketch
 from pathlib import Path
+from src.dssketch.parsers.dss_parser import DSSParser
 
+# Basic error handling
 try:
     # Convert DSSketch file
     ds = dssketch.convert_to_designspace("font.dssketch")
@@ -204,6 +206,31 @@ except ValueError as e:
 
 except Exception as e:
     print(f"Conversion error: {e}")
+
+# Advanced error handling with validation details
+parser = DSSParser(strict_mode=False)  # Non-strict mode to collect all issues
+try:
+    with open("font.dssketch") as f:
+        content = f.read()
+    
+    result = parser.parse(content)
+    
+    # Check for validation issues
+    if parser.errors:
+        print(f"Found {len(parser.errors)} errors:")
+        for error in parser.errors:
+            print(f"  ERROR: {error}")
+    
+    if parser.warnings:
+        print(f"Found {len(parser.warnings)} warnings:")
+        for warning in parser.warnings:
+            print(f"  WARNING: {warning}")
+    
+    if not parser.errors:
+        print("Parsing successful!")
+        
+except Exception as e:
+    print(f"Parser exception: {e}")
 ```
 
 ### Performance Benefits
@@ -232,7 +259,7 @@ When integrating DSSketch API into your workflow:
 
 **Core Classes (refactored structure):**
 - `src/dssketch/parsers/dss_parser.py`:
-  - `DSSParser` - Parses .dssketch format into structured data
+  - `DSSParser` - Parses .dssketch format into structured data with robust validation
 - `src/dssketch/writers/dss_writer.py`:
   - `DSSWriter` - Generates .dssketch from structured data
 - `src/dssketch/converters/designspace_to_dss.py`:
@@ -242,6 +269,8 @@ When integrating DSSketch API into your workflow:
 - `src/dssketch/core/validation.py`:
   - `UFOValidator` - Validates UFO master files
   - `UFOGlyphExtractor` - Extracts glyph lists from UFO files
+- `src/dssketch/utils/validation.py`:
+  - `DSSketchValidator` - Validation utilities for robust parsing and error detection
 - `src/dssketch/core/mappings.py`:
   - `Standards` - Built-in weight/width mappings
 - `src/dssketch/utils/patterns.py`:
@@ -364,6 +393,20 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Shows warnings for missing target glyphs but continues conversion
 - Uses UFOGlyphExtractor to safely read glyph lists from sources
 
+**Parser Validation & Robustness (New!):**
+- **Critical Structure Validation**: Ensures required sections (axes, masters, base master) are present - **ALWAYS FAILS** if missing
+- **Typo Detection**: Catches common keyword misspellings (`familly` → `"Did you mean 'family'?"`)
+- **Non-ASCII Character Detection**: Catches Unicode typos (`axшes` → `"contains non-ASCII characters"`)
+- **Empty Value Validation**: Detects missing required values (`family ` → `"Family name cannot be empty"`)
+- **Coordinate Validation**: Validates coordinate format and numeric values (`[abc, def]` → `"Invalid coordinate value"`)
+- **Bracket Type Detection**: Warns about wrong bracket types (`(100, 0)` → `"Use [] for coordinates, not ()"`)
+- **Axis Range Validation**: Checks axis range logic (`900:100:400` → `"Range values must be ordered"`)
+- **Rule Syntax Validation**: Validates substitution rule completeness and syntax
+- **Multiple Base Master Detection**: Prevents multiple @base masters which breaks DesignSpace
+- **Two Processing Modes**: Strict mode (fails on errors) vs. non-strict (collects warnings, but **critical errors always fail**)
+- **Whitespace Normalization**: Handles multiple spaces, tabs, and mixed whitespace gracefully
+- **Unicode Support**: Full support for international characters in names and paths (but detects typos with wrong scripts)
+
 **Explicit Axis Order (New Feature):**
 - Masters section now supports explicit axis order: `masters [wght, ital]`
 - Decouples coordinate interpretation from axes section order
@@ -477,6 +520,12 @@ axes
 - `data/font-resources-translations.json` - Localization data
 - `data/discrete-axis-labels.yaml` - Standard labels for discrete axes (ital, slnt)
 
+### Test Files
+
+- `tests/test_parser_validation.py` - Comprehensive parser validation test suite
+- Tests cover: keyword typos, empty values, coordinate validation, bracket detection, axis ranges, rule syntax
+- Run with: `python -m pytest tests/test_parser_validation.py -v`
+
 ### File Extensions
 
 - `.dssketch` or `.dss` - DSSketch format (compact)
@@ -504,3 +553,172 @@ When adding features:
 3. Verify complex rules with compound conditions
 4. Check handling of both standard and custom axes
 5. Validate wildcard expansion with UFO files
+6. Add validation logic to `src/dssketch/utils/validation.py`
+7. Test both strict and non-strict parsing modes
+8. Add test cases to `tests/test_parser_validation.py`
+
+## Parser Validation Framework
+
+### Validation Features
+
+The DSSketch parser includes comprehensive validation to catch common manual editing errors:
+
+**1. Keyword Typo Detection:**
+```python
+# Detects and suggests corrections for typos
+familly SuperFont     # → "Unknown keyword 'familly'. Did you mean 'family'?"
+axess                 # → "Unknown keyword 'axess'. Did you mean 'axes'?"
+mastrs               # → "Unknown keyword 'mastrs'. Did you mean 'masters'?"
+```
+
+**2. Empty Value Validation:**
+```python
+# Catches missing required values
+family               # → "Family name cannot be empty"
+family               # → "Family name cannot be empty" (trailing space)
+```
+
+**3. Coordinate Validation:**
+```python
+# Validates coordinate format and values
+Font-Light [abc, def] # → "Invalid coordinates: Invalid coordinate value: could not convert..."
+Font-Regular []       # → "Invalid coordinates: Empty coordinate values"
+Font-Bold [100, ]     # → "Invalid coordinates: Empty coordinate value"
+```
+
+**4. Bracket Type Detection:**
+```python
+# Warns about incorrect bracket types
+Font-Light (100, 0)   # → "Use [] for coordinates, not ()"
+Font-Regular {400, 0} # → "Use [] for coordinates, not {}"
+```
+
+**5. Axis Range Validation:**
+```python
+# Validates axis range logic and format
+wght 900:100:400      # → "Range values must be ordered: min <= default <= max"
+wdth abc:def:ghi      # → "Non-numeric values in range"
+ital 0:1:2:3          # → "Invalid range format. Expected min:max or min:default:max"
+```
+
+**6. Rule Syntax Validation:**
+```python
+# Validates substitution rule completeness
+dollar > .rvrn (weight >= )    # → "Invalid rule syntax: ..."
+* > (weight >= 400)            # → "Rule missing target pattern"
+dollar .rvrn (weight >= 400)   # → "Rule missing '>' separator"
+```
+
+**7. Critical Structure Validation (Always Fails!):**
+```python
+# Missing axes section
+family SuperFont
+masters
+    Font-Light [100] @base     # → "CRITICAL: No axes found - cannot generate valid DesignSpace"
+
+# Missing masters section  
+family SuperFont
+axes
+    wght 100:400:900           # → "CRITICAL: No masters found - cannot generate valid DesignSpace"
+
+# Missing base master
+masters
+    Font-Light [100]
+    Font-Regular [400]         # → "CRITICAL: No base master found (@base flag missing)"
+
+# Multiple base masters
+masters
+    Font-Light [100] @base
+    Font-Regular [400] @base   # → "CRITICAL: Multiple base masters found (2) - only one allowed"
+    
+# Non-ASCII characters in keywords
+axшes                         # → "Invalid section keyword 'axшes' - contains non-ASCII characters"
+```
+
+### Using the Validation Framework
+
+**Strict Mode (Default):**
+```python
+from src.dssketch.parsers.dss_parser import DSSParser
+
+parser = DSSParser(strict_mode=True)  # Stops on first error
+try:
+    result = parser.parse(content)
+except ValueError as e:
+    print(f"Parsing failed: {e}")
+```
+
+**Non-Strict Mode (Collect All Issues):**
+```python
+parser = DSSParser(strict_mode=False)  # Collects all errors and warnings
+result = parser.parse(content)
+
+# Review all issues
+for error in parser.errors:
+    print(f"ERROR: {error}")
+for warning in parser.warnings:
+    print(f"WARNING: {warning}")
+```
+
+### Validation Test Suite
+
+Run comprehensive validation tests:
+```bash
+# Run parser validation tests
+python -m pytest tests/test_parser_validation.py -v
+
+# Test specific validation features
+python -m pytest tests/test_parser_validation.py::TestParserValidation::test_keyword_typo_detection -v
+```
+
+### Best Practices for Manual Editing
+
+**✅ Recommended Format:**
+```dssketch
+family SuperFont
+path masters
+
+axes
+    wght 100:400:900
+        Light > 100
+        Regular > 400 @elidable
+    ital discrete
+        Upright @elidable
+        Italic
+
+masters [wght, ital]
+    Font-Light [100, 0]
+    Font-Regular [400, 0] @base
+    Font-Italic [400, 1]
+
+rules
+    dollar > .rvrn (weight >= 400) "dollar alternates"
+
+instances auto
+```
+
+**❌ Common Errors to Avoid:**
+```dssketch
+# CRITICAL ERRORS (Always fail, break DesignSpace generation):
+axшes               # → axes (non-ASCII character)
+# Missing axes section completely
+# Missing masters section completely  
+# No @base master defined
+# Multiple @base masters
+
+# Keyword typos
+familly SuperFont    # → family
+axess               # → axes
+
+# Empty values
+family              # → family SuperFont
+
+# Wrong brackets
+Font-Light (100, 0) # → Font-Light [100, 0]
+
+# Invalid ranges
+wght 900:100:400    # → wght 100:400:900
+
+# Incomplete rules
+* > (weight >= 400) # → * > .rvrn (weight >= 400)
+```
