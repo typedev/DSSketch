@@ -165,15 +165,15 @@
     "inputs": [
         {
             "id": "designSpaceFile",
-            "description": "Select DesignSpace file",
-            "type": "pickString",
-            "options": []
+            "description": "Enter path to DesignSpace file",
+            "type": "promptString",
+            "default": "examples/"
         },
         {
             "id": "dssFile",
-            "description": "Select DSS file",
-            "type": "pickString",
-            "options": []
+            "description": "Enter path to DSSketch file",
+            "type": "promptString",
+            "default": "examples/"
         },
         {
             "id": "inputFile",

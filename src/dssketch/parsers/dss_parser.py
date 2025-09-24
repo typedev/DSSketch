@@ -474,7 +474,7 @@ class DSSParser:
             name = Path(name).stem
         else:
             # Simple name without path
-            filename = f"{name}.ufo"
+            filename = name if name.endswith(".ufo") else f"{name}.ufo"
 
         master = DSSMaster(name=name, filename=filename, location=location, is_base=is_base)
 
