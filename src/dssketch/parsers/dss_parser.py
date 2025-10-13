@@ -386,9 +386,15 @@ class DSSParser:
                 if not label:
                     label = Standards.get_name_for_user_value(user, self.current_axis.name)
             else:
-                # Format: "Light" - infer user value
+                # Format: "Light > 295" or "XX > 60" - infer user value
                 label = left
-                user = Standards.get_user_value_for_name(label, self.current_axis.name)
+                # Check if this label exists in standard mappings
+                if Standards.has_mapping(label, self.current_axis.name):
+                    # Use standard mapping for known labels
+                    user = Standards.get_user_value_for_name(label, self.current_axis.name)
+                else:
+                    # For unknown labels, use design_value as user_value
+                    user = design
         else:
             # Simplified format for discrete axes: just "Upright" or "Italic"
             if not is_discrete:
