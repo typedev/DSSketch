@@ -166,13 +166,14 @@ class DSSToDesignSpace:
         # Assign automatic name
         source.name = f"source.{source_index}"
 
-        # Try to read familyName and styleName from UFO file
+        # Always use familyName from DSS document (prioritize DSS over UFO)
+        source.familyName = dss_doc.family
+
+        # Try to read styleName from UFO file, fall back to DSS source name
         ufo_info = self._read_ufo_info(source.filename)
-        if ufo_info:
-            source.familyName = ufo_info.get("familyName", dss_doc.family)
-            source.styleName = ufo_info.get("styleName", dss_source.name)
+        if ufo_info and ufo_info.get("styleName"):
+            source.styleName = ufo_info.get("styleName")
         else:
-            source.familyName = dss_doc.family
             source.styleName = dss_source.name
 
         source.location = dss_source.location.copy()

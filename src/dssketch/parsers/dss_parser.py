@@ -37,6 +37,35 @@ class DSSParser:
         self.validator = DSSValidator(strict_mode=strict_mode)
         # Note: Rule names now handled via @name syntax instead of comments
 
+    @staticmethod
+    def _extract_quoted_or_plain_value(text: str) -> str:
+        """Extract value that may be quoted ("value" or 'value') or plain (value)
+
+        Supports:
+        - Double quotes: "DIN Condensed" -> DIN Condensed
+        - Single quotes: 'DIN Condensed' -> DIN Condensed
+        - No quotes: DIN -> DIN
+        - Strips leading/trailing whitespace from extracted value
+
+        Returns the extracted value.
+        """
+        text = text.strip()
+
+        # Check for double quotes
+        if text.startswith('"') and '"' in text[1:]:
+            end_quote = text.index('"', 1)
+            return text[1:end_quote].strip()
+
+        # Check for single quotes
+        if text.startswith("'") and "'" in text[1:]:
+            end_quote = text.index("'", 1)
+            return text[1:end_quote].strip()
+
+        # No quotes - return first word only (split on whitespace)
+        # This maintains backward compatibility for values without quotes
+        parts = text.split()
+        return parts[0] if parts else ""
+
     def _load_discrete_labels(self) -> Dict[str, Dict[int, List[str]]]:
         """Load discrete axis labels from YAML file"""
         try:
@@ -144,7 +173,7 @@ class DSSParser:
         first_word = line.split()[0] if line.split() else ""
 
         if line.startswith("family "):
-            family_value = line[7:].strip()
+            family_value = self._extract_quoted_or_plain_value(line[7:])
             if not family_value:
                 self.validator.errors.append("Family name cannot be empty")
                 return
@@ -439,8 +468,9 @@ class DSSParser:
 
         # Parse coordinates
         if "[" in line and "]" in line:
-            # Format: "Light [0, 0]"
-            name = line[: line.index("[")].strip()
+            # Format: "Light [0, 0]" or "My Font Light.ufo" [0, 0]
+            name_part = line[: line.index("[")].strip()
+            name = self._extract_quoted_or_plain_value(name_part)
             coords_str = line[line.index("[") + 1 : line.index("]")]
 
             # Validate coordinates
@@ -451,7 +481,7 @@ class DSSParser:
 
             coords = [float(x.strip()) for x in coords_str.split(",")]
         else:
-            # Format: "Light 0 0"
+            # Format: "Light 0 0" (space-separated, only works without quotes)
             parts = line.split()
             name = parts[0]
             coords = [float(x) for x in parts[1:] if x.replace(".", "").replace("-", "").isdigit()]

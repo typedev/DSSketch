@@ -40,12 +40,26 @@ class DSSWriter:
         self.ds_doc = ds_doc
         self.base_path = base_path
 
+    @staticmethod
+    def _quote_if_spaces(value: str) -> str:
+        """Add double quotes around value if it contains spaces
+
+        Examples:
+        - "DIN Condensed" -> '"DIN Condensed"'
+        - "DIN" -> "DIN"
+        - "My Font Light.ufo" -> '"My Font Light.ufo"'
+        """
+        if " " in value:
+            return f'"{value}"'
+        return value
+
     def write(self, dss_doc: DSSDocument) -> str:
         """Generate DSS string from document"""
         lines = []
 
-        # Family declaration
-        lines.append(f"family {dss_doc.family}")
+        # Family declaration (with quotes if it contains spaces)
+        family_value = self._quote_if_spaces(dss_doc.family)
+        lines.append(f"family {family_value}")
         if dss_doc.suffix:
             lines.append(f"suffix {dss_doc.suffix}")
         if dss_doc.path:
@@ -184,6 +198,9 @@ class DSSWriter:
             display_name = source.filename.replace(".ufo", "")
         else:
             display_name = source.name
+
+        # Add quotes if display_name contains spaces
+        display_name = self._quote_if_spaces(display_name)
 
         line = f"    {display_name} [{', '.join(coords)}]"
 
