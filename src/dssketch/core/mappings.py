@@ -190,6 +190,18 @@ class UnifiedMappings:
         return cls.get_user_space_value(name, axis_name)
 
     @classmethod
+    def has_mapping(cls, name: str, axis_type: str) -> bool:
+        """Check if a name exists in standard mappings"""
+        cls._load_mappings()
+        axis_type = axis_type.lower()
+
+        if axis_type not in cls.MAPPINGS:
+            return False
+
+        entry = cls._resolve_alias(name, axis_type)
+        return bool(entry)
+
+    @classmethod
     def get_name_for_user_value(cls, value: float, axis_name: str) -> str:
         """Legacy compatibility method - maps to get_name_by_user_space"""
         return cls.get_name_by_user_space(value, axis_name)

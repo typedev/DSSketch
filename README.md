@@ -130,7 +130,7 @@ instances auto
 
 ### 4. **Advanced Features Made Simple**
 
-#### Discrete Axes (Revolutionary Simplicity)
+#### Discrete Axes
 ```dssketch
 # Instead of complex XML values="0 1" attributes:
 ital discrete
@@ -165,8 +165,28 @@ axes
         Bold > 900
 
 masters [wght, wdth]   # Coordinates follow this order: [weight, width]
-    Light.ufo [100, 350]
-    Regular.ufo [400, 350]
+    Light [100, 350]
+    Regular [400, 350]
+```
+
+#### Custom Axis
+```dssketch
+# Control instance generation order
+axes
+    CONTRAST CNTR 0:0:100 # First in names: "C2 Condensed Light" - "{CNTR} {width} {weight}"
+        0 C0 > 100.0 @elidable
+        50 C1 > 600.0
+        100 C2 > 900.0
+    wdth 60:100:200
+        Condensed > 350.0
+        Normal > 560.0 @elidable
+    wght 100:400:900   # Second in names
+        Light > 100
+        Bold > 900
+
+masters [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width, CONTRAST]
+    Light [100, 350, 100]
+    Regular [400, 350, 100]
 ```
 
 ### 5. **Robust Error Detection**
@@ -222,9 +242,9 @@ axes
         Regular > 400
         Bold > 900
 masters
-    Light.ufo [100]
-    Regular.ufo [400] @base
-    Bold.ufo [900]
+    Light [100]
+    Regular [400] @base
+    Bold [900]
 """
 
 # Convert DSSketch string to DesignSpace object
@@ -251,12 +271,12 @@ axes
         Italic
 
 masters [wght, ital]
-    Light.ufo [100, 0]
-    Regular.ufo [400, 0] @base
-    Bold.ufo [900, 0]
-    LightItalic.ufo [100, 1]
-    Italic.ufo [400, 1]
-    BoldItalic.ufo [900, 1]
+    Light [100, 0]
+    Regular [400, 0] @base
+    Bold [900, 0]
+    LightItalic [100, 1]
+    Italic [400, 1]
+    BoldItalic [900, 1]
 
 instances auto
 ```
@@ -300,10 +320,10 @@ rules
 
     # Wildcard patterns
     A* > .alt (weight >= 600)      # All A-glyphs get alternates
-    * > .fancy (weight >= 700 && width >= 150)  # Complex conditions
+    dollar cent at number > .fancy (weight >= 700 && width >= 150)  # Complex conditions
 
     # Negative design space coordinates
-    thin* > .ultra (weight >= -50)
+    *.thin > .ultra (weight >= -50)
 
 instances auto
 ```
@@ -315,9 +335,9 @@ family AdvancedFont
 axes
     wght 100:400:900
     wdth 60:100:200
-    CONT 0:50:100  # Custom axis (uppercase)
+    CONTRAST CNTR 0:50:100  # Custom axis (uppercase)
 
-masters [wght, wdth, CONT]
+masters [wght, wdth, CONTRAST]
     Light [100, 100, 0] @base
     Bold [900, 100, 100]
 
@@ -330,18 +350,18 @@ rules
 
     # Prefix wildcards (all glyphs starting with pattern)
     A* > .stylistic (weight >= 700)      # A, AE, Aacute, etc.
-    num* > .proportional (CONT >= 50)    # number variants
+    num* > .proportional (CONTRAST >= 50)    # number variants
 
     # Universal wildcard (all glyphs with matching targets)
-    * > .rvrn (weight >= 400)            # Only creates rules where .rvrn exists
-    * > .alt (weight >= 600 && width >= 150)  # Complex conditions
+    S* G*  > .rvrn (weight >= 400)            # Only creates rules where .rvrn exists
+    Q* > .alt (weight >= 600 && width >= 150)  # Complex conditions
 
     # Range conditions
     o > o.round (400 <= weight <= 600)
 
     # Negative coordinates (supported in design space)
     ultra* > .thin (weight >= -100)
-    back* > .forward (CONT <= -25)
+    back* > .forward (CONTRAST <= -25)
 
 instances auto
 ```
@@ -375,7 +395,7 @@ rules
     dollar > .heavy (weight >= 362)  # Activates at Regular and heavier
 ```
 
-### Discrete Axes (Revolutionary)
+### Discrete Axes
 Traditional XML requires complex `values="0 1"` attributes. DSSketch makes it simple:
 
 ```dssketch
