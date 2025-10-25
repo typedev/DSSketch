@@ -11,7 +11,7 @@ import re
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 if TYPE_CHECKING:
-    from ..core.models import DSSAxis, DSSDocument, DSSMaster
+    from ..core.models import DSSAxis, DSSDocument, DSSSource
 else:
     from ..core.models import DSSDocument
 
@@ -28,7 +28,7 @@ class DSSValidator:
     """Comprehensive DSS document validator"""
 
     # Valid keywords for better error detection
-    VALID_KEYWORDS = {"family", "suffix", "path", "axes", "masters", "instances", "rules"}
+    VALID_KEYWORDS = {"family", "suffix", "path", "axes", "sources", "instances", "rules"}
 
     # Common typos for helpful error messages
     KEYWORD_SUGGESTIONS = {
@@ -40,9 +40,9 @@ class DSSValidator:
         "axess": "axes",
         "axis": "axes",
         "axees": "axes",
-        "mastrs": "masters",
-        "master": "masters",
-        "masteres": "masters",
+        "sourcse": "sources",
+        "source": "sources",
+        "sourcs": "sources",
         "instaces": "instances",
         "instance": "instances",
         "ruls": "rules",
@@ -108,45 +108,45 @@ class DSSValidator:
                         f"CRITICAL: Axis '{axis.name}' has invalid range (min = max = {axis.minimum})"
                     )
 
-        # Check masters - CRITICAL
-        if not document.masters:
+        # Check sources - CRITICAL
+        if not document.sources:
             self.errors.append(
-                "CRITICAL: No masters found - cannot generate valid DesignSpace without masters"
+                "CRITICAL: No sources found - cannot generate valid DesignSpace without sources"
             )
         else:
-            # Check for base master and auto-detect if missing
-            base_masters = [m for m in document.masters if m.is_base]
-            if not base_masters:
-                # Try to auto-detect default master based on design space coordinates
-                auto_detected = self._find_default_master(document)
+            # Check for base source and auto-detect if missing
+            base_sources = [m for m in document.sources if m.is_base]
+            if not base_sources:
+                # Try to auto-detect default source based on design space coordinates
+                auto_detected = self._find_default_source(document)
                 if auto_detected:
-                    # Mark the detected master as base
+                    # Mark the detected source as base
                     auto_detected.is_base = True
                     self.warnings.append(
-                        f"Auto-detected base master: '{auto_detected.name}' (matches default coordinates)"
+                        f"Auto-detected base source: '{auto_detected.name}' (matches default coordinates)"
                     )
                 else:
                     self.errors.append(
-                        "CRITICAL: No base master found (@base flag missing) and cannot auto-detect from default coordinates"
+                        "CRITICAL: No base source found (@base flag missing) and cannot auto-detect from default coordinates"
                     )
-            elif len(base_masters) > 1:
-                # Check if multiple base masters are valid for discrete axes
-                if self._validate_multiple_base_masters(base_masters, document):
+            elif len(base_sources) > 1:
+                # Check if multiple base sources are valid for discrete axes
+                if self._validate_multiple_base_sources(base_sources, document):
                     # Valid configuration with discrete axes
                     pass
                 else:
                     self.errors.append(
-                        f"CRITICAL: Multiple base masters found ({len(base_masters)}) - only one @base master allowed"
+                        f"CRITICAL: Multiple base sources found ({len(base_sources)}) - only one @base source allowed"
                     )
             else:
-                # Validate that the @base master has correct coordinates
-                base_master = base_masters[0]
+                # Validate that the @base source has correct coordinates
+                base_source = base_sources[0]
                 expected_coords = self._get_default_coordinates(document)
                 if expected_coords and not self._coordinates_match(
-                    base_master.location, expected_coords, document.axes
+                    base_source.location, expected_coords, document.axes
                 ):
                     self.errors.append(
-                        f"CRITICAL: Base master '{base_master.name}' coordinates {list(base_master.location.values())} do not match default coordinates {list(expected_coords.values())}"
+                        f"CRITICAL: Base source '{base_source.name}' coordinates {list(base_source.location.values())} do not match default coordinates {list(expected_coords.values())}"
                     )
 
     def _validate_content(self, document: DSSDocument):
@@ -169,20 +169,20 @@ class DSSValidator:
                         f"Consider marking the default/regular style as @elidable"
                     )
 
-        # Validate masters coordinates
-        if document.axes and document.masters:
+        # Validate sources coordinates
+        if document.axes and document.sources:
             expected_coords = len(document.axes)
-            for master in document.masters:
-                actual_coords = len(master.location) if master.location else 0
+            for source in document.sources:
+                actual_coords = len(source.location) if source.location else 0
                 if actual_coords != expected_coords:
                     self.warnings.append(
-                        f"Master '{master.name}' has {actual_coords} coordinates, expected {expected_coords}"
+                        f"Source '{source.name}' has {actual_coords} coordinates, expected {expected_coords}"
                     )
 
-        # Validate master coordinates match their corresponding mappings
-        self._validate_master_coordinate_consistency(document)
-        
-        # Validate that minimum and maximum mappings have corresponding masters
+        # Validate source coordinates match their corresponding mappings
+        self._validate_source_coordinate_consistency(document)
+
+        # Validate that minimum and maximum mappings have corresponding sources
         self._validate_extremes_coverage(document)
 
     @staticmethod
@@ -235,17 +235,17 @@ class DSSValidator:
         diff_count += abs(len(word1) - len(word2))
         return diff_count <= 2
 
-    def _find_default_master(self, document: "DSSDocument") -> Optional["DSSMaster"]:
+    def _find_default_source(self, document: "DSSDocument") -> Optional["DSSSource"]:
         """
-        Find the master that should be the default based on design space coordinates.
+        Find the source that should be the default based on design space coordinates.
 
-        For DesignSpace 5.0 compatibility, the default master is the one whose coordinates
+        For DesignSpace 5.0 compatibility, the default source is the one whose coordinates
         match the default user space values mapped to design space coordinates.
 
         Returns:
-            DSSMaster or None if no suitable default master found
+            DSSSource or None if no suitable default source found
         """
-        if not document.axes or not document.masters:
+        if not document.axes or not document.sources:
             return None
 
         # Get expected default coordinates for all axes
@@ -253,10 +253,10 @@ class DSSValidator:
         if not expected_coords:
             return None
 
-        # Find master with matching coordinates
-        for master in document.masters:
-            if self._coordinates_match(master.location, expected_coords, document.axes):
-                return master
+        # Find source with matching coordinates
+        for source in document.sources:
+            if self._coordinates_match(source.location, expected_coords, document.axes):
+                return source
 
         return None
 
@@ -306,55 +306,55 @@ class DSSValidator:
 
     def _coordinates_match(
         self,
-        master_coords: Dict[str, float],
+        source_coords: Dict[str, float],
         expected_coords: Dict[str, float],
         axes: List["DSSAxis"],
     ) -> bool:
         """
-        Check if master coordinates match expected default coordinates.
+        Check if source coordinates match expected default coordinates.
 
         Args:
-            master_coords: Master's actual coordinates
+            source_coords: Source's actual coordinates
             expected_coords: Expected default coordinates
             axes: List of axes for validation
 
         Returns:
             True if coordinates match within tolerance
         """
-        if not master_coords or not expected_coords:
+        if not source_coords or not expected_coords:
             return False
 
         # Check that we have coordinates for all axes
         for axis in axes:
-            if axis.name not in master_coords or axis.name not in expected_coords:
+            if axis.name not in source_coords or axis.name not in expected_coords:
                 return False
 
-            master_val = master_coords[axis.name]
+            source_val = source_coords[axis.name]
             expected_val = expected_coords[axis.name]
 
             # Use small tolerance for floating point comparison
-            if abs(master_val - expected_val) > 0.01:
+            if abs(source_val - expected_val) > 0.01:
                 return False
 
         return True
 
-    def _validate_multiple_base_masters(self, base_masters: List, document: DSSDocument) -> bool:
+    def _validate_multiple_base_sources(self, base_sources: List, document: DSSDocument) -> bool:
         """
-        Validate multiple base masters for discrete axes configurations.
-        
-        Multiple base masters are valid when:
+        Validate multiple base sources for discrete axes configurations.
+
+        Multiple base sources are valid when:
         1. There are discrete axes in the design space
-        2. Each base master is at the default coordinate of different discrete axis values
-        3. All base masters share the same continuous axis coordinates
-        
+        2. Each base source is at the default coordinate of different discrete axis values
+        3. All base sources share the same continuous axis coordinates
+
         Args:
-            base_masters: List of masters with @base flag
+            base_sources: List of sources with @base flag
             document: DSS document being validated
-            
+
         Returns:
-            True if multiple base masters configuration is valid
+            True if multiple base sources configuration is valid
         """
-        if not document.axes or len(base_masters) < 2:
+        if not document.axes or len(base_sources) < 2:
             return False
             
         # Find discrete axes (those with min=0, default=0, max=1)
@@ -368,26 +368,26 @@ class DSSValidator:
             else:
                 continuous_axes.append(axis)
                 
-        # Must have at least one discrete axis for multiple base masters
+        # Must have at least one discrete axis for multiple base sources
         if not discrete_axes:
             return False
-            
-        # Extract coordinates for each base master
-        master_coords = []
-        for master in base_masters:
-            if not master.location:
+
+        # Extract coordinates for each base source
+        source_coords = []
+        for source in base_sources:
+            if not source.location:
                 return False
-            master_coords.append(master.location)
-            
-        # Check that all base masters have the same continuous axis coordinates
+            source_coords.append(source.location)
+
+        # Check that all base sources have the same continuous axis coordinates
         if continuous_axes:
-            first_continuous_coords = {axis.name: master_coords[0].get(axis.name)
+            first_continuous_coords = {axis.name: source_coords[0].get(axis.name)
                                      for axis in continuous_axes}
-            
-            for coords in master_coords[1:]:
+
+            for coords in source_coords[1:]:
                 current_continuous_coords = {axis.name: coords.get(axis.name)
                                            for axis in continuous_axes}
-                
+
                 # Check if continuous coordinates match within tolerance
                 for axis_name, expected_val in first_continuous_coords.items():
                     actual_val = current_continuous_coords.get(axis_name)
@@ -395,14 +395,14 @@ class DSSValidator:
                         return False
                     if abs(expected_val - actual_val) > 0.01:
                         return False
-                        
-        # Check that each base master corresponds to a different discrete axis value
+
+        # Check that each base source corresponds to a different discrete axis value
         discrete_values_used = set()
-        
-        for master in base_masters:
+
+        for source in base_sources:
             for axis in discrete_axes:
-                if axis.name in master.location:
-                    discrete_val = master.location[axis.name]
+                if axis.name in source.location:
+                    discrete_val = source.location[axis.name]
                     
                     # Find corresponding mapping for this discrete value
                     matching_mapping = None
@@ -422,28 +422,28 @@ class DSSValidator:
                     
         return True
 
-    def _validate_master_coordinate_consistency(self, document: DSSDocument):
+    def _validate_source_coordinate_consistency(self, document: DSSDocument):
         """
-        Validate that each master has corresponding axis mappings with matching coordinates.
+        Validate that each source has corresponding axis mappings with matching coordinates.
 
-        Logic: For each master, check that there exists a mapping in each axis
-        with design_value matching the master's coordinate for that axis.
-        Only checks masters that exist - mappings without masters are allowed (interpolation).
+        Logic: For each source, check that there exists a mapping in each axis
+        with design_value matching the source's coordinate for that axis.
+        Only checks sources that exist - mappings without sources are allowed (interpolation).
         """
-        if not document.axes or not document.masters:
+        if not document.axes or not document.sources:
             return
 
-        for master in document.masters:
+        for source in document.sources:
             for axis in document.axes:
-                if axis.name not in master.location:
+                if axis.name not in source.location:
                     continue
 
-                master_coord = master.location[axis.name]
+                source_coord = source.location[axis.name]
 
                 # Find mapping with matching design value
                 matching_mapping = None
                 for mapping in axis.mappings:
-                    if self._coordinates_equal(mapping.design_value, master_coord):
+                    if self._coordinates_equal(mapping.design_value, source_coord):
                         matching_mapping = mapping
                         break
 
@@ -451,67 +451,67 @@ class DSSValidator:
                     # Find closest mapping for helpful error message
                     closest_mapping = min(
                         axis.mappings,
-                        key=lambda m: abs(m.design_value - master_coord),
+                        key=lambda m: abs(m.design_value - source_coord),
                         default=None,
                     )
 
                     if closest_mapping:
                         self.errors.append(
-                            f"Master '{master.name}' coordinate {master_coord} on axis '{axis.name}' "
+                            f"Source '{source.name}' coordinate {source_coord} on axis '{axis.name}' "
                             f"has no matching mapping. Closest mapping '{closest_mapping.label}' "
                             f"is at {closest_mapping.design_value}"
                         )
                     else:
                         self.errors.append(
-                            f"Master '{master.name}' coordinate {master_coord} on axis '{axis.name}' "
+                            f"Source '{source.name}' coordinate {source_coord} on axis '{axis.name}' "
                             f"has no corresponding mapping"
                         )
     
     def _validate_extremes_coverage(self, document: DSSDocument):
         """
-        Validate that minimum and maximum mappings have corresponding masters.
-        
-        For proper interpolation space coverage, there should be masters at the
+        Validate that minimum and maximum mappings have corresponding sources.
+
+        For proper interpolation space coverage, there should be sources at the
         minimum and maximum design space coordinates for each axis.
         """
-        if not document.axes or not document.masters:
+        if not document.axes or not document.sources:
             return
-            
+
         for axis in document.axes:
             if not axis.mappings:
                 continue
-                
+
             # Find minimum and maximum design space coordinates
             design_values = [mapping.design_value for mapping in axis.mappings]
             min_design = min(design_values)
             max_design = max(design_values)
-            
+
             # Find corresponding mappings for extremes
             min_mapping = next((m for m in axis.mappings if self._coordinates_equal(m.design_value, min_design)), None)
             max_mapping = next((m for m in axis.mappings if self._coordinates_equal(m.design_value, max_design)), None)
-            
-            # Check if masters exist for these extremes
-            min_master_exists = any(
-                axis.name in master.location and self._coordinates_equal(master.location[axis.name], min_design)
-                for master in document.masters
+
+            # Check if sources exist for these extremes
+            min_source_exists = any(
+                axis.name in source.location and self._coordinates_equal(source.location[axis.name], min_design)
+                for source in document.sources
             )
-            max_master_exists = any(
-                axis.name in master.location and self._coordinates_equal(master.location[axis.name], max_design)
-                for master in document.masters
+            max_source_exists = any(
+                axis.name in source.location and self._coordinates_equal(source.location[axis.name], max_design)
+                for source in document.sources
             )
-            
-            if not min_master_exists and min_mapping:
+
+            if not min_source_exists and min_mapping:
                 self.errors.append(
-                    f"Missing master for minimum mapping '{min_mapping.label}' "
+                    f"Missing source for minimum mapping '{min_mapping.label}' "
                     f"at coordinate {min_design} on axis '{axis.name}'. "
-                    f"Variable fonts require masters at extreme coordinates for proper interpolation."
+                    f"Variable fonts require sources at extreme coordinates for proper interpolation."
                 )
-                
-            if not max_master_exists and max_mapping:
+
+            if not max_source_exists and max_mapping:
                 self.errors.append(
-                    f"Missing master for maximum mapping '{max_mapping.label}' "
+                    f"Missing source for maximum mapping '{max_mapping.label}' "
                     f"at coordinate {max_design} on axis '{axis.name}'. "
-                    f"Variable fonts require masters at extreme coordinates for proper interpolation."
+                    f"Variable fonts require sources at extreme coordinates for proper interpolation."
                 )
 
     def _coordinates_equal(self, val1: float, val2: float) -> bool:

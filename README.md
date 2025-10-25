@@ -79,7 +79,7 @@ DSSketch provides a simple, intuitive text format for describing variable fonts,
 ### After: DSSketch (clean, intuitive)
 ```dssketch
 family SuperFont
-path masters
+path sources
 
 axes
     wght 100:400:900
@@ -93,7 +93,7 @@ axes
         Upright @elidable
         Italic
 
-masters [wght, ital]
+sources [wght, ital]
     SuperFont-Thin [0, 0]
     SuperFont-Regular [356, 0] @base
     SuperFont-Black [1000, 0]
@@ -118,15 +118,15 @@ instances auto
 
 ### 2. **Human-Friendly Syntax**
 - **Intuitive axis definitions**: `wght 100:400:900` instead of verbose XML attributes
-- **Simple master coordinates**: `[400, 0]` instead of complex XML dimension tags
+- **Simple source coordinates**: `[400, 0]` instead of complex XML dimension tags
 - **Readable rules**: `dollar > .rvrn (weight >= 400)` instead of nested XML structures
-- **Common directory paths**: `path masters` eliminates repetitive file paths
+- **Common directory paths**: `path sources` eliminates repetitive file paths
 
 ### 3. **Smart Automation**
 - **Auto instance generation**: `instances auto` creates all meaningful combinations
 - **Standard weight mapping**: Recognizes `Regular > 400`, `Bold > 700` automatically
 - **Wildcard rule expansion**: `* > .alt` finds all glyphs with .alt variants
-- **UFO validation**: Automatically validates master files and extracts glyph lists
+- **UFO validation**: Automatically validates source files and extracts glyph lists
 
 ### 4. **Advanced Features Made Simple**
 
@@ -164,7 +164,7 @@ axes
         Light > 100
         Bold > 900
 
-masters [wght, wdth]   # Coordinates follow this order: [weight, width]
+sources [wght, wdth]   # Coordinates follow this order: [weight, width]
     Light [100, 350]
     Regular [400, 350]
 ```
@@ -184,7 +184,7 @@ axes
         Light > 100
         Bold > 900
 
-masters [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width, CONTRAST]
+sources [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width, CONTRAST]
     Light [100, 350, 100]
     Regular [400, 350, 100]
 ```
@@ -192,7 +192,7 @@ masters [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width
 ### 5. **Robust Error Detection**
 - **Typo detection**: `familly` → "Did you mean 'family'?"
 - **Coordinate validation**: `[abc, def]` → "Invalid coordinate value"
-- **Missing base master**: Prevents broken DesignSpace generation
+- **Missing base source**: Prevents broken DesignSpace generation
 - **Rule syntax validation**: Catches incomplete substitution rules
 - **Bracket type detection**: `(100, 0)` → "Use [] for coordinates"
 
@@ -241,7 +241,7 @@ axes
         Light > 100
         Regular > 400
         Bold > 900
-masters
+sources
     Light [100]
     Regular [400] @base
     Bold [900]

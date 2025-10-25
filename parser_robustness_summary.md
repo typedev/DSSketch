@@ -1,158 +1,158 @@
 # DSSketch Parser Robustness Improvements
 
-## Обнаруженные проблемы и их решения
+## Identified Problems and Solutions
 
-### 1. 🔍 **Нераспознавание опечаток в ключевых словах**
+### 1. 🔍 **Unrecognized Keyword Typos**
 
-**Проблема**: Парсер игнорировал опечатки типа `familly`, `axess`, `mastrs`
+**Problem**: Parser ignored typos like `familly`, `axess`, `mastrs`
 
-**Решение**: 
-- Добавлен словарь `KEYWORD_SUGGESTIONS` с частыми опечатками
-- Реализована функция `validate_keyword()` с проверкой Левенштейна
-- В строгом режиме выдает ошибку с предложением исправления
+**Solution**:
+- Added `KEYWORD_SUGGESTIONS` dictionary with common typos
+- Implemented `validate_keyword()` function with Levenshtein distance check
+- In strict mode, throws error with correction suggestion
 
 ```python
-# ❌ Раньше игнорировалось
-familly SuperFont  # Тихо игнорировалось
+# ❌ Previously ignored
+familly SuperFont  # Silently ignored
 
-# ✅ Теперь ловится
+# ✅ Now caught
 Unknown keyword 'familly'. Did you mean 'family'?
 ```
 
-### 2. 📝 **Пустые обязательные значения**
+### 2. 📝 **Empty Required Values**
 
-**Проблема**: `family ` (с пробелом но без значения) обрабатывался как валидный
+**Problem**: `family ` (with space but no value) was treated as valid
 
-**Решение**:
-- Улучшена логика обработки строк с пробелами
-- Добавлена проверка пустых значений для критичных полей
-- Отдельная обработка `family` vs `family `
+**Solution**:
+- Improved string handling logic with spaces
+- Added validation for empty values in critical fields
+- Separate handling for `family` vs `family `
 
 ```python
-# ❌ Раньше проходило
-family 
-# ✅ Теперь ошибка: "Family name cannot be empty"
+# ❌ Previously passed
+family
+# ✅ Now error: "Family name cannot be empty"
 ```
 
-### 3. 🔧 **Невалидные координаты**
+### 3. 🔧 **Invalid Coordinates**
 
-**Проблема**: `[abc, def]`, `[]`, `[100, ]` принимались парсером
+**Problem**: `[abc, def]`, `[]`, `[100, ]` were accepted by parser
 
-**Решение**:
-- Добавлена функция `validate_coordinates()`
-- Проверка числовых значений перед конвертацией
-- Детальные сообщения об ошибках
+**Solution**:
+- Added `validate_coordinates()` function
+- Validation of numeric values before conversion
+- Detailed error messages
 
 ```python
-# ❌ Раньше падало с непонятной ошибкой
+# ❌ Previously failed with unclear error
 Font-Light [abc, def]
-# ✅ Теперь: "Invalid coordinates: Invalid coordinate value: could not convert..."
+# ✅ Now: "Invalid coordinates: Invalid coordinate value: could not convert..."
 ```
 
-### 4. 🔲 **Смешанные типы скобок**
+### 4. 🔲 **Mixed Bracket Types**
 
-**Проблема**: `(100, 0)`, `{100, 0}` вместо `[100, 0]` игнорировались
+**Problem**: `(100, 0)`, `{100, 0}` instead of `[100, 0]` were ignored
 
-**Решение**:
-- Функция `detect_bracket_mismatch()` 
-- Детекция неправильных скобок в координатах
-- Предупреждения о смешанных типах
+**Solution**:
+- `detect_bracket_mismatch()` function
+- Detection of incorrect brackets in coordinates
+- Warnings about mixed types
 
 ```python
-# ❌ Раньше игнорировалось
-Font-Light (100, 0)  
-# ✅ Теперь warning: "Use [] for coordinates, not ()"
+# ❌ Previously ignored
+Font-Light (100, 0)
+# ✅ Now warning: "Use [] for coordinates, not ()"
 ```
 
-### 5. 📐 **Невалидные диапазоны осей**
+### 5. 📐 **Invalid Axis Ranges**
 
-**Проблема**: `900:100:400` (min > max), `abc:def:ghi` принимались
+**Problem**: `900:100:400` (min > max), `abc:def:ghi` were accepted
 
-**Решение**:
-- Функция `validate_axis_range()`
-- Проверка порядка min ≤ default ≤ max
-- Валидация числовых значений
+**Solution**:
+- `validate_axis_range()` function
+- Validation of order min ≤ default ≤ max
+- Validation of numeric values
 
 ```python
-# ❌ Раньше неожиданная ошибка
+# ❌ Previously unexpected error
 wght 900:100:400
-# ✅ Теперь: "Range values must be ordered: min <= default <= max"
+# ✅ Now: "Range values must be ordered: min <= default <= max"
 ```
 
-### 6. 🎯 **Неправильный синтаксис правил**
+### 6. 🎯 **Incorrect Rule Syntax**
 
-**Проблема**: Правила с неполными условиями или без разделителей
+**Problem**: Rules with incomplete conditions or missing separators
 
-**Решение**:
-- Улучшенная функция `validate_rule_syntax()`
-- Учет вложенных скобок и кавычек
-- Проверка наличия всех компонентов
+**Solution**:
+- Improved `validate_rule_syntax()` function
+- Handling of nested brackets and quotes
+- Validation of all components present
 
 ```python
-# ❌ Раньше игнорировалось
-dollar > .rvrn (weight >= )  # неполное условие
-# ✅ Теперь: "Invalid rule syntax: ..."
+# ❌ Previously ignored
+dollar > .rvrn (weight >= )  # incomplete condition
+# ✅ Now: "Invalid rule syntax: ..."
 ```
 
-## Новые возможности парсера
+## New Parser Features
 
-### 📊 **Два режима работы**
+### 📊 **Two Operating Modes**
 
 ```python
-# Строгий режим - останавливается на ошибках
+# Strict mode - stops on errors
 parser = DSSParser(strict_mode=True)
 
-# Мягкий режим - собирает ошибки и продолжает
+# Soft mode - collects errors and continues
 parser = DSSParser(strict_mode=False)
 ```
 
-### 🔍 **Детальная диагностика**
+### 🔍 **Detailed Diagnostics**
 
 ```python
 parser = DSSParser(strict_mode=False)
 result = parser.parse(content)
 
-# Список всех ошибок
+# List of all errors
 for error in parser.errors:
     print(f"ERROR: {error}")
 
-# Список предупреждений    
+# List of warnings
 for warning in parser.warnings:
     print(f"WARNING: {warning}")
 ```
 
-### 🧹 **Нормализация пробелов**
+### 🧹 **Whitespace Normalization**
 
-- Автоматическое приведение множественных пробелов к одинарным
-- Сохранение значимых отступов
-- Устойчивость к табам и смешанным пробелам
+- Automatic conversion of multiple spaces to single spaces
+- Preservation of significant indentation
+- Resilience to tabs and mixed whitespace
 
-### 🌍 **Поддержка Unicode**
+### 🌍 **Unicode Support**
 
-- Полная поддержка Unicode в именах семейств
-- Поддержка диакритических знаков в именах стилей
-- Корректная обработка путей с не-ASCII символами
+- Full Unicode support in family names
+- Support for diacritical marks in style names
+- Correct handling of paths with non-ASCII characters
 
-## Тестирование
+## Testing
 
-Создан полный набор тестов в `tests/test_parser_validation.py`:
+Created comprehensive test suite in `tests/test_parser_validation.py`:
 
-- ✅ Детекция опечаток в ключевых словах
-- ✅ Обработка пустых значений
-- ✅ Валидация координат и диапазонов
-- ✅ Детекция неправильных скобок
-- ✅ Проверка синтаксиса правил
-- ✅ Нормализация пробелов
-- ✅ Поддержка Unicode
-- ✅ Обработка комментариев
+- ✅ Detection of keyword typos
+- ✅ Handling of empty values
+- ✅ Validation of coordinates and ranges
+- ✅ Detection of incorrect brackets
+- ✅ Validation of rule syntax
+- ✅ Whitespace normalization
+- ✅ Unicode support
+- ✅ Comment handling
 
-## Рекомендации пользователям
+## User Recommendations
 
-### ✅ **Правильный формат**
+### ✅ **Correct Format**
 
 ```dssketch
 family SuperFont
-path masters
+path sources
 
 axes
     wght 100:400:900
@@ -162,7 +162,7 @@ axes
         Upright @elidable
         Italic
 
-masters [wght, ital]
+sources [wght, ital]
     Font-Light [100, 0]
     Font-Regular [400, 0] @base
     Font-Italic [400, 1]
@@ -173,35 +173,35 @@ rules
 instances auto
 ```
 
-### ❌ **Частые ошибки**
+### ❌ **Common Errors**
 
 ```dssketch
-# Опечатки в ключевых словах
+# Keyword typos
 familly SuperFont    # -> family
 axess               # -> axes
-mastrs              # -> masters
+sourcse             # -> sources
 
-# Пустые значения
-family              # Нужно: family SuperFont
+# Empty values
+family              # Need: family SuperFont
 
-# Неправильные скобки
-Font-Light (100, 0) # Нужно: Font-Light [100, 0]
+# Incorrect brackets
+Font-Light (100, 0) # Need: Font-Light [100, 0]
 
-# Неправильные диапазоны
-wght 900:100:400    # Нужно: wght 100:400:900
+# Incorrect ranges
+wght 900:100:400    # Need: wght 100:400:900
 
-# Неполные правила
-dollar > (weight >= 400)  # Нужно target: dollar > .rvrn (weight >= 400)
+# Incomplete rules
+dollar > (weight >= 400)  # Need target: dollar > .rvrn (weight >= 400)
 ```
 
-## Производительность
+## Performance
 
-- Валидация добавляет ~5-10% времени обработки
-- Можно отключить через `strict_mode=False` для критичных случаев
-- Нормализация пробелов ускоряет последующую обработку
+- Validation adds ~5-10% processing time
+- Can be disabled via `strict_mode=False` for critical cases
+- Whitespace normalization speeds up subsequent processing
 
-## Обратная совместимость
+## Backward Compatibility
 
-- ✅ Все существующие валидные файлы продолжают работать
-- ✅ Добавлена только валидация, логика парсинга не изменена
-- ✅ Можно использовать старый режим через `strict_mode=False`
+- ✅ All existing valid files continue to work
+- ✅ Only validation added, parsing logic unchanged
+- ✅ Old mode available via `strict_mode=False`

@@ -13,7 +13,7 @@ from fontTools.designspaceLib import DesignSpaceDocument
 from ..core.mappings import Standards
 
 # Import models from core
-from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSMaster, DSSRule
+from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 from ..core.validation import UFOGlyphExtractor
 from ..utils.patterns import PatternMatcher
 
@@ -59,17 +59,17 @@ class DSSWriter:
                 lines.extend(self._format_axis(axis))
             lines.append("")
 
-        # Masters section
-        if dss_doc.masters:
-            # Add masters keyword with explicit axis order
+        # Sources section
+        if dss_doc.sources:
+            # Add sources keyword with explicit axis order
             if dss_doc.axes:
                 axis_tags = [self._get_axis_tag(axis.name) for axis in dss_doc.axes]
-                lines.append(f"masters [{', '.join(axis_tags)}]")
+                lines.append(f"sources [{', '.join(axis_tags)}]")
             else:
-                lines.append("masters")
+                lines.append("sources")
 
-            for master in dss_doc.masters:
-                lines.append(self._format_master(master, dss_doc.axes))
+            for source in dss_doc.sources:
+                lines.append(self._format_source(source, dss_doc.axes))
             lines.append("")
 
         # Rules section
@@ -170,24 +170,24 @@ class DSSWriter:
         # For registered axes with non-standard tags, keep original name
         return axis_name
 
-    def _format_master(self, master: DSSMaster, axes: List[DSSAxis]) -> str:
-        """Format master definition"""
+    def _format_source(self, source: DSSSource, axes: List[DSSAxis]) -> str:
+        """Format source definition"""
         # Get coordinates in axis order
         coords = []
         for axis in axes:
-            value = master.location.get(axis.name, 0)
+            value = source.location.get(axis.name, 0)
             coords.append(str(int(value) if value.is_integer() else value))
 
         # Use filename if it contains path, otherwise use name
-        if "/" in master.filename:
+        if "/" in source.filename:
             # Remove .ufo extension for display
-            display_name = master.filename.replace(".ufo", "")
+            display_name = source.filename.replace(".ufo", "")
         else:
-            display_name = master.name
+            display_name = source.name
 
         line = f"    {display_name} [{', '.join(coords)}]"
 
-        if master.is_base:
+        if source.is_base:
             line += " @base"
 
         return line

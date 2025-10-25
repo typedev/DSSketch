@@ -1,31 +1,31 @@
-# Кастомизация данных DSSketch
+# DSSketch Data Customization
 
-## 📍 Расположение файлов данных
+## 📍 Data Files Location
 
-DSSketch использует двухуровневую систему для файлов данных:
+DSSketch uses a two-level system for data files:
 
-1. **Встроенные данные** (в пакете) - дефолтные файлы, поставляемые с пакетом
-2. **Пользовательские данные** - модифицированные версии, имеют приоритет
+1. **Built-in data** (in package) - default files shipped with the package
+2. **User data** - modified versions, take priority
 
-### Где хранятся пользовательские данные:
+### Where user data is stored:
 
 - **macOS**: `~/Library/Application Support/dssketch/`
-- **Linux**: `~/.config/dssketch/` (или `$XDG_CONFIG_HOME/dssketch/`)
+- **Linux**: `~/.config/dssketch/` (or `$XDG_CONFIG_HOME/dssketch/`)
 - **Windows**: `%APPDATA%\dssketch\`
-- **Кастомный путь**: установите переменную `DSSKETCH_DATA_DIR`
+- **Custom path**: set the `DSSKETCH_DATA_DIR` environment variable
 
-## 🎯 Приоритет загрузки
+## 🎯 Loading Priority
 
-При загрузке данных DSSketch проверяет в следующем порядке:
+When loading data, DSSketch checks in the following order:
 
-1. Пользовательский файл (если существует)
-2. Встроенный файл из пакета
-3. Пустой словарь (если ничего не найдено)
+1. User file (if exists)
+2. Built-in file from package
+3. Empty dictionary (if nothing found)
 
-## 📝 Файлы данных
+## 📝 Data Files
 
 ### unified-mappings.yaml
-Маппинги значений осей (weight, width и др.):
+Axis value mappings (weight, width, etc.):
 ```yaml
 weight:
   Thin:
@@ -40,7 +40,7 @@ weight:
 ```
 
 ### discrete-axis-labels.yaml
-Метки для дискретных осей (italic, slant):
+Labels for discrete axes (italic, slant):
 ```yaml
 ital:
   0: [Upright, Roman, Normal]
@@ -51,7 +51,7 @@ slnt:
 ```
 
 ### stylenames.json
-Старый формат маппингов (для обратной совместимости):
+Old mapping format (for backward compatibility):
 ```json
 {
   "weight": {
@@ -62,48 +62,48 @@ slnt:
 }
 ```
 
-## 🛠️ Управление данными через CLI
+## 🛠️ CLI Data Management
 
-После установки пакета (`pip install -e .`) будет доступна утилита `dssketch-data`:
+After installing the package (`pip install -e .`), the `dssketch-data` utility will be available:
 
 ```bash
-# Показать информацию о расположении файлов
+# Show file location information
 dssketch-data info
 
-# Показать путь к пользовательским данным
+# Show path to user data
 dssketch-data path
 
-# Открыть папку с данными в файловом менеджере
+# Open data folder in file manager
 dssketch-data edit
 
-# Сбросить все файлы к дефолтным
+# Reset all files to defaults
 dssketch-data reset --all
 
-# Сбросить конкретный файл
+# Reset specific file
 dssketch-data reset --file unified-mappings.yaml
 ```
 
-## ✏️ Как кастомизировать данные
+## ✏️ How to Customize Data
 
-### Способ 1: Прямое редактирование
+### Method 1: Direct Editing
 
-1. Найдите папку с данными:
+1. Find the data folder:
    ```bash
    dssketch-data path
    ```
 
-2. Откройте папку:
+2. Open the folder:
    ```bash
    dssketch-data edit
    ```
 
-3. Отредактируйте нужный файл в текстовом редакторе
+3. Edit the desired file in a text editor
 
-4. Изменения применятся автоматически при следующем запуске
+4. Changes will apply automatically on next run
 
-### Способ 2: Через переменную окружения
+### Method 2: Via Environment Variable
 
-Установите кастомный путь к данным:
+Set a custom data path:
 
 ```bash
 # Linux/macOS
@@ -113,50 +113,50 @@ export DSSKETCH_DATA_DIR=/my/custom/path
 set DSSKETCH_DATA_DIR=C:\my\custom\path
 ```
 
-### Способ 3: Копирование для редактирования
+### Method 3: Copy for Editing
 
 ```bash
-# Скопировать файл из пакета в пользовательскую директорию
+# Copy file from package to user directory
 dssketch-data copy unified-mappings.yaml
 
-# Затем отредактировать скопированный файл
+# Then edit the copied file
 dssketch-data edit
 ```
 
-### Способ 4: Программно (Python API)
+### Method 4: Programmatically (Python API)
 
 ```python
 from dssketch.config import get_data_manager
 
 dm = get_data_manager()
 
-# Загрузить и модифицировать данные
+# Load and modify data
 mappings = dm.load_data_file("unified-mappings.yaml")
 mappings['weight']['SuperLight'] = {
     'os2': 50,
     'user_space': 50
 }
 
-# Сохранить в пользовательскую директорию
+# Save to user directory
 dm.save_user_data("unified-mappings.yaml", mappings)
 ```
 
-## 🔄 Обновление пакета
+## 🔄 Package Updates
 
-При обновлении DSSketch через pip:
-- **Встроенные данные** обновляются автоматически
-- **Пользовательские данные** остаются без изменений
-- Новые поля из встроенных данных будут использоваться как fallback
+When updating DSSketch via pip:
+- **Built-in data** updates automatically
+- **User data** remains unchanged
+- New fields from built-in data will be used as fallback
 
-## 💡 Примеры кастомизации
+## 💡 Customization Examples
 
-### Добавить новый вес
+### Add New Weight
 
-В файле `~/Library/Application Support/dssketch/unified-mappings.yaml`:
+In file `~/Library/Application Support/dssketch/unified-mappings.yaml`:
 
 ```yaml
 weight:
-  # Существующие веса...
+  # Existing weights...
   ExtraBlack:
     os2: 950
     user_space: 950
@@ -165,7 +165,7 @@ weight:
     user_space: 50
 ```
 
-### Добавить кастомную ось
+### Add Custom Axis
 
 ```yaml
 custom_axes:
@@ -178,50 +178,50 @@ custom_axes:
       user_space: 200
 ```
 
-### Изменить метки для italic
+### Change Labels for Italic
 
-В файле `discrete-axis-labels.yaml`:
+In file `discrete-axis-labels.yaml`:
 
 ```yaml
 ital:
-  0: [Roman, Upright, Regular]  # Изменен порядок
-  1: [Italic, Cursive]  # Добавлен алиас
+  0: [Roman, Upright, Regular]  # Changed order
+  1: [Italic, Cursive]  # Added alias
 ```
 
-## ⚠️ Важные замечания
+## ⚠️ Important Notes
 
-1. **Валидация**: DSSketch не валидирует пользовательские данные. Некорректные данные могут привести к ошибкам.
+1. **Validation**: DSSketch does not validate user data. Incorrect data may lead to errors.
 
-2. **Резервные копии**: Перед изменением рекомендуется сделать копию:
+2. **Backups**: Before making changes, it's recommended to create a backup:
    ```bash
    cp ~/Library/Application\ Support/dssketch/unified-mappings.yaml{,.backup}
    ```
 
-3. **Формат файлов**: Соблюдайте корректный YAML/JSON синтаксис
+3. **File Format**: Maintain correct YAML/JSON syntax
 
-4. **Кодировка**: Используйте UTF-8 для всех файлов
+4. **Encoding**: Use UTF-8 for all files
 
-## 🔍 Отладка
+## 🔍 Debugging
 
-Если что-то не работает:
+If something doesn't work:
 
-1. Проверьте, какие файлы загружаются:
+1. Check which files are being loaded:
    ```bash
    dssketch-data info
    ```
 
-2. Сбросьте к дефолтным настройкам:
+2. Reset to default settings:
    ```bash
    dssketch-data reset --all
    ```
 
-3. Проверьте синтаксис YAML:
+3. Check YAML syntax:
    ```bash
    python -c "import yaml; yaml.safe_load(open('unified-mappings.yaml'))"
    ```
 
-## 📚 Дополнительные ресурсы
+## 📚 Additional Resources
 
-- [YAML синтаксис](https://yaml.org/spec/1.2/spec.html)
-- [JSON синтаксис](https://www.json.org/)
-- [Спецификация DesignSpace](https://github.com/fonttools/fonttools/tree/master/Doc/source/designspaceLib)
+- [YAML syntax](https://yaml.org/spec/1.2/spec.html)
+- [JSON syntax](https://www.json.org/)
+- [DesignSpace specification](https://github.com/fonttools/fonttools/tree/master/Doc/source/designspaceLib)

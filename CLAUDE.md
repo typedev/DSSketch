@@ -144,14 +144,14 @@ axes
         Light > 100
         Regular > 400
         Bold > 900
-masters
+sources
     MyFont-Light.ufo [100]
     MyFont-Regular.ufo [400] @base
     MyFont-Bold.ufo [900]
 """
 
 # Convert to DesignSpace object
-ds = dssketch.convert_dss_string_to_designspace(dss_content, base_path="./masters")
+ds = dssketch.convert_dss_string_to_designspace(dss_content, base_path="./sources")
 
 # Save as traditional DesignSpace file
 ds.write("MyVariableFont.designspace")
@@ -196,7 +196,7 @@ from src.dssketch.parsers.dss_parser import DSSParser
 try:
     # Convert DSSketch file
     ds = dssketch.convert_to_designspace("font.dssketch")
-    print(f"Conversion successful: {len(ds.axes)} axes, {len(ds.sources)} masters")
+    print(f"Conversion successful: {len(ds.axes)} axes, {len(ds.sources)} sources")
 
 except FileNotFoundError:
     print("DSSketch file not found")
@@ -267,7 +267,7 @@ When integrating DSSketch API into your workflow:
 - `src/dssketch/converters/dss_to_designspace.py`:
   - `DSSToDesignSpace` - Converts DSSketch → .designspace
 - `src/dssketch/core/validation.py`:
-  - `UFOValidator` - Validates UFO master files
+  - `UFOValidator` - Validates UFO source files
   - `UFOGlyphExtractor` - Extracts glyph lists from UFO files
 - `src/dssketch/utils/validation.py`:
   - `DSSketchValidator` - Validation utilities for robust parsing and error detection
@@ -289,7 +289,7 @@ When integrating DSSketch API into your workflow:
 **User Space vs Design Space:**
 - User Space: Values users see (font-weight: 400)
 - Design Space: Actual coordinates in font files (can be any value)
-- Mapping: `Regular > 362` means user requests 400, master is at 362
+- Mapping: `Regular > 362` means user requests 400, source is at 362
 
 **Axis Types:**
 - Standard axes use lowercase tags: `wght`, `wdth`, `ital`, `slnt`, `opsz`
@@ -304,14 +304,14 @@ When integrating DSSketch API into your workflow:
 - Labels stored in `data/discrete-axis-labels.yaml` for easy customization
 - Both old and new formats supported for backward compatibility
 - Generates DesignSpace `values="0 1"` attribute instead of `minimum/maximum`
-- Essential for proper variable font generation with non-compatible masters
+- Essential for proper variable font generation with non-compatible sources
 
 ### DSSketch Format Structure
 
 ```dssketch
 family FontName
 suffix VF  # optional
-path masters  # common directory for masters
+path sources  # common directory for sources
 
 axes  # Order of axes controls instance generation sequence
     wght 100:400:900  # min:default:max
@@ -321,11 +321,11 @@ axes  # Order of axes controls instance generation sequence
         Upright    # simplified format (no > 0.0 needed)
         Italic     # simplified format (no > 1.0 needed)
 
-masters [wght, ital]  # explicit axis order for coordinates
+sources [wght, ital]  # explicit axis order for coordinates
     # If path is set, just filename needed:
-    MasterName [362, 0] @base  # [coordinates] @flags
+    SourceName [362, 0] @base  # [coordinates] @flags
 
-    # Or individual paths per master:
+    # Or individual paths per source:
     # upright/Light [100, 0]
     # italic/Bold [900, 1]
 
@@ -383,8 +383,8 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Removes redundant mappings
 
 **Path Management:**
-- Auto-detects common master directories (e.g., "masters/")
-- Supports mixed paths for masters in different directories
+- Auto-detects common source directories (e.g., "sources/")
+- Supports mixed paths for sources in different directories
 - `path` parameter in DSSketch format for common directory
 
 **UFO Validation:**
@@ -394,7 +394,7 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Uses UFOGlyphExtractor to safely read glyph lists from sources
 
 **Parser Validation & Robustness (New!):**
-- **Critical Structure Validation**: Ensures required sections (axes, masters, base master) are present - **ALWAYS FAILS** if missing
+- **Critical Structure Validation**: Ensures required sections (axes, sources, base source) are present - **ALWAYS FAILS** if missing
 - **Typo Detection**: Catches common keyword misspellings (`familly` → `"Did you mean 'family'?"`)
 - **Non-ASCII Character Detection**: Catches Unicode typos (`axшes` → `"contains non-ASCII characters"`)
 - **Empty Value Validation**: Detects missing required values (`family ` → `"Family name cannot be empty"`)
@@ -402,18 +402,18 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - **Bracket Type Detection**: Warns about wrong bracket types (`(100, 0)` → `"Use [] for coordinates, not ()"`)
 - **Axis Range Validation**: Checks axis range logic (`900:100:400` → `"Range values must be ordered"`)
 - **Rule Syntax Validation**: Validates substitution rule completeness and syntax
-- **Multiple Base Master Detection**: Prevents multiple @base masters which breaks DesignSpace
+- **Multiple Base Source Detection**: Prevents multiple @base sources which breaks DesignSpace
 - **Two Processing Modes**: Strict mode (fails on errors) vs. non-strict (collects warnings, but **critical errors always fail**)
 - **Whitespace Normalization**: Handles multiple spaces, tabs, and mixed whitespace gracefully
 - **Unicode Support**: Full support for international characters in names and paths (but detects typos with wrong scripts)
 
 **Explicit Axis Order (New Feature):**
-- Masters section now supports explicit axis order: `masters [wght, ital]`
+- Sources section now supports explicit axis order: `sources [wght, ital]`
 - Decouples coordinate interpretation from axes section order
 - Supports both short tags (`wght`, `ital`) and long names (`weight`, `italic`)
-- Allows users to reorder axes in axes section without breaking master coordinates
-- Backward compatible: `masters` without brackets continues to work with axes order
-- Example: axes can be `ital`, `wght` but coordinates follow `masters [wght, ital]` order
+- Allows users to reorder axes in axes section without breaking source coordinates
+- Backward compatible: `sources` without brackets continues to work with axes order
+- Example: axes can be `ital`, `wght` but coordinates follow `sources [wght, ital]` order
 
 **Automatic Instance Generation (`instances auto`):**
 - Uses sophisticated `instances.py` module for generating all meaningful instance combinations
@@ -434,7 +434,7 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Wildcard expansion: `src/dssketch/converters/dss_to_designspace.py:247` (_expand_wildcard_pattern)
 - Pattern matching: `src/dssketch/utils/patterns.py` (PatternMatcher class)
 
-**Recent Fix (важно!):**
+**Recent Fix (important!):**
 - Fixed wildcard detection for single patterns like `A*` without spaces
 - Changed condition from `if ' ' in from_part and ('*' in from_part...)`
 - To: `if '*' in from_part or (' ' in from_part...)`
@@ -453,16 +453,16 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 
 **Code Location:**
 - Writer axis order output: `src/dssketch/writers/dss_writer.py:66` (_get_axis_tag method)
-- Parser axis order parsing: `src/dssketch/parsers/dss_parser.py:115` (masters section parsing)
-- Coordinate parsing with axis order: `src/dssketch/parsers/dss_parser.py:330` (_parse_master_line)
+- Parser axis order parsing: `src/dssketch/parsers/dss_parser.py:115` (sources section parsing)
+- Coordinate parsing with axis order: `src/dssketch/parsers/dss_parser.py:330` (_parse_source_line)
 
 **Key Implementation Details:**
 - `DSSWriter._get_axis_tag()` converts axis names to standard tags for output
-- `DSSParser.master_axis_order` stores explicit axis order when `masters [tags]` format is used
+- `DSSParser.source_axis_order` stores explicit axis order when `sources [tags]` format is used
 - `DSSParser._tag_to_axis_name()` converts tags back to full axis names
-- Master coordinate parsing uses explicit order when available, falls back to axes order
+- Source coordinate parsing uses explicit order when available, falls back to axes order
 - Supports mapping between short tags (`wght`) and long names (`weight`)
-- Full backward compatibility maintained for legacy `masters` format
+- Full backward compatibility maintained for legacy `sources` format
 
 ### Implementation Notes for Automatic Instance Generation
 
@@ -568,7 +568,7 @@ The DSSketch parser includes comprehensive validation to catch common manual edi
 # Detects and suggests corrections for typos
 familly SuperFont     # → "Unknown keyword 'familly'. Did you mean 'family'?"
 axess                 # → "Unknown keyword 'axess'. Did you mean 'axes'?"
-mastrs               # → "Unknown keyword 'mastrs'. Did you mean 'masters'?"
+sourcse              # → "Unknown keyword 'sourcse'. Did you mean 'sources'?"
 ```
 
 **2. Empty Value Validation:**
@@ -613,23 +613,23 @@ dollar .rvrn (weight >= 400)   # → "Rule missing '>' separator"
 ```python
 # Missing axes section
 family SuperFont
-masters
+sources
     Font-Light [100] @base     # → "CRITICAL: No axes found - cannot generate valid DesignSpace"
 
-# Missing masters section  
+# Missing sources section
 family SuperFont
 axes
-    wght 100:400:900           # → "CRITICAL: No masters found - cannot generate valid DesignSpace"
+    wght 100:400:900           # → "CRITICAL: No sources found - cannot generate valid DesignSpace"
 
-# Missing base master
-masters
+# Missing base source
+sources
     Font-Light [100]
-    Font-Regular [400]         # → "CRITICAL: No base master found (@base flag missing)"
+    Font-Regular [400]         # → "CRITICAL: No base source found (@base flag missing)"
 
-# Multiple base masters
-masters
+# Multiple base sources
+sources
     Font-Light [100] @base
-    Font-Regular [400] @base   # → "CRITICAL: Multiple base masters found (2) - only one allowed"
+    Font-Regular [400] @base   # → "CRITICAL: Multiple base sources found (2) - only one allowed"
     
 # Non-ASCII characters in keywords
 axшes                         # → "Invalid section keyword 'axшes' - contains non-ASCII characters"
@@ -676,7 +676,7 @@ python -m pytest tests/test_parser_validation.py::TestParserValidation::test_key
 **✅ Recommended Format:**
 ```dssketch
 family SuperFont
-path masters
+path sources
 
 axes
     wght 100:400:900
@@ -686,7 +686,7 @@ axes
         Upright @elidable
         Italic
 
-masters [wght, ital]
+sources [wght, ital]
     Font-Light [100, 0]
     Font-Regular [400, 0] @base
     Font-Italic [400, 1]
@@ -702,9 +702,9 @@ instances auto
 # CRITICAL ERRORS (Always fail, break DesignSpace generation):
 axшes               # → axes (non-ASCII character)
 # Missing axes section completely
-# Missing masters section completely  
-# No @base master defined
-# Multiple @base masters
+# Missing sources section completely
+# No @base source defined
+# Multiple @base sources
 
 # Keyword typos
 familly SuperFont    # → family

@@ -5,8 +5,8 @@ import argparse
 import sys
 
 
-# После рефакторинга будет: from src.dssketch.config import get_data_manager
-# Сейчас для примера:
+# After refactoring will be: from src.dssketch.config import get_data_manager
+# Currently for example:
 def main():
     parser = argparse.ArgumentParser(
         prog="dssketch-data", description="Manage DSSketch configuration data files"

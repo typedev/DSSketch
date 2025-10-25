@@ -42,7 +42,7 @@ class UFOValidator:
         """Validate UFO files existence and basic structure"""
         report = ValidationReport()
 
-        # Determine base path for masters
+        # Determine base path for sources
         dssketch_dir = Path(dssketch_file_path).parent
 
         if dss_doc.path:
@@ -57,16 +57,16 @@ class UFOValidator:
 
         # Validate base path exists
         if not base_path.exists():
-            report.path_errors.append(f"Masters path does not exist: {base_path}")
+            report.path_errors.append(f"Sources path does not exist: {base_path}")
             return report
 
         if not base_path.is_dir():
-            report.path_errors.append(f"Masters path is not a directory: {base_path}")
+            report.path_errors.append(f"Sources path is not a directory: {base_path}")
             return report
 
-        # Check each master file
-        for master in dss_doc.masters:
-            ufo_path = base_path / master.filename
+        # Check each source file
+        for source in dss_doc.sources:
+            ufo_path = base_path / source.filename
 
             if not ufo_path.exists():
                 report.missing_files.append(str(ufo_path))
@@ -77,8 +77,8 @@ class UFOValidator:
                 report.invalid_ufos.append(str(ufo_path))
 
             # Check if filename ends with .ufo
-            if not master.filename.endswith(".ufo"):
-                report.warnings.append(f"Master filename should end with .ufo: {master.filename}")
+            if not source.filename.endswith(".ufo"):
+                report.warnings.append(f"Source filename should end with .ufo: {source.filename}")
 
         return report
 
@@ -136,8 +136,8 @@ class UFOGlyphExtractor:
             if source_path.is_absolute():
                 ufo_path = source_path
             elif base_path:
-                # If source filename already includes a relative path (like "masters/file.ufo"),
-                # and base_path also points to masters, we need to avoid duplication
+                # If source filename already includes a relative path (like "sources/file.ufo"),
+                # and base_path also points to sources, we need to avoid duplication
                 if source_path.parts[0] == base_path.name:
                     # Remove the first part and use base_path's parent
                     relative_parts = source_path.parts[1:]

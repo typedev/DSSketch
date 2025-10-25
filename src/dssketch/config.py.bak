@@ -15,22 +15,22 @@ class DataManager:
     """Manages data files with support for user customization"""
     
     def __init__(self):
-        # Путь к встроенным данным в пакете
+        # Path to built-in package data
         self.package_data_dir = Path(__file__).parent / "data"
-        
-        # Путь к пользовательским данным
+
+        # Path to user data
         self.user_data_dir = self._get_user_data_dir()
-        
-        # Инициализация пользовательской директории при первом запуске
+
+        # Initialize user data directory on first run
         self._ensure_user_data_dir()
     
     def _get_user_data_dir(self) -> Path:
         """Get user data directory based on OS"""
-        # Проверяем переменную окружения для кастомного пути
+        # Check environment variable for custom path
         if custom_path := os.environ.get('DSSKETCH_DATA_DIR'):
             return Path(custom_path)
-        
-        # Стандартные пути для разных ОС
+
+        # Standard paths for different OS
         if os.name == 'nt':  # Windows
             base = Path(os.environ.get('APPDATA', '~'))
         elif os.name == 'posix':
@@ -47,8 +47,8 @@ class DataManager:
         """Create user data directory and copy default files if needed"""
         if not self.user_data_dir.exists():
             self.user_data_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Копируем дефолтные файлы при первой установке
+
+            # Copy default files on first installation
             print(f"📁 Creating user data directory: {self.user_data_dir}")
             self.reset_to_defaults()
     
@@ -65,7 +65,7 @@ class DataManager:
                 shutil.copy2(src, dst)
                 print(f"✅ Reset {file_name} to defaults")
         else:
-            # Копируем все файлы данных
+            # Copy all data files
             for src_file in self.package_data_dir.glob("*.json"):
                 shutil.copy2(src_file, self.user_data_dir / src_file.name)
             for src_file in self.package_data_dir.glob("*.yaml"):
@@ -74,13 +74,13 @@ class DataManager:
     
     def load_data_file(self, filename: str) -> Dict[str, Any]:
         """Load data file with fallback to package defaults
-        
+
         Priority:
         1. User's custom file (if exists)
         2. Package default file
         3. Empty dict if nothing found
         """
-        # Сначала проверяем пользовательский файл
+        # First check user file
         user_file = self.user_data_dir / filename
         if user_file.exists():
             try:
@@ -88,16 +88,16 @@ class DataManager:
             except Exception as e:
                 print(f"⚠️  Error loading user file {user_file}: {e}")
                 print(f"   Falling back to package defaults")
-        
-        # Fallback на встроенный файл
+
+        # Fallback to built-in file
         package_file = self.package_data_dir / filename
         if package_file.exists():
             try:
                 return self._load_file(package_file)
             except Exception as e:
                 print(f"⚠️  Error loading package file {package_file}: {e}")
-        
-        # Если ничего не найдено
+
+        # If nothing found
         print(f"⚠️  Data file not found: {filename}")
         return {}
     

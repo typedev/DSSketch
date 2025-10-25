@@ -4,7 +4,7 @@ DSS to DesignSpace converter
 This module converts DSS documents back to DesignSpace format and includes methods for:
 
 1. Converting DSS axes to DesignSpace axes (including discrete axes handling)
-2. Converting DSS masters to DesignSpace sources
+2. Converting DSS sources to DesignSpace sources
 3. Converting DSS instances to DesignSpace instances
 4. Converting DSS rules to DesignSpace rules with wildcard expansion
 5. UFO file reading capabilities for glyph name extraction
@@ -31,7 +31,7 @@ from fontTools.designspaceLib import (
 from ..core.instances import createInstances
 
 # Import models from core
-from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSMaster, DSSRule
+from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 
 # Import validation components
 from ..core.validation import UFOGlyphExtractor
@@ -57,9 +57,9 @@ class DSSToDesignSpace:
             axis = self._convert_axis(dss_axis)
             doc.addAxis(axis)
 
-        # Convert masters/sources
-        for source_index, dss_master in enumerate(dss_doc.masters, 1):
-            source = self._convert_master(dss_master, dss_doc, source_index)
+        # Convert sources
+        for source_index, dss_source in enumerate(dss_doc.sources, 1):
+            source = self._convert_source(dss_source, dss_doc, source_index)
             doc.addSource(source)
 
         # Convert instances
@@ -147,10 +147,10 @@ class DSSToDesignSpace:
 
         return axis
 
-    def _convert_master(
-        self, dss_master: DSSMaster, dss_doc: DSSDocument, source_index: int
+    def _convert_source(
+        self, dss_source: DSSSource, dss_doc: DSSDocument, source_index: int
     ) -> SourceDescriptor:
-        """Convert DSS master to DesignSpace source"""
+        """Convert DSS source to DesignSpace source"""
         source = SourceDescriptor()
 
         # If path is specified in DSS document, prepend it to filename
@@ -159,9 +159,9 @@ class DSSToDesignSpace:
             path = dss_doc.path.replace("\\", "/")
             if not path.endswith("/"):
                 path += "/"
-            source.filename = path + dss_master.filename
+            source.filename = path + dss_source.filename
         else:
-            source.filename = dss_master.filename
+            source.filename = dss_source.filename
 
         # Assign automatic name
         source.name = f"source.{source_index}"
@@ -170,15 +170,15 @@ class DSSToDesignSpace:
         ufo_info = self._read_ufo_info(source.filename)
         if ufo_info:
             source.familyName = ufo_info.get("familyName", dss_doc.family)
-            source.styleName = ufo_info.get("styleName", dss_master.name)
+            source.styleName = ufo_info.get("styleName", dss_source.name)
         else:
             source.familyName = dss_doc.family
-            source.styleName = dss_master.name
+            source.styleName = dss_source.name
 
-        source.location = dss_master.location.copy()
+        source.location = dss_source.location.copy()
 
         # Set copy flags
-        if dss_master.is_base:
+        if dss_source.is_base:
             source.copyLib = True
             source.copyInfo = True
             source.copyGroups = True
@@ -190,7 +190,7 @@ class DSSToDesignSpace:
         """Read familyName and styleName from UFO file"""
         try:
             # The filename already includes the full relative path from the base_path
-            # (e.g., "masters/SuperFont-Black.ufo")
+            # (e.g., "sources/SuperFont-Black.ufo")
             ufo_path = Path(filename)
             if self.base_path and not ufo_path.is_absolute():
                 ufo_path = self.base_path / filename

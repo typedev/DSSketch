@@ -16,7 +16,7 @@ from fontTools.designspaceLib import (
     SourceDescriptor,
 )
 
-from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSMaster, DSSRule
+from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule
 
 
 class DesignSpaceToDSS:
@@ -46,20 +46,20 @@ class DesignSpaceToDSS:
         """Convert DesignSpace document to DSS document"""
         dss_doc = DSSDocument(family=self._extract_family_name(ds_doc))
 
-        # Determine common path for masters
-        masters_path = self._determine_masters_path(ds_doc)
-        if masters_path:
-            dss_doc.path = masters_path
+        # Determine common path for sources
+        sources_path = self._determine_sources_path(ds_doc)
+        if sources_path:
+            dss_doc.path = sources_path
 
         # Convert axes
         for axis in ds_doc.axes:
             dss_axis = self._convert_axis(axis)
             dss_doc.axes.append(dss_axis)
 
-        # Convert masters/sources
+        # Convert sources
         for source in ds_doc.sources:
-            dss_master = self._convert_source(source, ds_doc, masters_path)
-            dss_doc.masters.append(dss_master)
+            dss_source = self._convert_source(source, ds_doc, sources_path)
+            dss_doc.sources.append(dss_source)
 
         # Convert instances (optional - can be auto-generated)
         for instance in ds_doc.instances:
@@ -82,36 +82,36 @@ class DesignSpaceToDSS:
             return ds_doc.sources[0].familyName or "Unknown"
         return "Unknown"
 
-    def _determine_masters_path(self, ds_doc: DesignSpaceDocument) -> Optional[str]:
-        """Determine common path for all masters"""
+    def _determine_sources_path(self, ds_doc: DesignSpaceDocument) -> Optional[str]:
+        """Determine common path for all sources"""
         if not ds_doc.sources:
             return None
 
-        # Collect all master paths
-        master_paths = []
+        # Collect all source paths
+        source_paths = []
         for source in ds_doc.sources:
             if source.filename:
-                master_paths.append(Path(source.filename))
+                source_paths.append(Path(source.filename))
 
-        if not master_paths:
+        if not source_paths:
             return None
 
         # Find common directory
         directories = set()
-        for path in master_paths:
+        for path in source_paths:
             if path.parent != Path("."):
                 directories.add(path.parent)
 
-        # If all masters are in root directory (no parent path)
+        # If all sources are in root directory (no parent path)
         if not directories:
             return None
 
-        # If all masters are in the same directory
+        # If all sources are in the same directory
         if len(directories) == 1:
             common_dir = directories.pop()
             return str(common_dir).replace("\\", "/")
 
-        # Masters are in different directories - return None
+        # Sources are in different directories - return None
         return None
 
     def _convert_axis(self, axis: AxisDescriptor) -> DSSAxis:
@@ -167,21 +167,21 @@ class DesignSpaceToDSS:
         self,
         source: SourceDescriptor,
         ds_doc: DesignSpaceDocument,
-        masters_path: Optional[str] = None,
-    ) -> DSSMaster:
-        """Convert DesignSpace source to DSS master"""
+        sources_path: Optional[str] = None,
+    ) -> DSSSource:
+        """Convert DesignSpace source to DSS source"""
         filename = source.filename or ""
         name = Path(filename).stem
 
-        # If we have a common masters path, strip it from the filename
-        if masters_path and filename.startswith(masters_path):
-            filename = filename[len(masters_path) :].lstrip("/")
+        # If we have a common sources path, strip it from the filename
+        if sources_path and filename.startswith(sources_path):
+            filename = filename[len(sources_path) :].lstrip("/")
 
-        # Determine if this is a base master by checking if coordinates match defaults
-        # Base master has coordinates matching default values in design space
-        is_base = self._is_default_master(source, ds_doc)
+        # Determine if this is a base source by checking if coordinates match defaults
+        # Base source has coordinates matching default values in design space
+        is_base = self._is_default_source(source, ds_doc)
 
-        return DSSMaster(
+        return DSSSource(
             name=name,
             filename=filename or f"{name}.ufo",
             location=dict(source.location),
@@ -192,23 +192,23 @@ class DesignSpaceToDSS:
             copy_features=source.copyFeatures,
         )
 
-    def _is_default_master(self, source: SourceDescriptor, ds_doc: DesignSpaceDocument) -> bool:
-        """Check if a master is at the default location for all continuous axes.
-        For discrete axes, any value is acceptable - we need base masters for each discrete value."""
+    def _is_default_source(self, source: SourceDescriptor, ds_doc: DesignSpaceDocument) -> bool:
+        """Check if a source is at the default location for all continuous axes.
+        For discrete axes, any value is acceptable - we need base sources for each discrete value."""
 
         for axis in ds_doc.axes:
             axis_name = axis.name
 
-            # Get master's coordinate in design space
-            master_coord = source.location.get(axis_name)
-            if master_coord is None:
+            # Get source's coordinate in design space
+            source_coord = source.location.get(axis_name)
+            if source_coord is None:
                 return False
 
             # Skip discrete axes - they can have any value
-            # We need base masters for each discrete value (e.g., both Roman and Italic)
+            # We need base sources for each discrete value (e.g., both Roman and Italic)
             if hasattr(axis, "values") and axis.values:
                 # Just check that the value is valid
-                if master_coord not in axis.values:
+                if source_coord not in axis.values:
                     return False
                 continue
 
@@ -233,7 +233,7 @@ class DesignSpaceToDSS:
                         break
 
             # For continuous axes, compare with small tolerance for floating point
-            if abs(master_coord - default_design) > 0.001:
+            if abs(source_coord - default_design) > 0.001:
                 return False
 
         return True

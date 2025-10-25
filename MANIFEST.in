@@ -1,15 +1,15 @@
-# MANIFEST.in - контролирует какие файлы включаются в дистрибутив
+# MANIFEST.in - controls which files are included in the distribution
 
-# Включить необходимые файлы
+# Include necessary files
 include LICENSE
 include README.md
 include requirements.txt
 recursive-include src/dssketch/data *.json *.yaml
 
-# Включить примеры (опционально - если хотите их в пакете)
+# Include examples (optional - if you want them in the package)
 # recursive-include examples *.dssketch *.dss *.designspace
 
-# ИСКЛЮЧИТЬ все остальные MD файлы и файлы разработки
+# EXCLUDE all other MD files and development files
 exclude *.md
 exclude CLAUDE.md
 exclude REFACTORING_PLAN.md
@@ -20,7 +20,7 @@ exclude pyproject.toml.example
 exclude .gitignore
 exclude .gitattributes
 
-# Исключить директории разработки
+# Exclude development directories
 prune tests
 prune docs
 prune .github

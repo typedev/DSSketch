@@ -11,7 +11,7 @@ from typing import Dict, List
 import yaml
 
 from ..core.mappings import Standards
-from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSMaster, DSSRule
+from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule
 from ..utils.dss_validator import DSSValidationError, DSSValidator
 from ..utils.logging import DSSketchLogger
 
@@ -32,7 +32,7 @@ class DSSParser:
         self.document = DSSDocument(family="")
         self.current_section = None
         self.current_axis = None
-        self.master_axis_order = None  # Explicit axis order from masters section
+        self.source_axis_order = None  # Explicit axis order from sources section
         self.discrete_labels = self._load_discrete_labels()
         self.validator = DSSValidator(strict_mode=strict_mode)
         # Note: Rule names now handled via @name syntax instead of comments
@@ -168,14 +168,14 @@ class DSSParser:
         elif line == "axes" or line.startswith("axes "):
             self.current_section = "axes"
 
-        elif line == "masters" or line.startswith("masters "):
-            self.current_section = "masters"
-            # Parse explicit axis order if present: masters [wght, ital]
+        elif line == "sources" or line.startswith("sources "):
+            self.current_section = "sources"
+            # Parse explicit axis order if present: sources [wght, ital]
             if "[" in line and "]" in line:
                 axis_order_str = line[line.index("[") + 1 : line.index("]")]
                 axis_tags = [tag.strip() for tag in axis_order_str.split(",")]
                 # Convert tags to full axis names
-                self.master_axis_order = [self._tag_to_axis_name(tag) for tag in axis_tags]
+                self.source_axis_order = [self._tag_to_axis_name(tag) for tag in axis_tags]
 
         elif line == "instances" or line.startswith("instances "):
             self.current_section = "instances"
@@ -189,8 +189,8 @@ class DSSParser:
         elif self.current_section == "axes":
             self._parse_axis_line(line)
 
-        elif self.current_section == "masters":
-            self._parse_master_line(line)
+        elif self.current_section == "sources":
+            self._parse_source_line(line)
 
         elif self.current_section == "instances":
             self._parse_instance_line(line)
@@ -429,8 +429,8 @@ class DSSParser:
         )
         self.current_axis.mappings.append(mapping)
 
-    def _parse_master_line(self, line: str):
-        """Parse master definition line"""
+    def _parse_source_line(self, line: str):
+        """Parse source definition line"""
         # Strip leading whitespace for pattern matching
         line = line.strip()
         # Extract flags
@@ -446,7 +446,7 @@ class DSSParser:
             # Validate coordinates
             is_valid, error_msg = DSSValidator.validate_coordinates(coords_str)
             if not is_valid:
-                self.validator.errors.append(f"Invalid coordinates in master '{name}': {error_msg}")
+                self.validator.errors.append(f"Invalid coordinates in source '{name}': {error_msg}")
                 return
 
             coords = [float(x.strip()) for x in coords_str.split(",")]
@@ -458,9 +458,9 @@ class DSSParser:
 
         # Create location dict using explicit axis order if available
         location = {}
-        if self.master_axis_order:
-            # Use explicit axis order from masters section
-            for i, axis_name in enumerate(self.master_axis_order):
+        if self.source_axis_order:
+            # Use explicit axis order from sources section
+            for i, axis_name in enumerate(self.source_axis_order):
                 if i < len(coords):
                     # Find the matching axis in document.axes to get the full axis object
                     for axis in self.document.axes:
@@ -482,16 +482,16 @@ class DSSParser:
             # Simple name without path
             filename = name if name.endswith(".ufo") else f"{name}.ufo"
 
-        master = DSSMaster(name=name, filename=filename, location=location, is_base=is_base)
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
 
-        self.document.masters.append(master)
+        self.document.sources.append(source)
 
     def _parse_instance_line(self, line: str):
         """Parse instance definition line"""
         # Strip leading whitespace for pattern matching
         line = line.strip()
         if line != "auto":
-            # Parse explicit instance (similar to master parsing)
+            # Parse explicit instance (similar to source parsing)
             pass
 
     def _parse_condition_string(self, condition_str: str) -> List[dict]:

@@ -5,7 +5,7 @@ This package provides bidirectional conversion between compact .dssketch format
 and verbose .designspace XML files for variable font design.
 """
 
-__version__ = "1.0.14"
+__version__ = "1.0.15"
 
 # Import all components from modular structure
 # Import high-level API functions
@@ -18,7 +18,7 @@ from .api import (
 from .converters.designspace_to_dss import DesignSpaceToDSS
 from .converters.dss_to_designspace import DSSToDesignSpace
 from .core.mappings import Standards, UnifiedMappings
-from .core.models import DSSAxis, DSSDocument, DSSInstance, DSSMaster, DSSRule
+from .core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 from .core.validation import UFOValidator, ValidationReport
 from .parsers.dss_parser import DSSParser
 from .writers.dss_writer import DSSWriter
@@ -30,7 +30,7 @@ __all__ = [
     # Core models
     "DSSDocument",
     "DSSAxis",
-    "DSSMaster",
+    "DSSSource",
     "DSSInstance",
     "DSSRule",
     # Mappings

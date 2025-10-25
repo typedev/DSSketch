@@ -37,8 +37,8 @@ class DSSAxis:
 
 
 @dataclass
-class DSSMaster:
-    """Represents a master/source in DSS format"""
+class DSSSource:
+    """Represents a source in DSS format"""
     name: str
     filename: str
     location: Dict[str, float]  # axis_name -> design_value
@@ -74,9 +74,9 @@ class DSSDocument:
     """Complete DSS document structure"""
     family: str
     suffix: str = ""
-    path: str = ""  # Path to masters directory (relative to .dssketch file or absolute)
+    path: str = ""  # Path to sources directory (relative to .dssketch file or absolute)
     axes: List[DSSAxis] = field(default_factory=list)
-    masters: List[DSSMaster] = field(default_factory=list)
+    sources: List[DSSSource] = field(default_factory=list)
     instances: List[DSSInstance] = field(default_factory=list)
     rules: List[DSSRule] = field(default_factory=list)
     variable_fonts: List[Dict] = field(default_factory=list)

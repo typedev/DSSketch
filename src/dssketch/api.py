@@ -114,7 +114,7 @@ def convert_dss_string_to_designspace(
                 Light > 100
                 Regular > 400
                 Bold > 900
-        masters
+        sources
             Light.ufo [100]
             Regular.ufo [400] @base
             Bold.ufo [900]
