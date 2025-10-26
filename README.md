@@ -56,13 +56,13 @@ DSSketch provides a simple, intuitive text format for describing variable fonts,
     </rule>
   </rules>
   <sources>
-    <source filename="masters/SuperFont-Thin.ufo" familyname="SuperFont" stylename="Thin">
+    <source filename="sources/SuperFont-Thin.ufo" familyname="SuperFont" stylename="Thin">
       <location>
         <dimension name="Weight" xvalue="0"/>
         <dimension name="Italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="masters/SuperFont-Regular.ufo" familyname="SuperFont" stylename="Regular">
+    <source filename="sources/SuperFont-Regular.ufo" familyname="SuperFont" stylename="Regular">
       <location>
         <dimension name="Weight" xvalue="356"/>
         <dimension name="Italic" xvalue="0"/>
@@ -111,24 +111,19 @@ instances auto
 
 ## Key Advantages
 
-### 1. **Dramatic Size Reduction**
-- **2D fonts** (weight × italic): 84-85% smaller
-- **4D fonts** (weight × width × contrast × slant): 97% smaller
-- **Real example**: MyFont 204KB → 5.6KB (36x compression)
-
-### 2. **Human-Friendly Syntax**
+### 1. **Human-Friendly Syntax**
 - **Intuitive axis definitions**: `wght 100:400:900` instead of verbose XML attributes
 - **Simple source coordinates**: `[400, 0]` instead of complex XML dimension tags
 - **Readable rules**: `dollar > .rvrn (weight >= 400)` instead of nested XML structures
 - **Common directory paths**: `path sources` eliminates repetitive file paths
 
-### 3. **Smart Automation**
+### 2. **Smart Automation**
 - **Auto instance generation**: `instances auto` creates all meaningful combinations
 - **Standard weight mapping**: Recognizes `Regular > 400`, `Bold > 700` automatically
 - **Wildcard rule expansion**: `* > .alt` finds all glyphs with .alt variants
 - **UFO validation**: Automatically validates source files and extracts glyph lists
 
-### 4. **Advanced Features Made Simple**
+### 3. **Advanced Features Made Simple**
 
 #### Discrete Axes
 ```dssketch
@@ -259,7 +254,7 @@ dss_string = dssketch.convert_designspace_to_dss_string(ds)
 ### Basic 2-Axis Font
 ```dssketch
 family MyFont
-path masters
+path path_to_sources
 
 axes
     wght 100:400:900
@@ -270,7 +265,7 @@ axes
         Upright @elidable
         Italic
 
-masters [wght, ital]
+sources [wght, ital]
     Light [100, 0]
     Regular [400, 0] @base
     Bold [900, 0]
@@ -285,17 +280,16 @@ instances auto
 ```dssketch
 family SuperFont
 suffix VF
-path masters
 
 axes
-    wght 50:400:900
-        Hairline > 0
-        Thin > 68
-        Light > 196
-        Regular > 362 @elidable
-        Medium > 477
-        Bold > 732
-        Black > 1000
+    wght 50:400:900                 # user space
+        Hairline > 0                # 50
+        Thin > 68                   # 100
+        Light > 196                 # 300
+        Regular > 362 @elidable     # 400
+        Medium > 477                # 500
+        Bold > 732                  # 700
+        Black > 1000                # 900
     wdth 60:100:200
         Condensed > 60
         Normal > 100 @elidable
@@ -304,7 +298,7 @@ axes
         Upright @elidable
         Italic
 
-masters [wght, wdth, ital]
+sources [wght, wdth, ital]
     Hairline [0, 100, 0]
     Regular [362, 100, 0] @base
     Black [1000, 100, 0]
@@ -337,7 +331,7 @@ axes
     wdth 60:100:200
     CONTRAST CNTR 0:50:100  # Custom axis (uppercase)
 
-masters [wght, wdth, CONTRAST]
+sources [wght, wdth, CONTRAST]
     Light [100, 100, 0] @base
     Bold [900, 100, 100]
 
@@ -371,7 +365,7 @@ instances auto
 ### User Space vs Design Space
 ```
 User Space = Values users see (CSS font-weight: 400) = OS/2 table
-Design Space = Actual coordinates where masters are located
+Design Space = Actual coordinates where sources are located
 
 Mapping example:
 Regular > 362  means:
@@ -411,7 +405,7 @@ ital discrete
 ```
 
 ### Automatic Instance Generation
-The `instances auto` feature intelligently creates all meaningful combinations:
+The `instances auto` feature intelligently creates **all possible combinations** of axis labels using combinatorial logic (`itertools.product`):
 
 ```dssketch
 axes
@@ -426,7 +420,64 @@ axes
 instances auto  # Generates: "Light", "Italic", "Bold", "Italic Light", "Italic Bold"
 ```
 
-**Result**: Automatic generation of proper PostScript names, file paths, and style linking.
+**How it works:**
+1. **Combinatorial generation**: Creates cartesian product of all axis labels
+   - Axis 1 (ital): `[Upright, Italic]` × Axis 2 (wght): `[Light, Regular, Bold]`
+   - Result: 2 × 3 = **6 combinations**
+2. **Elidable name cleanup**: Removes redundant `@elidable` labels
+   - `Upright Light` → `Light`
+   - `Upright Regular` → `Regular` (both parts elidable)
+   - `Italic Regular` → `Italic` (Regular is elidable)
+3. **Final instances**: `Light`, `Regular`, `Bold`, `Italic`, `Italic Light`, `Italic Bold`
+
+**Axis order controls name sequence:**
+```dssketch
+# Order 1: Width first, then Weight
+axes
+    wdth 60:100:200
+        Condensed > 60
+        Normal > 100 @elidable
+    wght 100:400:900
+        Light > 100
+        Bold > 900
+
+# Result: "Condensed Light", "Condensed Bold", "Light", "Bold"
+
+# Order 2: Weight first, then Width
+axes
+    wght 100:400:900
+        Light > 100
+        Bold > 900
+    wdth 60:100:200
+        Condensed > 60
+        Normal > 100 @elidable
+
+# Result: "Light Condensed", "Bold Condensed", "Light", "Bold"
+```
+
+**Complex multi-axis example:**
+```dssketch
+axes
+    wdth 60:100:100
+        Condensed > 60
+        Normal > 100 @elidable
+    wght 100:400:900
+        Light > 100
+        Regular > 400 @elidabe
+        Bold > 900
+    ital discrete
+        Upright @elidable
+        Italic
+
+instances auto
+# Generates: 2 × 3 × 2 = 12 combinations
+# Result: Light, Regular, Bold,
+#         Condensed Light, Condensed, Condensed Bold,
+#         Light Italic, Italic, Bold Italic,
+#         Condensed Light Italic, Condensed Italic, Condensed Bold Italic
+```
+
+**Result**: Automatic generation of all meaningful style combinations with proper PostScript names, file paths, and style linking based on axes order.
 
 ## Architecture & API
 
@@ -478,14 +529,6 @@ for warning in parser.warnings:
     print(f"WARNING: {warning}")
 ```
 
-## Performance Comparison
-
-| Format | Lines | Size | Readability | Edit Safety |
-|--------|-------|------|-------------|-------------|
-| .designspace | 266 | 11.2 KB | ⭐⭐ | ⭐ |
-| .dssketch | 21 | 0.8 KB | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-
-**Savings: 93% size reduction, 10x better readability, significantly safer manual editing**
 
 ## Real-World Benefits
 

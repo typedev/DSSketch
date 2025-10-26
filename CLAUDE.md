@@ -417,13 +417,46 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 
 **Automatic Instance Generation (`instances auto`):**
 - Uses sophisticated `instances.py` module for generating all meaningful instance combinations
+- **Combinatorial algorithm**: Uses `itertools.product()` to create cartesian product of all axis label combinations
+- **Example calculation**: 3 weights × 2 widths × 2 italics = 12 total instances
 - Creates instances from all axis mapping combinations automatically
 - Handles elidable style names (removes redundant parts like "Regular" from "Regular Italic" → "Italic")
 - **Respects axes order from DSS document**: instances follow the sequence defined in axes section
-- Supports filtering and skipping unwanted combinations
+- **Order determines naming**: First axis appears first in names (e.g., `wdth, wght` → "Condensed Light" vs `wght, wdth` → "Light Condensed")
+- Supports filtering and skipping unwanted combinations via `skipFilter` parameter
 - Generates proper PostScript names and file paths
 - Integration: `dss_to_designspace.py:67` calls `createInstances()` when `instances_auto=True`
 - **Custom axis ordering**: Change axes order in DSS to control instance name generation
+
+**Algorithm Steps (core/instances.py):**
+1. `sortAxisOrder()` - Extract axes order from DSS document or use DEFAULT_AXIS_ORDER fallback
+2. `getInstancesMapping()` - Extract axis label mappings for each axis
+3. `itertools.product()` - Generate all combinations of labels (cartesian product)
+4. `getElidabledNames()` - Determine which style names are elidable
+5. Name cleanup - Remove elidable labels from instance names
+6. `createInstance()` - Create InstanceDescriptor with location, familyName, styleName, PostScript name
+
+**Example:**
+```dssketch
+axes
+    wght 100:400:900
+        Light > 100         # Label 1
+        Regular > 400 @elidable
+        Bold > 900          # Label 2
+    ital discrete
+        Upright @elidable   # Label A
+        Italic              # Label B
+
+# Combinations: [Light, Regular, Bold] × [Upright, Italic]
+# Raw: 3 × 2 = 6 instances
+# After elidable cleanup:
+# - "Upright Light" → "Light"
+# - "Upright Regular" → "Regular"
+# - "Upright Bold" → "Bold"
+# - "Italic Light" → "Italic Light"
+# - "Italic Regular" → "Italic"
+# - "Italic Bold" → "Italic Bold"
+```
 
 ## Important Implementation Details
 
