@@ -64,3 +64,4 @@ tests/*
 tests/fixtures/*
 *.ufo
 backup-before-cleanup.bundle
+.ruff_cache/
