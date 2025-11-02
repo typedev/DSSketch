@@ -82,22 +82,22 @@ family SuperFont
 path sources
 
 axes
-    wght 100:400:900
+    weight Thin:Regular:Black
         Thin > 0
         Light > 211
         Regular > 356 @elidable
         Medium > 586
         Bold > 789
         Black > 1000
-    ital discrete
+    italic discrete
         Upright @elidable
         Italic
 
 sources [wght, ital]
-    SuperFont-Thin [0, 0]
-    SuperFont-Regular [356, 0] @base
-    SuperFont-Black [1000, 0]
-    SuperFont-Thin-Italic [0, 1]
+    SuperFont-Thin [Thin, Upright]
+    SuperFont-Regular [Regular, Upright] @base
+    SuperFont-Black [Black, Upright]
+    SuperFont-Thin-Italic [Thin, Italic]
     SuperFont-Italic [356, 1]
     SuperFont-Black-Italic [1000, 1]
 
@@ -123,7 +123,54 @@ instances auto
 - **Wildcard rule expansion**: `* > .alt` finds all glyphs with .alt variants
 - **UFO validation**: Automatically validates source files and extracts glyph lists
 
-### 3. **Advanced Features Made Simple**
+### 3. **Label-Based Syntax**
+
+Make your font files even more readable with label-based coordinates and ranges:
+
+#### Label-Based Source Coordinates
+```dssketch
+# Traditional numeric format:
+sources [wght, ital]
+    Font-Regular [362, 0] @base
+    Font-Black [1000, 1]
+
+# Label-based format:
+sources [wght, ital]
+    Font-Regular [Regular, Upright] @base
+    Font-Black [Black, Italic]
+```
+
+#### Label-Based Axis Ranges
+```dssketch
+# Traditional numeric format:
+axes
+    wght 100:400:900
+    wdth 75:100:125
+
+# Label-based ranges for weight and width:
+axes
+    weight Thin:Regular:Black   # Auto-converts to 100:400:900
+    width Condensed:Normal:Extended  # Auto-converts to 80:100:150
+```
+
+#### Human-Readable Axis Names
+```dssketch
+# Short tags (traditional):
+axes
+    wght 100:400:900
+    wdth 75:100:125
+    ital discrete
+
+# Human-readable names:
+axes
+    weight 100:400:900    # Auto-converts to wght
+    width 75:100:125      # Auto-converts to wdth
+    italic discrete       # Auto-converts to ital
+```
+
+**Supported names:** `weight` → `wght`, `width` → `wdth`, `italic` → `ital`, `slant` → `slnt`, `optical` → `opsz`
+
+### 4. **Advanced Features Made Simple**
 
 #### Discrete Axes
 ```dssketch
@@ -289,15 +336,14 @@ family SuperFont
 suffix VF
 
 axes
-    wght 50:400:900                 # user space
-        Hairline > 0                # 50
-        Thin > 68                   # 100
+    wght Thin:Regular:Black         # user space 100:400:900
+        Thin > 0                    # 100
         Light > 196                 # 300
         Regular > 362 @elidable     # 400
         Medium > 477                # 500
         Bold > 732                  # 700
         Black > 1000                # 900
-    wdth 60:100:200
+    wdth Condensed:Normal:Extended
         Condensed > 60
         Normal > 100 @elidable
         Extended > 200
@@ -306,14 +352,19 @@ axes
         Italic
 
 sources [wght, wdth, ital]
-    Hairline [0, 100, 0]
-    Regular [362, 100, 0] @base
-    Black [1000, 100, 0]
-    HairlineCondensed [0, 60, 0]
-    BlackExtended [1000, 200, 0]
-    HairlineItalic [0, 100, 1]
-    Italic [362, 100, 1]
-    BlackItalic [1000, 100, 1]
+    Thin [Thin, Condensed, Upright]
+    Regular [Regular, Condensed, Upright] @base
+    Black [Black, Condensed, Upright]
+    ThinItalic [Thin, Condensed, Italic]
+    Italic [Regular, Condensed, Italic]
+    BlackItalic [Black, Condensed, Italic]
+    ThinExtended [Thin, Extended, Upright]
+    RegularExtended [Regular, Extended, Upright]
+    BlackExtended [Black, Extended, Upright]
+    ThinExtendedItalic [Thin, Extended, Italic]
+    ExtendedItalic [Regular, Extended, Italic]
+    BlackExtendedItalic [Black, Extended, Italic]
+
 
 rules
     # Currency symbols get heavy alternates

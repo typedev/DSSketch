@@ -212,23 +212,23 @@ parser = DSSParser(strict_mode=False)  # Non-strict mode to collect all issues
 try:
     with open("font.dssketch") as f:
         content = f.read()
-    
+
     result = parser.parse(content)
-    
+
     # Check for validation issues
     if parser.errors:
         print(f"Found {len(parser.errors)} errors:")
         for error in parser.errors:
             print(f"  ERROR: {error}")
-    
+
     if parser.warnings:
         print(f"Found {len(parser.warnings)} warnings:")
         for warning in parser.warnings:
             print(f"  WARNING: {warning}")
-    
+
     if not parser.errors:
         print("Parsing successful!")
-        
+
 except Exception as e:
     print(f"Parser exception: {e}")
 ```
@@ -293,6 +293,7 @@ When integrating DSSketch API into your workflow:
 
 **Axis Types:**
 - Standard axes use lowercase tags: `wght`, `wdth`, `ital`, `slnt`, `opsz`
+- **Human-readable names supported**: `weight`, `width`, `italic`, `slant`, `optical` (automatically converted to tags)
 - Custom axes use uppercase: `CONTRAST CNTR`
 - Discrete axes: `ital discrete` or `ital 0:0:1` for non-interpolating axes (like italic on/off)
 
@@ -314,26 +315,37 @@ suffix VF  # optional
 path sources  # common directory for sources
 
 axes  # Order of axes controls instance generation sequence
-    wght 100:400:900  # min:default:max
+    wght 100:400:900  # min:default:max (numeric format)
         Thin > 100    # label > design_value
         Regular > 400
         Black > 900
+
+    # Label-based axis ranges (for weight and width only)
+    wght Thin:Regular:Black  # Uses standard user-space values
+        Thin > 100
+        Regular > 400
+        Black > 900
+
     ital discrete  # discrete axis (equivalent to ital 0:0:1)
         Upright    # simplified format (no > 0.0 needed)
         Italic     # simplified format (no > 1.0 needed)
 
 sources [wght, ital]  # explicit axis order for coordinates
-    # If path is set, just filename needed:
+    # Traditional numeric coordinates:
     SourceName [362, 0] @base  # [coordinates] @flags
 
+    # Label-based coordinates (more readable):
+    SourceName [Regular, Upright] @base  # Uses axis mapping labels
+    SourceName [Black, Italic]  # Mixed numeric and labels supported
+
     # Or individual paths per source:
-    # upright/Thin [100, 0]
-    # italic/Black [900, 1]
+    # upright/Thin [Thin, Upright]  # Label-based
+    # italic/Black [900, 1]  # Numeric
 
 rules
     dollar > dollar.rvrn (weight >= 480) "dollar alternates"  # 480 = design space coordinate
     cent* > .rvrn (weight >= 480) "cent patterns"  # wildcard patterns
-    A* > .alt (weight <= 500)  # all glyphs starting with A  
+    A* > .alt (weight <= 500)  # all glyphs starting with A
     * > .rvrn (weight >= 600)  # all glyphs that have .rvrn variants
     # Negative design space coordinates supported:
     thin* > .ultra (weight >= -100)  # negative design space value
@@ -341,6 +353,137 @@ rules
 
 instances auto  # instances follow axes section order
 ```
+
+### Label-Based Syntax
+
+DSSketch now supports a more human-friendly label-based syntax for both axis ranges and source coordinates, making files easier to read and edit by hand.
+
+**Label-Based Source Coordinates:**
+
+Instead of remembering design-space numbers, you can use axis mapping labels:
+
+```dssketch
+# Traditional numeric format:
+sources [wght, ital]
+    Font-Regular [362, 0] @base
+    Font-Black [1000, 1]
+    Font-Hairline [0, 0]
+
+# Label-based format (more readable):
+sources [wght, ital]
+    Font-Regular [Regular, Upright] @base
+    Font-Black [Black, Italic]
+    Font-Hairline [Hairline, Upright]
+
+# Mixed format also supported:
+sources [wght, ital]
+    Font-Regular [400, Upright] @base  # numeric + label
+    Font-Black [Black, 1]  # label + numeric
+```
+
+**How it works:**
+- Labels are resolved from axis mappings (e.g., `Regular` → `362.0` from `Regular > 362`)
+- Supports all axes - standard (wght, wdth, ital) and custom axes
+- Backward compatible - numeric format still fully supported
+- Writer automatically uses labels when `use_label_coordinates=True` (default)
+
+**Label-Based Axis Ranges:**
+
+For standard `weight` and `width` axes, you can use label names instead of numeric user-space values:
+
+```dssketch
+# Traditional numeric format:
+axes
+    wght 100:400:900
+        Thin > 100
+        Regular > 400
+        Black > 900
+
+# Label-based format:
+axes
+    wght Thin:Regular:Black  # min:default:max using standard labels
+        Thin > 100
+        Regular > 400
+        Black > 900
+
+# Width axis example:
+axes
+    wdth Condensed:Normal:Extended
+        Condensed > 75
+        Normal > 100
+        Extended > 125
+```
+
+**How it works:**
+- Uses standard user-space mappings from `data/unified-mappings.yaml`
+- Only works for `weight` and `width` axes (most common use case)
+- Example: `Thin` → `100`, `Regular` → `400`, `Black` → `900` (standard weight values)
+- Writer automatically uses labels when ranges match standard values and `use_label_ranges=True` (default)
+
+**Benefits:**
+- **More readable**: `[Regular, Upright]` is clearer than `[362, 0]`
+- **Less error-prone**: No need to remember design-space coordinates
+- **Better diffs**: Git diffs show meaningful label changes instead of number changes
+- **Self-documenting**: Labels make the font structure immediately clear
+
+**Examples:**
+
+```dssketch
+family MyVariableFont
+
+axes
+    wght Light:Regular:Bold  # Label-based range
+        Light > 300
+        Regular > 400
+        Bold > 700
+    ital discrete
+        Upright
+        Italic
+
+sources [wght, ital]
+    Font-Light [Light, Upright]  # Label-based coordinates
+    Font-Regular [Regular, Upright] @base
+    Font-Bold [Bold, Upright]
+    Font-LightItalic [Light, Italic]
+    Font-Italic [Regular, Italic]
+    Font-BoldItalic [Bold, Italic]
+
+instances auto
+```
+
+This converts to the same DesignSpace as numeric format, but is much easier to read and maintain!
+
+**Human-Readable Axis Names:**
+
+For standard axes, you can use human-readable names instead of short tags:
+
+```dssketch
+# Short tags (traditional):
+axes
+    wght 100:400:900
+    wdth 75:100:125
+    ital discrete
+
+# Human-readable names:
+axes
+    weight 100:400:900  # Automatically converted to wght
+    width 75:100:125    # Automatically converted to wdth
+    italic discrete     # Automatically converted to ital
+
+# Can be combined with label-based ranges:
+axes
+    weight Thin:Regular:Black  # Both human name AND labels!
+    width Condensed:Normal:Extended
+```
+
+**Supported human-readable names:**
+- `weight` → `wght`
+- `width` → `wdth`
+- `italic` → `ital`
+- `slant` → `slnt`
+- `optical` → `opsz`
+
+This makes DSSketch files even more accessible to font designers who are not familiar with OpenType axis tags!
 
 ### Key Features
 
@@ -394,7 +537,7 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Shows warnings for missing target glyphs but continues conversion
 - Uses UFOGlyphExtractor to safely read glyph lists from sources
 
-**Parser Validation & Robustness (New!):**
+**Parser Validation & Robustness:**
 - **Critical Structure Validation**: Ensures required sections (axes, sources, base source) are present - **ALWAYS FAILS** if missing
 - **Typo Detection**: Catches common keyword misspellings (`familly` → `"Did you mean 'family'?"`)
 - **Non-ASCII Character Detection**: Catches Unicode typos (`axшes` → `"contains non-ASCII characters"`)
@@ -408,7 +551,7 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - **Whitespace Normalization**: Handles multiple spaces, tabs, and mixed whitespace gracefully
 - **Unicode Support**: Full support for international characters in names and paths (but detects typos with wrong scripts)
 
-**Explicit Axis Order (New Feature):**
+**Explicit Axis Order**
 - Sources section now supports explicit axis order: `sources [wght, ital]`
 - Decouples coordinate interpretation from axes section order
 - Supports both short tags (`wght`, `ital`) and long names (`weight`, `italic`)
@@ -548,18 +691,271 @@ axes
 # Result: instances like "Italic Thin Condensed"
 ```
 
+### Implementation Notes for Label-Based Syntax
+
+**Code Location:**
+- Label resolution in sources: `src/dssketch/parsers/dss_parser.py:_resolve_coordinate_value()` (method added)
+- Label resolution in axis ranges: `src/dssketch/parsers/dss_parser.py:_resolve_axis_range_value()` (method added)
+- Label-based coordinate parsing: `src/dssketch/parsers/dss_parser.py:_parse_source_line()` (modified)
+- Label-based range parsing: `src/dssketch/parsers/dss_parser.py:_parse_axis_line()` (modified in 3 places)
+- Writer label coordinates: `src/dssketch/writers/dss_writer.py:_get_label_for_coordinate()` (method added)
+- Writer label ranges: `src/dssketch/writers/dss_writer.py:_get_label_for_user_value()` (method added)
+
+**Key Implementation Details:**
+
+**Source Coordinate Resolution (`_resolve_coordinate_value`):**
+```python
+def _resolve_coordinate_value(self, value_str: str, axis_index: int) -> float:
+    """Resolve coordinate value - can be numeric or label name"""
+    # Try parsing as numeric first
+    try:
+        return float(value_str)
+    except ValueError:
+        pass
+
+    # Get the corresponding axis
+    if axis_index >= len(self.axes):
+        raise ValueError(f"Coordinate index {axis_index} out of range")
+
+    axis = self.axes[axis_index]
+
+    # Find label in axis mappings
+    for mapping in axis.mappings:
+        if mapping.label == value_str:
+            return mapping.design_value
+
+    raise ValueError(f"Unknown label '{value_str}' for axis '{axis.name}'")
+```
+
+**Axis Range Resolution (`_resolve_axis_range_value`):**
+```python
+def _resolve_axis_range_value(self, value_str: str, axis_name: str) -> float:
+    """Resolve axis range value - can be numeric or label name"""
+    # Try parsing as numeric first
+    try:
+        return float(value_str)
+    except ValueError:
+        pass
+
+    # Only works for weight and width axes
+    axis_type = None
+    if axis_name in ['wght', 'weight']:
+        axis_type = 'weight'
+    elif axis_name in ['wdth', 'width']:
+        axis_type = 'width'
+    else:
+        raise ValueError(f"Label-based ranges only supported for weight/width, not '{axis_name}'")
+
+    # Get standard user-space value
+    user_value = Standards.get_user_space_value(value_str, axis_type)
+    return user_value
+```
+
+**Writer Label Output:**
+- `DSSWriter.__init__` accepts `use_label_coordinates=True` and `use_label_ranges=True` parameters
+- When enabled, writer converts numeric values back to labels for readability
+- Uses axis mappings to find matching labels for design-space coordinates
+- Uses standard mappings to find matching labels for user-space values
+
+**Backward Compatibility:**
+- Numeric format continues to work in all cases
+- Mixed numeric and label coordinates supported
+- Label-based ranges fall back to numeric if label not found
+- Parser accepts both formats transparently
+
+**Benefits:**
+- **Readability**: `[Regular, Upright]` is clearer than `[362, 0]`
+- **Maintainability**: Changes to design-space coordinates don't require updating all sources
+- **Self-documenting**: Labels make font structure immediately clear
+- **Version control**: Git diffs show meaningful changes
+
+**Important Refactoring (2025-01):**
+- Parser now uses centralized `DiscreteAxisHandler` instead of duplicating discrete axis detection
+- Removed duplicate `_load_discrete_labels()` method (12 lines eliminated)
+- All discrete axis operations now go through `DiscreteAxisHandler.load_discrete_labels()` and `DiscreteAxisHandler.is_discrete()`
+- This ensures consistency and supports user data file overrides via DataManager
+
+### Module Reference
+
+Complete reference of all modules in the DSSketch project. **IMPORTANT: Always check this reference before implementing new functionality to avoid code duplication.**
+
+#### Core Package (`src/dssketch/`)
+
+**`__init__.py`**
+- Package initialization
+- Exports public API functions: `convert_to_dss`, `convert_to_designspace`, `convert_dss_string_to_designspace`, `convert_designspace_to_dss_string`
+- Exports core classes: `DSSParser`, `DSSWriter`, converters
+
+**`api.py`** - High-level API for DSSketch integration
+- `convert_to_dss(designspace, dss_path, optimize)` - Convert DesignSpace object to DSSketch file
+- `convert_to_designspace(dss_path)` - Convert DSSketch file to DesignSpace object
+- `convert_dss_string_to_designspace(dss_content, base_path)` - Convert DSSketch string to DesignSpace
+- `convert_designspace_to_dss_string(designspace, optimize)` - Convert DesignSpace to DSSketch string
+- **Purpose**: Provides simple, user-friendly API for integrating DSSketch into other projects
+
+**`cli.py`** - Command-line interface implementation
+- Main CLI entry point after package installation
+- Handles argument parsing and conversion workflows
+- Integrates with UFO validation and logging
+- **Purpose**: User-facing CLI for DSSketch conversions
+
+**`data_cli.py`** - Data file management CLI
+- `dssketch-data info` - Show data file locations and status
+- `dssketch-data copy <file>` - Copy default data files to user directory
+- `dssketch-data edit` - Open user data directory in file manager
+- `dssketch-data reset` - Reset data files to defaults
+- **Purpose**: Manage user data file overrides and customization
+
+**`config.py`** - Configuration and data file management
+- `DataManager` class - Handles user data file overrides
+- Manages paths to `data/` directory
+- Supports user-specific customization via `~/.dssketch/` directory
+- **Purpose**: Centralized configuration and data file resolution
+
+#### Parsers (`src/dssketch/parsers/`)
+
+**`dss_parser.py`** - Main DSSketch format parser
+- `DSSParser` class - Parses .dssketch format into `DSSDocument` structure
+- Robust validation with typo detection, coordinate validation, syntax checking
+- Label-based coordinate resolution (`_resolve_coordinate_value`)
+- Label-based axis range resolution (`_resolve_axis_range_value`)
+- Human-readable axis name support (weight → wght, etc.)
+- Supports strict/non-strict parsing modes
+- Uses `DiscreteAxisHandler` for discrete axis detection
+- **Purpose**: Convert DSSketch text format to structured data model
+- **Key Methods**:
+  - `parse(content)` - Parse DSSketch string
+  - `parse_file(file_path)` - Parse DSSketch file
+  - `_parse_source_line()` - Parse source definitions (supports label-based coordinates)
+  - `_parse_axis_line()` - Parse axis definitions (supports label-based ranges)
+  - `_parse_rule_line()` - Parse substitution rules
+  - `_get_design_space_bounds()` - Extract design space bounds for rule conditions
+
+#### Writers (`src/dssketch/writers/`)
+
+**`dss_writer.py`** - DSSketch format writer
+- `DSSWriter` class - Generates .dssketch format from `DSSDocument` structure
+- Optimization and compression features
+- Label-based coordinate output (`use_label_coordinates=True`)
+- Label-based range output (`use_label_ranges=True`)
+- Path optimization and common directory detection
+- **Purpose**: Convert structured data model to DSSketch text format
+- **Key Methods**:
+  - `write(dss_doc)` - Generate DSSketch string
+  - `_format_source()` - Format source definitions (outputs labels when available)
+  - `_format_axis()` - Format axis definitions (outputs label-based ranges)
+  - `_get_label_for_coordinate()` - Find label for design-space coordinate
+  - `_get_label_for_user_value()` - Find label for user-space value
+
+#### Converters (`src/dssketch/converters/`)
+
+**`designspace_to_dss.py`** - DesignSpace → DSSketch converter
+- `DesignSpaceToDSS` class - Converts DesignSpace XML to DSSketch format
+- Extracts family, axes, sources, instances, rules from DesignSpace
+- Detects common paths and optimizes output
+- Maps DesignSpace structures to DSS data models
+- **Purpose**: Convert from verbose XML to compact DSSketch format
+
+**`dss_to_designspace.py`** - DSSketch → DesignSpace converter
+- `DSSToDesignSpace` class - Converts DSSketch format to DesignSpace XML
+- Expands wildcard patterns in rules using UFO glyph lists
+- Generates instances from `instances auto` directive
+- Validates UFO files and extracts glyph names
+- **Purpose**: Convert from DSSketch to standard DesignSpace format
+- **Key Methods**:
+  - `convert(dss_doc)` - Main conversion entry point
+  - `_expand_wildcard_pattern()` - Expand rule wildcards to actual glyphs
+  - `_create_rule()` - Create DesignSpace rule from DSS rule
+
+#### Core Models & Logic (`src/dssketch/core/`)
+
+**`models.py`** - Data models for DSSketch
+- `DSSDocument` - Complete DSSketch document structure
+- `DSSAxis` - Axis definition with mappings
+- `DSSAxisMapping` - Single axis mapping point (user/design values, label, elidable flag)
+- `DSSSource` - Source file definition with location
+- `DSSInstance` - Instance definition
+- `DSSRule` - Substitution rule with conditions
+- **Purpose**: Type-safe data structures for DSSketch document representation
+
+**`mappings.py`** - Standard weight/width mappings
+- `Standards` class - Built-in weight/width value mappings
+- `get_user_space_value(name, axis_type)` - Get standard user-space value for label
+- `get_name_by_user_space(value, axis_type)` - Get standard label for user-space value
+- `has_mapping(name, axis_type)` - Check if label exists in standard mappings
+- **Purpose**: Centralized standard axis value mappings for label-based syntax
+
+**`validation.py`** - UFO file validation
+- `UFOValidator` - Validates UFO source files
+- `UFOGlyphExtractor` - Extracts glyph lists from UFO files
+- Safe UFO reading without modifying files
+- **Purpose**: Validate sources and extract glyph information for wildcard expansion
+
+**`instances.py`** - Automatic instance generation
+- `createInstances(dssource, defaultFolder, skipFilter)` - Generate all instance combinations
+- `sortAxisOrder(ds)` - Order axes according to DSS document or DEFAULT_AXIS_ORDER
+- `getElidabledNames(ds, axisOrder, ignoreAxis)` - Find elidable labels for name cleanup
+- `getInstancesMapping(ds, axisName)` - Extract axis value mappings
+- `createInstance(location, familyName, styleName, defaultFolder)` - Create single instance
+- Uses `itertools.product()` for combinatorial generation
+- **Purpose**: Sophisticated automatic instance generation from axis combinations
+
+#### Utilities (`src/dssketch/utils/`)
+
+**`discrete.py`** - Discrete axis handling
+- `DiscreteAxisHandler` class - Centralized discrete axis detection and label management
+- `load_discrete_labels()` - Load discrete axis labels from `data/discrete-axis-labels.yaml`
+- `is_discrete(axis)` - Detect if axis is discrete (values attribute or 0:0:1 range)
+- `get_labels(axis_name)` - Get standard labels for discrete axis
+- Supports user data file overrides via DataManager
+- **Purpose**: Centralized discrete axis functionality (avoids code duplication)
+
+**`patterns.py`** - Wildcard pattern matching
+- `PatternMatcher` class - Glyph pattern matching for rules
+- Supports prefix wildcards (`A*`), exact matches, universal wildcards (`*`)
+- `matches(pattern, glyph_name)` - Check if glyph matches pattern
+- `expand_pattern(pattern, available_glyphs)` - Expand wildcard to matching glyphs
+- **Purpose**: Smart wildcard expansion for substitution rules
+
+**`conditions.py`** - Rule condition parsing and formatting
+- `ConditionHandler` class - Centralized condition handling
+- `parse(condition_str, axis_ranges)` - Parse condition string to structured format
+- `format(conditions)` - Format conditions to readable string
+- Supports: `>=`, `<=`, `==`, range conditions, compound conditions with `&&`
+- **Purpose**: Parse and format substitution rule conditions
+
+**`dss_validator.py`** - DSSketch document validation
+- `DSSValidator` class - Comprehensive document validation
+- `validate_document(document)` - Full document structural and content validation
+- Critical structure validation (axes, sources, base source required)
+- Content validation (mappings, coordinates, labels)
+- Typo detection with suggestions
+- Coordinate and range validation
+- **Purpose**: Robust error detection and helpful error messages
+
+**`logging.py`** - Logging configuration
+- `DSSketchLogger` class - Centralized logging for DSSketch operations
+- `setup_logger(file_path, log_level)` - Setup file and console logging
+- Automatic `logs/` subdirectory creation
+- Log filename format: `{basename}_{timestamp}.log`
+- Methods: `info()`, `warning()`, `error()`, `debug()`, `success()`
+- **Purpose**: Consistent logging across all DSSketch operations
+
 ### Data Files
 
 - `data/stylenames.json` - Standard weight/width mappings
-- `data/unified-mappings.yaml` - Extended axis mappings
+- `data/unified-mappings.yaml` - Extended axis mappings (used for label-based ranges)
 - `data/font-resources-translations.json` - Localization data
 - `data/discrete-axis-labels.yaml` - Standard labels for discrete axes (ital, slnt)
 
 ### Test Files
 
 - `tests/test_parser_validation.py` - Comprehensive parser validation test suite
+- `tests/test_label_based_syntax.py` - Label-based syntax tests (coordinates and ranges)
+- `tests/test_discrete_axis_no_warning.py` - Discrete axis warning tests
+- `tests/test_human_axis_names.py` - Human-readable axis name tests
 - Tests cover: keyword typos, empty values, coordinate validation, bracket detection, axis ranges, rule syntax
-- Run with: `python -m pytest tests/test_parser_validation.py -v`
+- Run with: `python -m pytest tests/ -v`
 
 ### File Extensions
 
@@ -665,7 +1061,7 @@ sources
 sources
     Font-Light [100] @base
     Font-Regular [400] @base   # → "CRITICAL: Multiple base sources found (2) - only one allowed"
-    
+
 # Non-ASCII characters in keywords
 axшes                         # → "Invalid section keyword 'axшes' - contains non-ASCII characters"
 ```

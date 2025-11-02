@@ -12,6 +12,7 @@ import yaml
 
 from ..core.mappings import Standards
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule
+from ..utils.discrete import DiscreteAxisHandler
 from ..utils.dss_validator import DSSValidationError, DSSValidator
 from ..utils.logging import DSSketchLogger
 
@@ -33,7 +34,7 @@ class DSSParser:
         self.current_section = None
         self.current_axis = None
         self.source_axis_order = None  # Explicit axis order from sources section
-        self.discrete_labels = self._load_discrete_labels()
+        self.discrete_labels = DiscreteAxisHandler.load_discrete_labels()
         self.validator = DSSValidator(strict_mode=strict_mode)
         # Note: Rule names now handled via @name syntax instead of comments
 
@@ -65,19 +66,6 @@ class DSSParser:
         # This maintains backward compatibility for values without quotes
         parts = text.split()
         return parts[0] if parts else ""
-
-    def _load_discrete_labels(self) -> Dict[str, Dict[int, List[str]]]:
-        """Load discrete axis labels from YAML file"""
-        try:
-            data_dir = Path(__file__).parent.parent / "data"
-            with open(data_dir / "discrete-axis-labels.yaml") as f:
-                return yaml.safe_load(f) or {}
-        except (FileNotFoundError, Exception):
-            # Default fallback if file not found
-            return {
-                "ital": {0: ["Upright", "Roman", "Normal"], 1: ["Italic"]},
-                "slnt": {0: ["Upright", "Normal"], 1: ["Slanted", "Oblique"]},
-            }
 
     def parse_file(self, filepath: str) -> DSSDocument:
         """Parse DSS file"""
@@ -282,21 +270,37 @@ class DSSParser:
             if len(parts) > 2:
                 range_part = parts[2]
 
-                # Validate axis range
-                is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
-                if not is_valid:
-                    self.validator.errors.append(f"Invalid axis range for '{name}': {error_msg}")
-                    return
+                # Validate axis range (skip validation for label-based ranges)
+                # Check if this might be a label-based range
+                is_label_based = ":" in range_part and not all(
+                    v.replace(".", "").replace("-", "").replace("+", "").isdigit()
+                    for v in range_part.split(":")
+                )
+
+                if not is_label_based:
+                    is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
+                    if not is_valid:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {error_msg}")
+                        return
 
                 if range_part in ["binary", "discrete"]:
                     minimum, default, maximum = 0, 0, 1
                 elif ":" in range_part:
                     values = range_part.split(":")
-                    minimum = float(values[0])
-                    default = float(values[1]) if len(values) > 2 else minimum
-                    maximum = float(values[-1])
+                    try:
+                        # Try to resolve each value (supports both numbers and labels)
+                        minimum = self._resolve_axis_range_value(values[0], name)
+                        default = self._resolve_axis_range_value(values[1], name) if len(values) > 2 else minimum
+                        maximum = self._resolve_axis_range_value(values[-1], name)
+                    except ValueError as e:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                        return
                 else:
-                    minimum = default = maximum = float(range_part)
+                    try:
+                        minimum = default = maximum = self._resolve_axis_range_value(range_part, name)
+                    except ValueError as e:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                        return
             else:
                 minimum = default = maximum = 0
 
@@ -313,29 +317,63 @@ class DSSParser:
             if len(parts) > 1:
                 range_part = parts[1]
 
-                # Validate axis range
-                is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
-                if not is_valid:
-                    self.validator.errors.append(f"Invalid axis range for '{name}': {error_msg}")
-                    return
+                # Validate axis range (skip validation for label-based ranges)
+                is_label_based = ":" in range_part and not all(
+                    v.replace(".", "").replace("-", "").replace("+", "").isdigit()
+                    for v in range_part.split(":")
+                )
+
+                if not is_label_based:
+                    is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
+                    if not is_valid:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {error_msg}")
+                        return
 
                 if range_part in ["binary", "discrete"]:
                     minimum, default, maximum = 0, 0, 1
                 elif ":" in range_part:
                     values = range_part.split(":")
-                    minimum = float(values[0])
-                    default = float(values[1]) if len(values) > 2 else minimum
-                    maximum = float(values[-1])
+                    try:
+                        minimum = self._resolve_axis_range_value(values[0], name)
+                        default = self._resolve_axis_range_value(values[1], name) if len(values) > 2 else minimum
+                        maximum = self._resolve_axis_range_value(values[-1], name)
+                    except ValueError as e:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                        return
                 else:
-                    minimum = default = maximum = float(range_part)
+                    try:
+                        minimum = default = maximum = self._resolve_axis_range_value(range_part, name)
+                    except ValueError as e:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                        return
             else:
                 minimum = default = maximum = 0
-        elif re.match(r"^\w+\s+([\d.:-]+|binary|discrete)", line) and ">" not in line:
-            # Legacy form: "weight 100:400:900" (infer tag from name)
+        elif re.match(r"^\w+\s+(\S+)", line) and ">" not in line and "@elidable" not in line:
+            # Human-readable axis names: "weight 100:400:900" or "width Condensed:Normal:Extended"
+            # Supports both numeric and label-based ranges
+            # Excludes discrete axis labels like "Upright @elidable"
             parts = line.split()
+
+            # Skip if only one word (likely a discrete axis label like "Upright" or "Italic")
+            if len(parts) < 2:
+                return
+
+            # Second part must be a range or keyword, not a flag
+            # Check if second part is a valid range/keyword
+            second_part = parts[1]
+            is_keyword = second_part in ["binary", "discrete"]
+            is_range = (
+                ":" in second_part
+                or (len(second_part) > 0 and (second_part[0].isdigit() or second_part[0] == "-"))
+            )
+
+            if not (is_keyword or is_range):
+                # This is not an axis definition, probably a discrete axis label
+                return
+
             name = parts[0]
 
-            # Infer tag from name
+            # Infer tag from name (support human-readable names)
             if name.lower() == "weight":
                 tag = "wght"
             elif name.lower() == "width":
@@ -353,21 +391,35 @@ class DSSParser:
             if len(parts) > 1:
                 range_part = parts[1]
 
-                # Validate axis range
-                is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
-                if not is_valid:
-                    self.validator.errors.append(f"Invalid axis range for '{name}': {error_msg}")
-                    return
+                # Validate axis range (skip validation for label-based ranges)
+                is_label_based = ":" in range_part and not all(
+                    v.replace(".", "").replace("-", "").replace("+", "").isdigit()
+                    for v in range_part.split(":")
+                )
+
+                if not is_label_based:
+                    is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
+                    if not is_valid:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {error_msg}")
+                        return
 
                 if range_part in ["binary", "discrete"]:
                     minimum, default, maximum = 0, 0, 1
                 elif ":" in range_part:
                     values = range_part.split(":")
-                    minimum = float(values[0])
-                    default = float(values[1]) if len(values) > 2 else minimum
-                    maximum = float(values[-1])
+                    try:
+                        minimum = self._resolve_axis_range_value(values[0], name)
+                        default = self._resolve_axis_range_value(values[1], name) if len(values) > 2 else minimum
+                        maximum = self._resolve_axis_range_value(values[-1], name)
+                    except ValueError as e:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                        return
                 else:
-                    minimum = default = maximum = float(range_part)
+                    try:
+                        minimum = default = maximum = self._resolve_axis_range_value(range_part, name)
+                    except ValueError as e:
+                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                        return
             else:
                 minimum = default = maximum = 0
         else:
@@ -387,12 +439,8 @@ class DSSParser:
         """Parse axis mapping line"""
         # Strip leading whitespace for pattern matching
         line = line.strip()
-        # Check if this is a discrete axis (min=0, default=0, max=1)
-        is_discrete = (
-            self.current_axis.minimum == 0
-            and self.current_axis.default == 0
-            and self.current_axis.maximum == 1
-        )
+        # Check if this is a discrete axis using centralized handler
+        is_discrete = DiscreteAxisHandler.is_discrete(self.current_axis)
 
         # Check for @elidable flag
         elidable = "@elidable" in line
@@ -458,6 +506,106 @@ class DSSParser:
         )
         self.current_axis.mappings.append(mapping)
 
+    def _resolve_axis_range_value(self, value_str: str, axis_name: str) -> float:
+        """Resolve axis range value - can be numeric or label name
+
+        Args:
+            value_str: String value that can be either a number (e.g., "400") or label (e.g., "Regular")
+            axis_name: Name of the axis (e.g., "weight", "width")
+
+        Returns:
+            Float user space coordinate value
+
+        Raises:
+            ValueError: If label not found in standard mappings or invalid numeric value
+
+        Examples:
+            _resolve_axis_range_value("400", "weight") -> 400.0
+            _resolve_axis_range_value("Regular", "weight") -> 400.0
+            _resolve_axis_range_value("Condensed", "width") -> 75.0
+        """
+        value_str = value_str.strip()
+
+        # Try to parse as number first
+        try:
+            return float(value_str)
+        except ValueError:
+            # Not a number, treat as label name
+            pass
+
+        # Try to get user space value from standard mappings
+        # This only works for standard axes (weight, width)
+        axis_type = axis_name.lower()
+        if axis_type in ["weight", "width"]:
+            try:
+                user_value = Standards.get_user_space_value(value_str, axis_type)
+                return user_value
+            except Exception as e:
+                raise ValueError(
+                    f"Label '{value_str}' not found in standard {axis_type} mappings. "
+                    f"Use numeric values for custom labels or non-standard axes."
+                )
+        else:
+            raise ValueError(
+                f"Label-based ranges only supported for 'weight' and 'width' axes. "
+                f"Axis '{axis_name}' requires numeric values."
+            )
+
+    def _resolve_coordinate_value(self, value_str: str, axis_index: int) -> float:
+        """Resolve coordinate value - can be numeric or label name
+
+        Args:
+            value_str: String value that can be either a number (e.g., "362") or label (e.g., "Regular")
+            axis_index: Index of the axis in the axis order
+
+        Returns:
+            Float design space coordinate value
+
+        Raises:
+            ValueError: If label not found in axis mappings or invalid numeric value
+        """
+        value_str = value_str.strip()
+
+        # Try to parse as number first
+        try:
+            return float(value_str)
+        except ValueError:
+            # Not a number, treat as label name
+            pass
+
+        # Get the corresponding axis
+        if self.source_axis_order:
+            # Use explicit axis order
+            if axis_index >= len(self.source_axis_order):
+                raise ValueError(f"Coordinate index {axis_index} exceeds axis count")
+            axis_name = self.source_axis_order[axis_index]
+        else:
+            # Use document axes order
+            if axis_index >= len(self.document.axes):
+                raise ValueError(f"Coordinate index {axis_index} exceeds axis count")
+            axis_name = self.document.axes[axis_index].name
+
+        # Find the axis in document
+        target_axis = None
+        for axis in self.document.axes:
+            if axis.name == axis_name:
+                target_axis = axis
+                break
+
+        if not target_axis:
+            raise ValueError(f"Axis '{axis_name}' not found in document")
+
+        # Search for label in axis mappings
+        for mapping in target_axis.mappings:
+            if mapping.label == value_str:
+                return mapping.design_value
+
+        # Label not found
+        raise ValueError(
+            f"Label '{value_str}' not found in axis '{axis_name}' mappings. "
+            f"Available labels: {', '.join([m.label for m in target_axis.mappings])}"
+        )
+
     def _parse_source_line(self, line: str):
         """Parse source definition line"""
         # Strip leading whitespace for pattern matching
@@ -469,17 +617,38 @@ class DSSParser:
         # Parse coordinates
         if "[" in line and "]" in line:
             # Format: "Light [0, 0]" or "My Font Light.ufo" [0, 0]
+            # Also supports: "Regular [Regular, Upright]" (label-based)
             name_part = line[: line.index("[")].strip()
             name = self._extract_quoted_or_plain_value(name_part)
             coords_str = line[line.index("[") + 1 : line.index("]")]
 
-            # Validate coordinates
-            is_valid, error_msg = DSSValidator.validate_coordinates(coords_str)
-            if not is_valid:
-                self.validator.errors.append(f"Invalid coordinates in source '{name}': {error_msg}")
-                return
+            # Validate coordinates (skip if using labels - will validate during resolution)
+            coord_parts = [x.strip() for x in coords_str.split(",")]
 
-            coords = [float(x.strip()) for x in coords_str.split(",")]
+            # Check if all parts are numeric
+            all_numeric = all(
+                x.replace(".", "").replace("-", "").replace("+", "").replace("e", "").replace("E", "").isdigit()
+                for x in coord_parts if x
+            )
+
+            if all_numeric:
+                # Traditional numeric validation
+                is_valid, error_msg = DSSValidator.validate_coordinates(coords_str)
+                if not is_valid:
+                    self.validator.errors.append(f"Invalid coordinates in source '{name}': {error_msg}")
+                    return
+
+            # Resolve coordinates - supports both numbers and labels
+            coords = []
+            for i, coord_str in enumerate(coord_parts):
+                try:
+                    value = self._resolve_coordinate_value(coord_str, i)
+                    coords.append(value)
+                except ValueError as e:
+                    self.validator.errors.append(
+                        f"Invalid coordinate in source '{name}' at position {i}: {e}"
+                    )
+                    return
         else:
             # Format: "Light 0 0" (space-separated, only works without quotes)
             parts = line.split()

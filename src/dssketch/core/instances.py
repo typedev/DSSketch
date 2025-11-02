@@ -96,10 +96,22 @@ def getInstancesMapping(designSpaceDocument: DesignSpaceDocument, axisName="weig
 
     axisMap = axisDescriptor.map
     if not axisMap:
-        axis_labels_info = [(label.userValue, label.name) for label in axisDescriptor.axisLabels]
-        DSSketchLogger.warning(
-            f"there is no map, use the axis labels and their user values {axis_labels_info}"
-        )
+        # For discrete axes (like italic), no map is normal - user space = design space
+        # Check if this is a discrete axis by looking for the 'values' attribute
+        is_discrete = hasattr(axisDescriptor, 'values') and axisDescriptor.values is not None
+
+        if not is_discrete:
+            # Only warn for non-discrete axes where missing map might be unexpected
+            axis_labels_info = [(label.userValue, label.name) for label in axisDescriptor.axisLabels]
+            DSSketchLogger.warning(
+                f"Axis '{axisName}' has no map, using axis labels and their user values {axis_labels_info}"
+            )
+        else:
+            # Debug level for discrete axes where this is expected
+            DSSketchLogger.debug(
+                f"Discrete axis '{axisName}' has no map (expected for discrete axes)"
+            )
+
         axisMap = []
         for axisLabel in axisDescriptor.axisLabels:
             axisMap.append((axisLabel.userValue, axisLabel.userValue))

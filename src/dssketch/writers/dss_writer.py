@@ -35,10 +35,14 @@ class DSSWriter:
         optimize: bool = True,
         ds_doc: Optional[DesignSpaceDocument] = None,
         base_path: Optional[str] = None,
+        use_label_coordinates: bool = True,
+        use_label_ranges: bool = True,
     ):
         self.optimize = optimize
         self.ds_doc = ds_doc
         self.base_path = base_path
+        self.use_label_coordinates = use_label_coordinates
+        self.use_label_ranges = use_label_ranges
 
     @staticmethod
     def _quote_if_spaces(value: str) -> str:
@@ -103,6 +107,31 @@ class DSSWriter:
 
         return "\n".join(lines).strip()
 
+    def _get_label_for_user_value(self, axis: DSSAxis, user_value: float) -> Optional[str]:
+        """Try to find a label for a user space value using standard mappings
+
+        Args:
+            axis: The axis to check
+            user_value: The user space value
+
+        Returns:
+            Label name if found in standard mappings, None otherwise
+        """
+        # Only works for standard axes (weight, width)
+        axis_type = axis.name.lower()
+        if axis_type not in ["weight", "width"]:
+            return None
+
+        try:
+            label = Standards.get_name_by_user_space(user_value, axis_type)
+            # Check if it's a standard label (not a generated numeric one like "Weight400")
+            if label and not (label.startswith(axis_type.title()) and label[len(axis_type):].isdigit()):
+                return label
+        except Exception:
+            pass
+
+        return None
+
     def _format_axis(self, axis: DSSAxis) -> List[str]:
         """Format axis definition"""
         lines = []
@@ -126,12 +155,25 @@ class DSSWriter:
                 lines.append(f"    {axis.tag} discrete")
         else:
             # Continuous axis or non-standard discrete axis
+            # Try to use label-based range if enabled and available
+            range_str = None
+            if self.use_label_ranges and self.optimize:
+                min_label = self._get_label_for_user_value(axis, axis.minimum)
+                default_label = self._get_label_for_user_value(axis, axis.default)
+                max_label = self._get_label_for_user_value(axis, axis.maximum)
+
+                # Only use label format if all three values have standard labels
+                if min_label and default_label and max_label:
+                    range_str = f"{min_label}:{default_label}:{max_label}"
+
+            # Fallback to numeric format
+            if not range_str:
+                range_str = f"{axis.minimum}:{axis.default}:{axis.maximum}"
+
             if axis_name:
-                lines.append(
-                    f"    {axis_name} {axis.tag} {axis.minimum}:{axis.default}:{axis.maximum}"
-                )
+                lines.append(f"    {axis_name} {axis.tag} {range_str}")
             else:
-                lines.append(f"    {axis.tag} {axis.minimum}:{axis.default}:{axis.maximum}")
+                lines.append(f"    {axis.tag} {range_str}")
 
         # Mappings
         if axis.mappings:
@@ -184,12 +226,36 @@ class DSSWriter:
         # For registered axes with non-standard tags, keep original name
         return axis_name
 
+    def _get_label_for_coordinate(self, axis: DSSAxis, value: float) -> Optional[str]:
+        """Try to find a label for a coordinate value
+
+        Args:
+            axis: The axis to search
+            value: The design space coordinate value
+
+        Returns:
+            Label name if found, None otherwise
+        """
+        for mapping in axis.mappings:
+            if mapping.design_value == value:
+                return mapping.label
+        return None
+
     def _format_source(self, source: DSSSource, axes: List[DSSAxis]) -> str:
         """Format source definition"""
         # Get coordinates in axis order
         coords = []
         for axis in axes:
             value = source.location.get(axis.name, 0)
+
+            # Try to use label if enabled and available
+            if self.use_label_coordinates:
+                label = self._get_label_for_coordinate(axis, value)
+                if label:
+                    coords.append(label)
+                    continue
+
+            # Fallback to numeric representation
             coords.append(str(int(value) if value.is_integer() else value))
 
         # Use filename if it contains path, otherwise use name
