@@ -82,22 +82,22 @@ family SuperFont
 path sources
 
 axes
-    weight Thin:Regular:Black
+    wght 100:400:900
         Thin > 0
         Light > 211
         Regular > 356 @elidable
         Medium > 586
         Bold > 789
         Black > 1000
-    italic discrete
+    ital discrete
         Upright @elidable
         Italic
 
 sources [wght, ital]
-    SuperFont-Thin [Thin, Upright]
-    SuperFont-Regular [Regular, Upright] @base
-    SuperFont-Black [Black, Upright]
-    SuperFont-Thin-Italic [Thin, Italic]
+    SuperFont-Thin [0, 0]
+    SuperFont-Regular [356, 0] @base
+    SuperFont-Black [1000, 0]
+    SuperFont-Thin-Italic [0, 1]
     SuperFont-Italic [356, 1]
     SuperFont-Black-Italic [1000, 1]
 
@@ -169,6 +169,40 @@ axes
 ```
 
 **Supported names:** `weight` → `wght`, `width` → `wdth`, `italic` → `ital`, `slant` → `slnt`, `optical` → `opsz`
+
+
+```dssketch
+# Label-based dssketch
+
+family SuperFont
+path sources
+
+axes
+    weight Thin:Regular:Black
+        Thin > 0
+        Light > 211
+        Regular > 356 @elidable
+        Medium > 586
+        Bold > 789
+        Black > 1000
+    italic discrete
+        Upright @elidable
+        Italic
+
+sources [wght, ital]
+    SuperFont-Thin [Thin, Upright]
+    SuperFont-Regular [Regular, Upright]
+    SuperFont-Black [Black, Upright]
+    SuperFont-Thin-Italic [Thin, Italic]
+    SuperFont-Italic [Regular, Italic]
+    SuperFont-Black-Italic [Black, Italic]
+
+rules
+    dollar* cent* > .rvrn (weight >= 600) "heavy alternates"
+
+instances auto
+```
+
 
 ### 4. **Advanced Features Made Simple**
 
