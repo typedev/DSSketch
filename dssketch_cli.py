@@ -59,9 +59,21 @@ def main():
             # Simple UFO validation with basic error handling
             validation_report = UFOValidator.validate_ufo_files(dss_doc, str(input_path))
             if validation_report.has_errors:
-                DSSketchLogger.warning(
-                    "Some UFO files may be missing or invalid, but continuing conversion..."
-                )
+                if validation_report.path_errors:
+                    for error in validation_report.path_errors:
+                        DSSketchLogger.warning(f"Path error: {error}")
+
+                if validation_report.missing_files:
+                    DSSketchLogger.warning(f"Missing UFO files ({len(validation_report.missing_files)}):")
+                    for file_path in validation_report.missing_files:
+                        DSSketchLogger.warning(f"  - {file_path}")
+
+                if validation_report.invalid_ufos:
+                    DSSketchLogger.warning(f"Invalid UFO files ({len(validation_report.invalid_ufos)}):")
+                    for file_path in validation_report.invalid_ufos:
+                        DSSketchLogger.warning(f"  - {file_path}")
+
+                DSSketchLogger.warning("Continuing conversion despite validation issues...")
 
             base_path = input_path.parent
             converter = DSSToDesignSpace(base_path)
