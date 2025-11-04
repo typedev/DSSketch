@@ -173,7 +173,7 @@ axes
 
 ```dssketch
 # Label-based dssketch
-
+# Instead of designspace coordinates, you can use labels from mapping
 family SuperFont
 path sources
 
@@ -267,17 +267,11 @@ axes
         Black > 900
 
 sources [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width, CONTRAST]
-    Thin-Condensed-C2 [100, 350, 900]
-    Regular-Condensed-C2 [400, 350, 900] @base
-    Black-Condensed-C2 [900, 350, 900]
+    Thin-Condensed-C2 [Thin, Condensed, C2]
+    Regular-Condensed-C2 [Regular, Condensed, C2] @base
+    Black-Condensed-C2 [Black, Condensed, C2]
 ```
 
-### 5. **Robust Error Detection**
-- **Typo detection**: `familly` → "Did you mean 'family'?"
-- **Coordinate validation**: `[abc, def]` → "Invalid coordinate value"
-- **Missing base source**: Prevents broken DesignSpace generation
-- **Rule syntax validation**: Catches incomplete substitution rules
-- **Bracket type detection**: `(100, 0)` → "Use [] for coordinates"
 
 ## Installation & Usage
 
@@ -354,12 +348,12 @@ axes
         Italic
 
 sources [wght, ital]
-    Light [300, 0]
-    Regular [390, 0] @base
-    Bold [700, 0]
-    LightItalic [300, 1]
-    Italic [390, 1]
-    BoldItalic [700, 1]
+    Light [Light, 0]
+    Regular [Regular, 0] @base
+    Bold [Bold, 0]
+    LightItalic [Light, 1]
+    Italic [Regular, 1]
+    BoldItalic [Bold, 1]
 
 instances auto
 ```
@@ -617,12 +611,68 @@ parser = DSSParser(strict_mode=False)
 result = parser.parse(content)
 
 # Review all validation issues
-for error in parser.errors:
+for error in parser.validator.errors:
     print(f"ERROR: {error}")
-for warning in parser.warnings:
+for warning in parser.validator.warnings:
     print(f"WARNING: {warning}")
 ```
 
+### Intelligent Typo Detection
+
+DSSketch uses advanced **Levenshtein distance algorithm** to detect typos and suggest corrections, similar to how git, npm, and bash help users. Three severity levels ensure robust validation:
+
+#### 1. CRITICAL - Duplicate Mapping Labels
+Prevents labels used across multiple axes, which breaks instance generation:
+```dssketch
+axes
+    wght 100:900
+        Light > 100   # ❌ CRITICAL ERROR
+    wdth 75:125
+        Light > 75    # Same label "Light" in different axes!
+```
+**Error**: `CRITICAL: Mapping label 'Light' is used in multiple axes: 'weight' (wght), 'width' (wdth)`
+
+#### 2. ERROR - Axis Tag Typos
+Detects typos in standard axis tags:
+```dssketch
+axes
+    wgth 100:900      # ❌ ERROR: Typo detected → suggests 'wght'
+    widht 75:125      # ❌ ERROR: Typo detected → suggests 'wdth'
+
+    # ✅ Human-readable names are VALID (automatically converted):
+    weight 100:900    # ✅ OK: auto-converts to 'wght'
+    width 75:125      # ✅ OK: auto-converts to 'wdth'
+    italic discrete   # ✅ OK: auto-converts to 'ital'
+```
+**Detection**:
+- Typos in 4-char lowercase tags: `wgth` → suggests `wght`, `widht` → suggests `wdth`
+- **Human-readable names supported**: `weight`, `width`, `italic`, `slant`, `optical` → auto-converted to standard tags
+- UPPERCASE tags treated as custom axes (not checked for typos)
+
+#### 3. WARNING - Mapping Label Typos
+Detects typos in standard weight/width mapping labels:
+```dssketch
+axes
+    wght 100:400:900
+        Lite > 300        # ⚠️ Warning: Lite → Light
+        Reguler > 400     # ⚠️ Warning: Reguler → Regular
+        Bol > 700         # ⚠️ Warning: Bol → Bold
+```
+
+**Smart Cross-Axis Logic**:
+- **Only wght**: Allows both weight AND width labels (Light, Bold, Condensed, Wide)
+- **Only wdth**: Allows both width AND weight labels (Condensed, Wide, Light, Bold)
+- **Both wght and wdth**: Each axis restricted to its own standard labels
+
+**How it works**:
+- Uses **edit distance** with threshold of 2 characters
+- Suggests closest standard label if typo detected
+- Custom labels (distance > 2) are accepted without warnings
+
+```bash
+# Test typo detection
+python -m pytest tests/test_typo_validation.py -v
+```
 
 ## Real-World Benefits
 

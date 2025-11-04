@@ -269,8 +269,11 @@ When integrating DSSketch API into your workflow:
 - `src/dssketch/core/validation.py`:
   - `UFOValidator` - Validates UFO source files
   - `UFOGlyphExtractor` - Extracts glyph lists from UFO files
-- `src/dssketch/utils/validation.py`:
-  - `DSSketchValidator` - Validation utilities for robust parsing and error detection
+- `src/dssketch/utils/dss_validator.py`:
+  - **NEW!** `DSSValidator` - Comprehensive validation with intelligent typo detection
+  - Uses **Levenshtein distance algorithm** for typo suggestions (like git, npm, bash)
+  - Detects duplicate mapping labels (CRITICAL), axis tag typos (ERROR), mapping label typos (WARNING)
+  - Smart cross-axis validation logic
 - `src/dssketch/core/mappings.py`:
   - `Standards` - Built-in weight/width mappings
 - `src/dssketch/utils/patterns.py`:
@@ -1029,13 +1032,17 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - **Purpose**: Parse and format substitution rule conditions
 
 **`dss_validator.py`** - DSSketch document validation
-- `DSSValidator` class - Comprehensive document validation
+- `DSSValidator` class - Comprehensive document validation with intelligent typo detection
 - `validate_document(document)` - Full document structural and content validation
+- **NEW!** `levenshtein_distance(s1, s2)` - Edit distance algorithm for typo detection (threshold: 2 chars)
+- **NEW!** `validate_axis_tag(tag)` - Detects axis tag typos and human-readable names
+- **NEW!** `validate_mapping_label(label, axis_tag, all_axes)` - Detects mapping label typos
+- **NEW!** `get_valid_labels_for_axis(axis_tag, all_axes)` - Smart cross-axis label validation
+- **NEW!** `_validate_duplicate_mapping_labels(document)` - CRITICAL: prevents duplicate labels across axes
 - Critical structure validation (axes, sources, base source required)
 - Content validation (mappings, coordinates, labels)
-- Typo detection with suggestions
 - Coordinate and range validation
-- **Purpose**: Robust error detection and helpful error messages
+- **Purpose**: Robust error detection with helpful suggestions (similar to git, npm, bash)
 
 **`logging.py`** - Logging configuration
 - `DSSketchLogger` class - Centralized logging for DSSketch operations
@@ -1047,21 +1054,27 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 
 ### Data Files
 
-- `data/stylenames.json` - Standard weight/width mappings
-- `data/unified-mappings.yaml` - Extended axis mappings (used for label-based ranges)
+- `data/unified-mappings.yaml` - Standard weight/width mappings and extended axis mappings (used for label-based ranges)
+- `data/unified-mappings.json` - JSON fallback version of unified-mappings.yaml
 - `data/font-resources-translations.json` - Localization data
 - `data/discrete-axis-labels.yaml` - Standard labels for discrete axes (ital, slnt)
 
 ### Test Files
 
-- `tests/test_parser_validation.py` - Comprehensive parser validation test suite
+- `tests/test_parser_validation.py` - Comprehensive parser validation test suite (19 tests)
+- `tests/test_typo_validation.py` - **NEW!** Typo detection validation tests (13 tests):
+  - Duplicate mapping labels across axes (CRITICAL)
+  - Axis tag typos (ERROR): wgth → wght, human-readable names
+  - Mapping label typos (WARNING): Reguler → Regular, Lite → Light
+  - Smart cross-axis logic validation
 - `tests/test_label_based_syntax.py` - Label-based syntax tests (coordinates and ranges)
 - `tests/test_label_range_validation.py` - Label-based range validation tests (8 tests)
 - `tests/test_rule_axis_validation.py` - Rule axis validation tests (5 tests)
 - `tests/test_mapping_range_validation.py` - Mapping range validation tests (8 tests)
 - `tests/test_discrete_axis_no_warning.py` - Discrete axis warning tests
 - `tests/test_human_axis_names.py` - Human-readable axis name tests
-- Tests cover: keyword typos, empty values, coordinate validation, bracket detection, axis ranges, rule syntax, label validation, axis references, mapping bounds
+- Tests cover: keyword typos, axis tag typos, mapping label typos, duplicate labels, empty values, coordinate validation, bracket detection, axis ranges, rule syntax, label validation, axis references, mapping bounds
+- **Total**: 74 tests passing
 - Run with: `python -m pytest tests/ -v`
 
 ### File Extensions
@@ -1215,6 +1228,75 @@ sources
 axшes                         # → "Invalid section keyword 'axшes' - contains non-ASCII characters"
 ```
 
+**11. CRITICAL - Duplicate Mapping Labels (NEW!):**
+```python
+# Prevents labels used across multiple axes (breaks instance generation)
+axes
+    wght 100:900
+        Light > 100   # ❌ CRITICAL ERROR
+    wdth 75:125
+        Light > 75    # Same label "Light" in different axes!
+
+# → "CRITICAL: Mapping label 'Light' is used in multiple axes: 'weight' (wght), 'width' (wdth).
+#    Each mapping label must be unique across all axes to avoid conflicts in instance naming
+#    and label-based coordinates. Use different labels for each axis."
+```
+
+**12. ERROR - Axis Tag Typos (NEW!):**
+```python
+# Detects typos in standard axis tags using Levenshtein distance algorithm
+axes
+    wgth 100:900      # ❌ ERROR: "Axis tag 'wgth' looks like a typo..." (strict mode)
+    widht 75:125      # ❌ ERROR: "Axis tag 'widht' looks like a typo..."
+
+    # ✅ Human-readable names are VALID (automatically converted):
+    weight 100:900    # ✅ OK: auto-converts to 'wght', no error
+    width 75:125      # ✅ OK: auto-converts to 'wdth', no error
+    italic discrete   # ✅ OK: auto-converts to 'ital', no error
+
+    # ✅ Custom axes (UPPERCASE) are valid:
+    WGTH 100:900      # ✅ OK: custom axis, not checked for typos
+    CUSTOM 0:100      # ✅ OK: custom axis
+
+# How it works:
+# - Typos in 4-char lowercase tags detected with edit distance ≤ 2 (strict mode only)
+# - Human-readable names supported: weight, width, italic, slant, optical → auto-converted
+# - UPPERCASE tags treated as custom axes (not checked): WGTH, CUSTOM, CNTR
+```
+
+**13. WARNING - Mapping Label Typos (NEW!):**
+```python
+# Detects typos in standard weight/width mapping labels
+axes
+    wght 100:400:900
+        Lite > 300        # ⚠️ Warning: "Lite looks like a typo. Did you mean 'Light'?"
+        Reguler > 400     # ⚠️ Warning: "Reguler looks like a typo. Did you mean 'Regular'?"
+        Bol > 700         # ⚠️ Warning: "Bol looks like a typo. Did you mean 'Bold'?"
+
+# Smart Cross-Axis Logic:
+# - Only wght axis: Allows both weight AND width labels (Light, Bold, Condensed, Wide)
+# - Only wdth axis: Allows both width AND weight labels (Condensed, Wide, Light, Bold)
+# - Both wght and wdth: Each axis restricted to its own standard labels
+
+# Example: Width labels allowed when only wght exists
+axes
+    wght 100:900
+        Condensed > 100  # ✅ OK - no wdth axis, so width labels allowed
+        Extended > 900   # ✅ OK
+
+# But NOT when both axes exist
+axes
+    wght 100:900
+        Bold > 700       # ✅ OK - weight label in weight axis
+    wdth 75:125
+        Bold > 125       # ❌ CRITICAL - duplicate label across axes
+```
+
+**Algorithm Details:**
+- **Levenshtein distance** with threshold of 2 characters (same as git, npm, bash)
+- Custom labels (distance > 2 from standards) are accepted without warnings
+- Test suite: `tests/test_typo_validation.py` (13 comprehensive tests)
+
 ### Using the Validation Framework
 
 **Strict Mode (Default):**
@@ -1234,9 +1316,9 @@ parser = DSSParser(strict_mode=False)  # Collects all errors and warnings
 result = parser.parse(content)
 
 # Review all issues
-for error in parser.errors:
+for error in parser.validator.errors:
     print(f"ERROR: {error}")
-for warning in parser.warnings:
+for warning in parser.validator.warnings:
     print(f"WARNING: {warning}")
 ```
 
@@ -1244,11 +1326,17 @@ for warning in parser.warnings:
 
 Run comprehensive validation tests:
 ```bash
-# Run parser validation tests
+# Run all parser validation tests
 python -m pytest tests/test_parser_validation.py -v
+
+# Run typo detection tests
+python -m pytest tests/test_typo_validation.py -v
 
 # Test specific validation features
 python -m pytest tests/test_parser_validation.py::TestParserValidation::test_keyword_typo_detection -v
+python -m pytest tests/test_typo_validation.py::TestDuplicateMappingLabels -v
+python -m pytest tests/test_typo_validation.py::TestAxisTagTypos -v
+python -m pytest tests/test_typo_validation.py::TestMappingLabelTypos -v
 ```
 
 ### Best Practices for Manual Editing

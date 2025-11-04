@@ -32,23 +32,25 @@ class DSSValidator:
     # Valid keywords for better error detection
     VALID_KEYWORDS = {"family", "suffix", "path", "axes", "sources", "instances", "rules"}
 
-    # Common typos for helpful error messages
-    KEYWORD_SUGGESTIONS = {
-        "familly": "family",
-        "famile": "family",
-        "familie": "family",
-        "patth": "path",
-        "pth": "path",
-        "axess": "axes",
-        "axis": "axes",
-        "axees": "axes",
-        "sourcse": "sources",
-        "source": "sources",
-        "sourcs": "sources",
-        "instaces": "instances",
-        "instance": "instances",
-        "ruls": "rules",
-        "rule": "rules",
+    # Maximum Levenshtein distance for typo suggestions (1-2 character edits)
+    MAX_TYPO_DISTANCE = 2
+
+    # Standard registered axis tags (OpenType spec)
+    STANDARD_AXIS_TAGS = {
+        'wght',  # Weight
+        'wdth',  # Width
+        'ital',  # Italic
+        'slnt',  # Slant
+        'opsz',  # Optical Size
+    }
+
+    # Mapping of human-readable names to tags
+    AXIS_NAME_TO_TAG = {
+        'weight': 'wght',
+        'width': 'wdth',
+        'italic': 'ital',
+        'slant': 'slnt',
+        'optical': 'opsz',
     }
 
     def __init__(self, strict_mode: bool = True):
@@ -173,6 +175,9 @@ class DSSValidator:
     def _validate_content(self, document: DSSDocument):
         """Validate document content (non-critical)"""
 
+        # CRITICAL: Check for duplicate mapping labels across axes
+        self._validate_duplicate_mapping_labels(document)
+
         # Validate axes content
         for axis in document.axes:
             if axis.mappings:
@@ -218,6 +223,46 @@ class DSSValidator:
         # Validate axis labels match standard weight/width names
         self._validate_axis_label_consistency(document)
 
+    def _validate_duplicate_mapping_labels(self, document: DSSDocument):
+        """
+        Validate that mapping labels are unique across ALL axes.
+
+        CRITICAL ERROR: Having the same label in different axes causes serious conflicts:
+        - Instance generation: "Light" + "Light" = "Light Light"?
+        - Label-based coordinates: [Light, ...] - which axis's "Light"?
+        - Ambiguous font naming and style identification
+
+        Examples of conflicts:
+            axes
+                wght 100:900
+                    Light > 100
+                wdth 75:125
+                    Light > 75  # CONFLICT!
+        """
+        if not document.axes:
+            return
+
+        # Collect all labels from all axes with their source axis
+        label_to_axes = {}  # {label: [(axis_name, axis_tag)]}
+
+        for axis in document.axes:
+            for mapping in axis.mappings:
+                label = mapping.label
+                if label not in label_to_axes:
+                    label_to_axes[label] = []
+                label_to_axes[label].append((axis.name, axis.tag))
+
+        # Find and report duplicates
+        for label, axes_info in label_to_axes.items():
+            if len(axes_info) > 1:
+                axes_names = [f"'{name}' ({tag})" for name, tag in axes_info]
+                self.errors.append(
+                    f"CRITICAL: Mapping label '{label}' is used in multiple axes: {', '.join(axes_names)}. "
+                    f"Each mapping label must be unique across all axes to avoid conflicts in instance naming "
+                    f"and label-based coordinates. Use different labels for each axis "
+                    f"(e.g., 'LightWeight' and 'LightWidth', or 'Light' and 'Narrow')."
+                )
+
     @staticmethod
     def normalize_whitespace(line: str) -> str:
         """Normalize multiple spaces/tabs to single spaces"""
@@ -231,42 +276,255 @@ class DSSValidator:
         return line.strip()
 
     @staticmethod
-    def validate_keyword(
-        word: str, valid_keywords: Set[str], suggestions: dict
-    ) -> Tuple[bool, Optional[str]]:
-        """Check if a word might be a misspelled keyword"""
-        if word.lower() in valid_keywords:
-            return True, None
+    def levenshtein_distance(s1: str, s2: str) -> int:
+        """
+        Calculate Levenshtein distance (edit distance) between two strings.
 
-        # Check for common typos
-        if word.lower() in suggestions:
-            return False, suggestions[word.lower()]
+        Returns the minimum number of single-character edits (insertions,
+        deletions, or substitutions) required to change s1 into s2.
 
-        # Check for similar words (simple Levenshtein-like)
-        for valid_keyword in valid_keywords:
-            if DSSValidator._is_similar(word.lower(), valid_keyword):
-                return False, valid_keyword
+        Examples:
+            levenshtein_distance("familly", "family") = 1  (delete one 'l')
+            levenshtein_distance("axess", "axes") = 1      (delete one 's')
+            levenshtein_distance("sourcse", "sources") = 2 (swap 's' and 'e')
+        """
+        if len(s1) < len(s2):
+            return DSSValidator.levenshtein_distance(s2, s1)
 
-        return True, None  # Not a keyword (could be content)
+        if len(s2) == 0:
+            return len(s1)
+
+        # Create two rows for dynamic programming
+        previous_row = range(len(s2) + 1)
+
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                # Cost of insertions, deletions, or substitutions
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+
+        return previous_row[-1]
 
     @staticmethod
-    def _is_similar(word1: str, word2: str) -> bool:
-        """Simple similarity check (character difference <= 2)"""
-        if abs(len(word1) - len(word2)) > 2:
-            return False
+    def validate_keyword(
+        word: str, valid_keywords: Set[str], suggestions: dict = None
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Check if a word might be a misspelled keyword using Levenshtein distance.
 
-        # Count character differences
-        diff_count = 0
-        min_len = min(len(word1), len(word2))
+        Args:
+            word: The word to check
+            valid_keywords: Set of valid keywords
+            suggestions: Deprecated, kept for backward compatibility (not used)
 
-        for i in range(min_len):
-            if word1[i] != word2[i]:
-                diff_count += 1
-                if diff_count > 2:
-                    return False
+        Returns:
+            Tuple of (is_valid, suggestion) where:
+            - is_valid: True if word is valid or too far from any keyword
+            - suggestion: Closest valid keyword if word is likely a typo, None otherwise
 
-        diff_count += abs(len(word1) - len(word2))
-        return diff_count <= 2
+        Examples:
+            validate_keyword("family", valid_keywords) -> (True, None)
+            validate_keyword("familly", valid_keywords) -> (False, "family")
+            validate_keyword("axess", valid_keywords) -> (False, "axes")
+            validate_keyword("xyz", valid_keywords) -> (True, None)  # Too far from any keyword
+        """
+        word_lower = word.lower()
+
+        # Exact match - valid keyword
+        if word_lower in valid_keywords:
+            return True, None
+
+        # Find closest keyword using Levenshtein distance
+        closest_keyword = None
+        min_distance = float('inf')
+
+        for keyword in valid_keywords:
+            distance = DSSValidator.levenshtein_distance(word_lower, keyword)
+
+            # Update if this is closer
+            if distance < min_distance:
+                min_distance = distance
+                closest_keyword = keyword
+
+        # If distance is within threshold, suggest the closest keyword
+        if min_distance <= DSSValidator.MAX_TYPO_DISTANCE:
+            return False, closest_keyword
+
+        # Word is too far from any keyword - likely not a typo
+        return True, None
+
+    @staticmethod
+    def validate_axis_tag(tag: str) -> Tuple[bool, Optional[str]]:
+        """
+        Check if axis tag might be a typo of a standard registered axis tag.
+
+        Important distinction:
+        - lowercase 4-char tags → check for typos (wgth → wght)
+        - UPPERCASE 4+ char tags → assume custom axis (OK)
+
+        Args:
+            tag: The axis tag to check (e.g., 'wgth', 'wdht', 'CUSTOM')
+
+        Returns:
+            Tuple of (is_valid, suggestion) where:
+            - is_valid: True if tag is valid or clearly custom
+            - suggestion: Standard tag if typo detected, None otherwise
+
+        Examples:
+            validate_axis_tag('wght') → (True, None)       # Valid standard
+            validate_axis_tag('wgth') → (False, 'wght')    # Typo
+            validate_axis_tag('widht') → (False, 'wdth')   # Typo
+            validate_axis_tag('CUSTOM') → (True, None)     # Custom axis
+            validate_axis_tag('WGTH') → (True, None)       # Custom (uppercase)
+        """
+        # Exact match with standard tag - valid
+        if tag.lower() in DSSValidator.STANDARD_AXIS_TAGS:
+            return True, None
+
+        # Check if it's a human-readable name that should be converted to tag
+        if tag.lower() in DSSValidator.AXIS_NAME_TO_TAG:
+            return False, DSSValidator.AXIS_NAME_TO_TAG[tag.lower()]
+
+        # UPPERCASE tags are assumed to be custom axes - don't check for typos
+        if tag.isupper() and len(tag) >= 4:
+            return True, None
+
+        # For lowercase 4-char tags, check for typos using Levenshtein
+        if len(tag) == 4 and tag.islower():
+            closest_tag = None
+            min_distance = float('inf')
+
+            # Check against standard tags
+            for standard_tag in DSSValidator.STANDARD_AXIS_TAGS:
+                distance = DSSValidator.levenshtein_distance(tag, standard_tag)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_tag = standard_tag
+
+            # If within threshold, likely a typo
+            if min_distance <= DSSValidator.MAX_TYPO_DISTANCE:
+                return False, closest_tag
+
+        # Everything else is considered valid (custom axis)
+        return True, None
+
+    @staticmethod
+    def get_valid_labels_for_axis(
+        axis_tag: str,
+        all_axes: List["DSSAxis"]
+    ) -> Set[str]:
+        """
+        Get valid labels considering other axes in document (smart cross-axis logic).
+
+        Logic:
+        - If ONLY wght (no wdth) → weight + width labels allowed
+        - If ONLY wdth (no wght) → width + weight labels allowed
+        - If BOTH wght AND wdth → each uses only its own labels
+
+        Args:
+            axis_tag: Tag of the axis being validated ('wght', 'wdth', etc.)
+            all_axes: List of all axes in the document
+
+        Returns:
+            Set of valid label names for this axis
+
+        Examples:
+            # Document with only wght:
+            get_valid_labels_for_axis('wght', axes)
+                → {'Thin', 'Light', 'Bold', 'Condensed', 'Wide', ...}
+
+            # Document with both wght and wdth:
+            get_valid_labels_for_axis('wght', axes)
+                → {'Thin', 'Light', 'Bold', ...}  # only weight
+            get_valid_labels_for_axis('wdth', axes)
+                → {'Condensed', 'Wide', 'Normal', ...}  # only width
+        """
+        axis_tag_lower = axis_tag.lower()
+
+        # Check what axes exist in document
+        has_weight = any(a.tag in ['wght'] for a in all_axes)
+        has_width = any(a.tag in ['wdth'] for a in all_axes)
+
+        valid_labels = set()
+
+        if axis_tag_lower in ['wght']:
+            # Always include weight labels
+            valid_labels.update(Standards.get_all_labels('weight'))
+
+            # If no width axis exists, allow width labels too
+            if not has_width:
+                valid_labels.update(Standards.get_all_labels('width'))
+
+        elif axis_tag_lower in ['wdth']:
+            # Always include width labels
+            valid_labels.update(Standards.get_all_labels('width'))
+
+            # If no weight axis exists, allow weight labels too
+            if not has_weight:
+                valid_labels.update(Standards.get_all_labels('weight'))
+
+        # For other axes (ital, slnt, opsz, custom), no standard labels
+        return valid_labels
+
+    @staticmethod
+    def validate_mapping_label(
+        label: str,
+        axis_tag: str,
+        all_axes: List["DSSAxis"]
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Check if mapping label might be a typo using Levenshtein distance.
+
+        Only validates for standard axes (wght, wdth).
+        Uses smart cross-axis logic from get_valid_labels_for_axis().
+
+        Args:
+            label: The label to check (e.g., 'Reguler', 'Bol')
+            axis_tag: Tag of the axis ('wght', 'wdth', etc.)
+            all_axes: List of all axes in the document
+
+        Returns:
+            (is_valid, suggestion)
+
+        Examples:
+            validate_mapping_label('Regular', 'wght', axes) → (True, None)
+            validate_mapping_label('Reguler', 'wght', axes) → (False, 'Regular')
+            validate_mapping_label('MyCustom', 'wght', axes) → (True, None)
+        """
+        # Only validate for standard weight/width axes
+        if axis_tag.lower() not in ['wght', 'wdth']:
+            return True, None
+
+        # Get valid labels for this axis (considering cross-axis logic)
+        valid_labels = DSSValidator.get_valid_labels_for_axis(axis_tag, all_axes)
+
+        if not valid_labels:
+            return True, None
+
+        # Exact match - valid
+        if label in valid_labels:
+            return True, None
+
+        # Find closest match using Levenshtein
+        closest_label = None
+        min_distance = float('inf')
+
+        for valid_label in valid_labels:
+            distance = DSSValidator.levenshtein_distance(label.lower(), valid_label.lower())
+            if distance < min_distance:
+                min_distance = distance
+                closest_label = valid_label
+
+        # If within threshold, suggest correction
+        if min_distance <= DSSValidator.MAX_TYPO_DISTANCE:
+            return False, closest_label
+
+        # Too far - assume custom label
+        return True, None
 
     def _find_default_source(self, document: "DSSDocument") -> Optional["DSSSource"]:
         """

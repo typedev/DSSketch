@@ -166,11 +166,6 @@ def get_data_manager() -> DataManager:
     return _data_manager
 
 
-def load_stylenames() -> Dict[str, Any]:
-    """Load stylenames.json with user overrides"""
-    return get_data_manager().load_data_file("stylenames.json")
-
-
 def load_unified_mappings() -> Dict[str, Any]:
     """Load unified-mappings.yaml with user overrides"""
     return get_data_manager().load_data_file("unified-mappings.yaml")

@@ -217,23 +217,24 @@ class DSSParser:
 
         # Check for potential keyword typos or misplaced section headers
         elif first_word:
-            # Check if this might be a misspelled section keyword
+            # First, check for non-ASCII characters (more specific error)
+            if DSSValidator.is_likely_section_typo(first_word):
+                error_msg = f"Invalid section keyword '{first_word}' - contains non-ASCII characters or typos"
+                if self.validator.strict_mode:
+                    # In strict mode, non-ASCII typos fail immediately
+                    raise ValueError(error_msg)
+                else:
+                    self.validator.errors.append(error_msg)
+                return
+
+            # Then check if this might be a misspelled section keyword using Levenshtein distance
             is_valid, suggestion = DSSValidator.validate_keyword(
-                first_word, DSSValidator.VALID_KEYWORDS, DSSValidator.KEYWORD_SUGGESTIONS
+                first_word, DSSValidator.VALID_KEYWORDS
             )
             if not is_valid and suggestion:
                 error_msg = f"Unknown keyword '{first_word}'. Did you mean '{suggestion}'?"
                 if self.validator.strict_mode:
                     # In strict mode, keyword typos fail immediately
-                    raise ValueError(error_msg)
-                else:
-                    self.validator.errors.append(error_msg)
-                return
-            elif DSSValidator.is_likely_section_typo(first_word):
-                # Check for non-ASCII characters that might be typos
-                error_msg = f"Invalid section keyword '{first_word}' - contains non-ASCII characters or typos"
-                if self.validator.strict_mode:
-                    # In strict mode, non-ASCII typos fail immediately
                     raise ValueError(error_msg)
                 else:
                     self.validator.errors.append(error_msg)
@@ -266,6 +267,21 @@ class DSSParser:
             parts = line.split()
             name = parts[0]
             tag = parts[1]
+
+            # Validate axis tag for potential typos
+            is_valid_tag, suggested_tag = DSSValidator.validate_axis_tag(tag)
+            if not is_valid_tag and suggested_tag:
+                error_msg = (
+                    f"Axis tag '{tag}' looks like a typo of standard axis '{suggested_tag}'. "
+                    f"Did you mean '{suggested_tag}'? "
+                    f"If you want to create a custom axis, use an UPPERCASE tag (e.g., '{tag.upper()}'). "
+                    f"Standard axis tags: wght, wdth, ital, slnt, opsz"
+                )
+                if self.validator.strict_mode:
+                    raise ValueError(error_msg)
+                else:
+                    self.validator.errors.append(error_msg)
+                    # Continue parsing - let the axis be created even with typo
 
             # Parse range, binary, or discrete
             if len(parts) > 2:
@@ -310,6 +326,21 @@ class DSSParser:
             # But not if it contains '>' (that's a mapping)
             parts = line.split()
             tag = parts[0]
+
+            # Validate axis tag for potential typos
+            is_valid_tag, suggested_tag = DSSValidator.validate_axis_tag(tag)
+            if not is_valid_tag and suggested_tag:
+                error_msg = (
+                    f"Axis tag '{tag}' looks like a typo of standard axis '{suggested_tag}'. "
+                    f"Did you mean '{suggested_tag}'? "
+                    f"If you want to create a custom axis, use an UPPERCASE tag (e.g., '{tag.upper()}'). "
+                    f"Standard axis tags: wght, wdth, ital, slnt, opsz"
+                )
+                if self.validator.strict_mode:
+                    raise ValueError(error_msg)
+                else:
+                    self.validator.errors.append(error_msg)
+                    # Continue parsing - let the axis be created even with typo
 
             # Get standard name from tag
             name = self.TAG_TO_NAME.get(tag, tag.upper())
@@ -501,6 +532,19 @@ class DSSParser:
                     design = user
                 except Exception:
                     raise ValueError(f"Unknown discrete axis label: {label}")
+
+        # Validate mapping label for potential typos
+        is_valid_label, suggested_label = DSSValidator.validate_mapping_label(
+            label,
+            self.current_axis.tag,
+            self.document.axes
+        )
+        if not is_valid_label and suggested_label:
+            self.validator.warnings.append(
+                f"Axis '{self.current_axis.name}': mapping label '{label}' looks like a typo. "
+                f"Did you mean '{suggested_label}'? "
+                f"If this is a custom label, ignore this warning."
+            )
 
         mapping = DSSAxisMapping(
             user_value=user, design_value=design, label=label, elidable=elidable

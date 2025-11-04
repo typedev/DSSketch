@@ -202,6 +202,30 @@ class UnifiedMappings:
         return bool(entry)
 
     @classmethod
+    def get_all_labels(cls, axis_type: str) -> set:
+        """
+        Get all label names for a specific axis type (including aliases).
+
+        Args:
+            axis_type: Type of axis ('weight', 'width')
+
+        Returns:
+            Set of all label names for the axis type
+
+        Examples:
+            get_all_labels('weight') → {'Thin', 'Light', 'Regular', 'Bold', ...}
+            get_all_labels('width') → {'Condensed', 'Normal', 'Extended', ...}
+        """
+        cls._load_mappings()
+        axis_type = axis_type.lower()
+
+        if axis_type not in cls.MAPPINGS:
+            return set()
+
+        # Return all keys (includes both canonical names and aliases)
+        return set(cls.MAPPINGS[axis_type].keys())
+
+    @classmethod
     def get_name_for_user_value(cls, value: float, axis_name: str) -> str:
         """Legacy compatibility method - maps to get_name_by_user_space"""
         return cls.get_name_by_user_space(value, axis_name)
