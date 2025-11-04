@@ -102,7 +102,7 @@ sources [wght, ital]
     SuperFont-Black-Italic [1000, 1]
 
 rules
-    dollar* cent* > .rvrn (weight >= 600) "heavy alternates"
+    dollar* cent* > .rvrn (weight >= Bold) "heavy alternates"
 
 instances auto
 ```
@@ -170,10 +170,29 @@ axes
 
 **Supported names:** `weight` → `wght`, `width` → `wdth`, `italic` → `ital`, `slant` → `slnt`, `optical` → `opsz`
 
+#### Label-Based Rule Conditions
+```dssketch
+# Traditional numeric format:
+rules
+    dollar > dollar.heavy (weight >= 700) "heavy dollar"
+    ampersand > ampersand.fancy (weight >= 700 && width >= 110) "compound"
+
+# Label-based format:
+rules
+    dollar > dollar.heavy (weight >= Bold) "heavy dollar"
+    ampersand > ampersand.fancy (weight >= Bold && width <= Wide) "compound"
+    g > g.alt (Regular <= weight <= Bold) "range condition"
+```
+
+**Benefits:**
+- More readable: `weight >= Bold` vs `weight >= 700`
+- Self-documenting: labels show semantic meaning
+- Works with all operators: `>=`, `<=`, `==`, ranges
+- Supports all axes: standard and custom
+- Can mix numeric and label values
 
 ```dssketch
-# Label-based dssketch
-# Instead of designspace coordinates, you can use labels from mapping
+# Complete label-based example
 family SuperFont
 path sources
 
@@ -198,7 +217,8 @@ sources [wght, ital]
     SuperFont-Black-Italic [Black, Italic]
 
 rules
-    dollar* cent* > .rvrn (weight >= 600) "heavy alternates"
+    dollar* cent* > .rvrn (weight >= Bold) "heavy alternates"
+    g > g.alt (Regular <= weight <= Bold) "medium weight"
 
 instances auto
 ```
@@ -217,16 +237,20 @@ ital discrete
 #### Flexible Substitution Rules
 ```dssketch
 rules
-    # Simple glyph substitution
-    dollar > dollar.rvrn (weight >= 400)
+    # Simple glyph substitution with labels
+    dollar > dollar.heavy (weight >= Bold)
 
-    # Wildcard patterns
-    A* > .alt (weight >= 600)      # All glyphs starting with A
-    * > .rvrn (weight >= 500)      # All glyphs with .rvrn variants
+    # Wildcard patterns with labels
+    A* > .alt (weight >= Bold)         # All glyphs starting with A
+    * > .rvrn (weight >= Medium)       # All glyphs with .rvrn variants
 
-    # Complex conditions with design space coordinates
-    ampersand > .fancy (weight >= 600 && width >= 110)
-    thin* > .ultra (weight >= -100)  # Negative coordinates supported
+    # Complex conditions with labels
+    ampersand > .fancy (weight >= Bold && width <= Wide)
+    g > g.alt (Regular <= weight <= Bold)  # Range conditions
+
+    # Numeric conditions still work
+    thin* > .ultra (weight >= -100)    # Negative coordinates supported
+    b > b.alt (450 <= weight <= Bold)  # Mix labels and numbers
 ```
 
 #### Explicit Axis Order Control
@@ -396,14 +420,11 @@ sources [wght, wdth, ital]
 
 rules
     # Currency symbols get heavy alternates
-    dollar cent > .rvrn (weight >= 480)
+    dollar cent > .rvrn (weight >= Medium)
 
     # Wildcard patterns
-    A* > .alt (weight >= 600)      # All A-glyphs get alternates
+    A* > .alt (weight >= Bold)      # All A-glyphs get alternates
     dollar cent at number > .fancy (weight >= 700 && width >= 150)  # Complex conditions
-
-    # Negative design space coordinates
-    *.thin > .ultra (weight >= -50)
 
 instances auto
 ```
@@ -433,11 +454,11 @@ rules
     num* > .proportional (CONTRAST >= 50)    # number variants
 
     # Universal wildcard (all glyphs with matching targets)
-    S* G*  > .rvrn (weight >= 400)            # Only creates rules where .rvrn exists
+    S* G*  > .rvrn (weight >= Regular)         # Only creates rules where .rvrn exists
     Q* > .alt (weight >= 600 && width >= 150)  # Complex conditions
 
     # Range conditions
-    o > o.round (400 <= weight <= 600)
+    o > o.round (Regular <= weight <= Bold)
 
     # Negative coordinates (supported in design space)
     ultra* > .thin (weight >= -100)

@@ -270,7 +270,7 @@ When integrating DSSketch API into your workflow:
   - `UFOValidator` - Validates UFO source files
   - `UFOGlyphExtractor` - Extracts glyph lists from UFO files
 - `src/dssketch/utils/dss_validator.py`:
-  - **NEW!** `DSSValidator` - Comprehensive validation with intelligent typo detection
+  - `DSSValidator` - Comprehensive validation with intelligent typo detection
   - Uses **Levenshtein distance algorithm** for typo suggestions (like git, npm, bash)
   - Detects duplicate mapping labels (CRITICAL), axis tag typos (ERROR), mapping label typos (WARNING)
   - Smart cross-axis validation logic
@@ -346,10 +346,20 @@ sources [wght, ital]  # explicit axis order for coordinates
     # italic/Black [900, 1]  # Numeric
 
 rules
+    # Label-based conditions (more readable!)
+    dollar > dollar.heavy (weight >= Bold) "heavy dollar"
+    ampersand > ampersand.fancy (weight >= Bold && width <= Wide) "compound condition"
+    g > g.alt (Regular <= weight <= Bold) "range condition"
+
+    # Numeric conditions (still fully supported)
     dollar > dollar.rvrn (weight >= 480) "dollar alternates"  # 480 = design space coordinate
     cent* > .rvrn (weight >= 480) "cent patterns"  # wildcard patterns
     A* > .alt (weight <= 500)  # all glyphs starting with A
     * > .rvrn (weight >= 600)  # all glyphs that have .rvrn variants
+
+    # Mixed label and numeric conditions
+    b > b.alt (450 <= weight <= Bold) "mixed condition"
+
     # Negative design space coordinates supported:
     thin* > .ultra (weight >= -100)  # negative design space value
     slanted* > .back (slnt <= -15)  # negative slant coordinate
@@ -488,6 +498,41 @@ axes
 
 This makes DSSketch files even more accessible to font designers who are not familiar with OpenType axis tags!
 
+**Label-Based Rule Conditions:**
+
+Rules can use axis mapping labels in conditions instead of numeric design-space coordinates:
+
+```dssketch
+# Traditional numeric format:
+rules
+    dollar > dollar.heavy (weight >= 700) "heavy dollar"
+    ampersand > ampersand.fancy (weight >= 700 && width >= 110) "compound"
+    g > g.alt (450 <= weight <= 650) "range condition"
+
+# Label-based format (more readable):
+rules
+    dollar > dollar.heavy (weight >= Bold) "heavy dollar"
+    ampersand > ampersand.fancy (weight >= Bold && width <= Wide) "compound"
+    g > g.alt (Regular <= weight <= Bold) "range condition"
+
+# Mixed format also supported:
+rules
+    b > b.alt (450 <= weight <= Bold) "mixed condition"
+```
+
+**How it works:**
+- Labels are resolved from axis mappings to design-space values
+- Supports all axes - standard (wght, wdth, ital) and custom axes
+- Works with all condition operators: `>=`, `<=`, `==`, range conditions
+- Backward compatible - numeric format still fully supported
+- Writer automatically uses labels when `use_label_coordinates=True` (default)
+
+**Benefits:**
+- **More readable**: `weight >= Bold` is clearer than `weight >= 700`
+- **Self-documenting**: Labels show the semantic meaning of conditions
+- **Less error-prone**: No need to remember design-space coordinate values
+- **Flexible**: Can combine numeric and label values in same condition
+
 ### Key Features
 
 **Substitution Rules (Critical for Variable Fonts):**
@@ -516,11 +561,17 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Prevents broken DesignSpace rules
 
 **Rule Conditions (Design Space Coordinates):**
-- **IMPORTANT**: Rule conditions always use **design space coordinates**, not user space
-- Simple: `(weight >= 480)` - 480 is design space value, not user space
-- Compound: `(weight >= 600 && width >= 110)` - both values are design space
-- Exact: `(weight == 500)` - exact design space coordinate
-- Range: `(80 <= width <= 120)` - design space range
+- **IMPORTANT**: Rule conditions use **design space coordinates** (numeric or labels)
+- **Label-based conditions** (recommended for readability):
+  - Simple: `(weight >= Bold)` - uses Bold's design value from axis mappings
+  - Compound: `(weight >= Bold && width <= Wide)` - combines multiple label conditions
+  - Range: `(Regular <= weight <= Bold)` - range between two labels
+  - Exact: `(weight == Regular)` - exact match with label value
+- **Numeric conditions** (still fully supported):
+  - Simple: `(weight >= 480)` - 480 is design space value, not user space
+  - Compound: `(weight >= 600 && width >= 110)` - both values are design space
+  - Range: `(80 <= width <= 120)` - design space range
+- **Mixed conditions**: `(450 <= weight <= Bold)` - combine numbers and labels
 - **Negative values supported**: `(weight >= -100)`, `(slnt <= -15)`
 - **Bounds validation**: Conditions must be within axis design space min/max limits
 
@@ -1034,11 +1085,11 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 **`dss_validator.py`** - DSSketch document validation
 - `DSSValidator` class - Comprehensive document validation with intelligent typo detection
 - `validate_document(document)` - Full document structural and content validation
-- **NEW!** `levenshtein_distance(s1, s2)` - Edit distance algorithm for typo detection (threshold: 2 chars)
-- **NEW!** `validate_axis_tag(tag)` - Detects axis tag typos and human-readable names
-- **NEW!** `validate_mapping_label(label, axis_tag, all_axes)` - Detects mapping label typos
-- **NEW!** `get_valid_labels_for_axis(axis_tag, all_axes)` - Smart cross-axis label validation
-- **NEW!** `_validate_duplicate_mapping_labels(document)` - CRITICAL: prevents duplicate labels across axes
+- `levenshtein_distance(s1, s2)` - Edit distance algorithm for typo detection (threshold: 2 chars)
+- `validate_axis_tag(tag)` - Detects axis tag typos and human-readable names
+- `validate_mapping_label(label, axis_tag, all_axes)` - Detects mapping label typos
+- `get_valid_labels_for_axis(axis_tag, all_axes)` - Smart cross-axis label validation
+- `_validate_duplicate_mapping_labels(document)` - CRITICAL: prevents duplicate labels across axes
 - Critical structure validation (axes, sources, base source required)
 - Content validation (mappings, coordinates, labels)
 - Coordinate and range validation
@@ -1062,19 +1113,25 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 ### Test Files
 
 - `tests/test_parser_validation.py` - Comprehensive parser validation test suite (19 tests)
-- `tests/test_typo_validation.py` - **NEW!** Typo detection validation tests (13 tests):
+- `tests/test_typo_validation.py` - Typo detection validation tests (13 tests):
   - Duplicate mapping labels across axes (CRITICAL)
   - Axis tag typos (ERROR): wgth → wght, human-readable names
   - Mapping label typos (WARNING): Reguler → Regular, Lite → Light
   - Smart cross-axis logic validation
 - `tests/test_label_based_syntax.py` - Label-based syntax tests (coordinates and ranges)
+- `tests/test_label_based_conditions.py` - Label-based rule conditions tests (11 tests):
+  - Simple label conditions: `weight >= Bold`
+  - Range label conditions: `Regular <= weight <= Bold`
+  - Compound conditions: `weight >= Bold && width <= Wide`
+  - Mixed numeric and label conditions
+  - Error handling for invalid labels
 - `tests/test_label_range_validation.py` - Label-based range validation tests (8 tests)
 - `tests/test_rule_axis_validation.py` - Rule axis validation tests (5 tests)
 - `tests/test_mapping_range_validation.py` - Mapping range validation tests (8 tests)
 - `tests/test_discrete_axis_no_warning.py` - Discrete axis warning tests
 - `tests/test_human_axis_names.py` - Human-readable axis name tests
-- Tests cover: keyword typos, axis tag typos, mapping label typos, duplicate labels, empty values, coordinate validation, bracket detection, axis ranges, rule syntax, label validation, axis references, mapping bounds
-- **Total**: 74 tests passing
+- Tests cover: keyword typos, axis tag typos, mapping label typos, duplicate labels, empty values, coordinate validation, bracket detection, axis ranges, rule syntax, label validation, axis references, mapping bounds, label-based conditions
+- **Total**: 85 tests passing
 - Run with: `python -m pytest tests/ -v`
 
 ### File Extensions
@@ -1228,7 +1285,7 @@ sources
 axшes                         # → "Invalid section keyword 'axшes' - contains non-ASCII characters"
 ```
 
-**11. CRITICAL - Duplicate Mapping Labels (NEW!):**
+**11. CRITICAL - Duplicate Mapping Labels:**
 ```python
 # Prevents labels used across multiple axes (breaks instance generation)
 axes
@@ -1242,7 +1299,7 @@ axes
 #    and label-based coordinates. Use different labels for each axis."
 ```
 
-**12. ERROR - Axis Tag Typos (NEW!):**
+**12. ERROR - Axis Tag Typos:**
 ```python
 # Detects typos in standard axis tags using Levenshtein distance algorithm
 axes
@@ -1264,7 +1321,7 @@ axes
 # - UPPERCASE tags treated as custom axes (not checked): WGTH, CUSTOM, CNTR
 ```
 
-**13. WARNING - Mapping Label Typos (NEW!):**
+**13. WARNING - Mapping Label Typos:**
 ```python
 # Detects typos in standard weight/width mapping labels
 axes

@@ -108,7 +108,7 @@ class DSSWriter:
         if dss_doc.rules:
             lines.append("rules")
             for rule in dss_doc.rules:
-                lines.extend(self._format_rule(rule))
+                lines.extend(self._format_rule(rule, dss_doc.axes))
             lines.append("")
 
         # Instances (if not using auto)
@@ -289,6 +289,33 @@ class DSSWriter:
                 return mapping.label
         return None
 
+    def _format_condition_value(self, value: float, axis_name: str, axes: List[DSSAxis]) -> str:
+        """Format a condition value - try to use label if available, otherwise format number
+
+        Args:
+            value: The design space value to format
+            axis_name: Name of the axis this value belongs to
+            axes: List of all axes to search for labels
+
+        Returns:
+            Formatted value (label or number)
+        """
+        # Find the axis
+        target_axis = None
+        for axis in axes:
+            if axis.name == axis_name or axis.tag == axis_name:
+                target_axis = axis
+                break
+
+        # Try to find a label
+        if target_axis and self.use_label_coordinates:
+            label = self._get_label_for_coordinate(target_axis, value)
+            if label:
+                return label
+
+        # Fallback to formatted number
+        return self._format_number(value)
+
     def _format_source(self, source: DSSSource, axes: List[DSSAxis]) -> str:
         """Format source definition"""
         # Get coordinates in axis order
@@ -323,8 +350,13 @@ class DSSWriter:
 
         return line
 
-    def _format_rule(self, rule: DSSRule) -> List[str]:
-        """Format rule definition"""
+    def _format_rule(self, rule: DSSRule, axes: List[DSSAxis]) -> List[str]:
+        """Format rule definition with label-based conditions when possible
+
+        Args:
+            rule: The rule to format
+            axes: List of axes for label resolution
+        """
         lines = []
 
         # Get condition string (shared across all substitutions in this rule)
@@ -337,18 +369,32 @@ class DSSWriter:
                 max_val = cond["maximum"]
 
                 if min_val == max_val:
-                    cond_parts.append(f"{axis} == {self._format_number(min_val)}")
+                    # Exact match: axis == value (try label or number)
+                    formatted_val = self._format_condition_value(min_val, axis, axes)
+                    cond_parts.append(f"{axis} == {formatted_val}")
                 elif min_val is not None and max_val is not None:
+                    # Range condition
                     if min_val == 0:
-                        cond_parts.append(f"{axis} <= {self._format_number(max_val)}")
+                        # Only upper bound: axis <= max
+                        formatted_max = self._format_condition_value(max_val, axis, axes)
+                        cond_parts.append(f"{axis} <= {formatted_max}")
                     elif max_val >= 1000:
-                        cond_parts.append(f"{axis} >= {self._format_number(min_val)}")
+                        # Only lower bound: axis >= min
+                        formatted_min = self._format_condition_value(min_val, axis, axes)
+                        cond_parts.append(f"{axis} >= {formatted_min}")
                     else:
-                        cond_parts.append(f"{self._format_number(min_val)} <= {axis} <= {self._format_number(max_val)}")
+                        # Full range: min <= axis <= max (try labels or numbers)
+                        formatted_min = self._format_condition_value(min_val, axis, axes)
+                        formatted_max = self._format_condition_value(max_val, axis, axes)
+                        cond_parts.append(f"{formatted_min} <= {axis} <= {formatted_max}")
                 elif min_val is not None:
-                    cond_parts.append(f"{axis} >= {self._format_number(min_val)}")
+                    # Only minimum: axis >= min
+                    formatted_min = self._format_condition_value(min_val, axis, axes)
+                    cond_parts.append(f"{axis} >= {formatted_min}")
                 elif max_val is not None:
-                    cond_parts.append(f"{axis} <= {self._format_number(max_val)}")
+                    # Only maximum: axis <= max
+                    formatted_max = self._format_condition_value(max_val, axis, axes)
+                    cond_parts.append(f"{axis} <= {formatted_max}")
 
             if cond_parts:
                 condition_str = f"({' && '.join(cond_parts)})"

@@ -6,9 +6,7 @@ Clean version with separated validation concerns.
 
 import re
 from pathlib import Path
-from typing import Dict, List
-
-import yaml
+from typing import List
 
 from ..core.mappings import Standards
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule
@@ -652,6 +650,52 @@ class DSSParser:
             f"Available labels: {', '.join([m.label for m in target_axis.mappings])}"
         )
 
+    def _resolve_condition_value(self, value_str: str, axis_name: str) -> float:
+        """Resolve condition value - can be numeric or label name
+
+        Args:
+            value_str: String value that can be either a number (e.g., "700") or label (e.g., "Bold")
+            axis_name: Name or tag of the axis (e.g., "weight", "wght", "width")
+
+        Returns:
+            Float design space coordinate value
+
+        Raises:
+            ValueError: If label not found in axis mappings or invalid numeric value
+        """
+        value_str = value_str.strip()
+
+        # Try to parse as number first
+        try:
+            return float(value_str)
+        except ValueError:
+            # Not a number, treat as label name
+            pass
+
+        # Find the axis in document by name or tag
+        target_axis = None
+        for axis in self.document.axes:
+            if axis.name == axis_name or axis.tag == axis_name:
+                target_axis = axis
+                break
+
+        if not target_axis:
+            raise ValueError(
+                f"Axis '{axis_name}' not found in document. "
+                f"Available axes: {', '.join([a.name for a in self.document.axes])}"
+            )
+
+        # Search for label in axis mappings
+        for mapping in target_axis.mappings:
+            if mapping.label == value_str:
+                return mapping.design_value
+
+        # Label not found
+        raise ValueError(
+            f"Label '{value_str}' not found in axis '{target_axis.name}' mappings. "
+            f"Available labels: {', '.join([m.label for m in target_axis.mappings])}"
+        )
+
     def _parse_source_line(self, line: str):
         """Parse source definition line"""
         # Strip leading whitespace for pattern matching
@@ -740,7 +784,13 @@ class DSSParser:
             pass
 
     def _parse_condition_string(self, condition_str: str) -> List[dict]:
-        """Parse condition string like 'weight >= 480' or 'weight >= 600 && width >= 110'"""
+        """Parse condition string like 'weight >= 480' or 'weight >= Bold'
+
+        Supports:
+        - Numeric values: 'weight >= 700', '400 <= weight <= 700'
+        - Label values: 'weight >= Bold', 'Regular <= weight <= Black'
+        - Mixed: '400 <= weight <= Black', 'Regular <= width <= 125'
+        """
         conditions = []
         if not condition_str:
             return conditions
@@ -749,21 +799,41 @@ class DSSParser:
         cond_parts = [part.strip() for part in condition_str.split("&&")]
 
         for cond_part in cond_parts:
-            # Try range condition first: "400 <= weight <= 700" or "-100 <= weight <= 200"
-            range_match = re.search(r"([-\d.]+)\s*<=\s*(\w+)\s*<=\s*([-\d.]+)", cond_part)
+            # Try range condition first: "400 <= weight <= 700", "Regular <= weight <= Bold", "-100 <= weight <= 200"
+            # Pattern accepts both numbers (with optional negative sign) and words (labels)
+            range_match = re.search(r"([-\d.]+|\w+)\s*<=\s*(\w+)\s*<=\s*([-\d.]+|\w+)", cond_part)
             if range_match:
-                min_val = float(range_match.group(1))
+                min_str = range_match.group(1)
                 axis = range_match.group(2)
-                max_val = float(range_match.group(3))
-                conditions.append({"axis": axis, "minimum": min_val, "maximum": max_val})
+                max_str = range_match.group(3)
+
+                # Resolve values (can be numeric or labels)
+                try:
+                    min_val = self._resolve_condition_value(min_str, axis)
+                    max_val = self._resolve_condition_value(max_str, axis)
+                    conditions.append({"axis": axis, "minimum": min_val, "maximum": max_val})
+                except ValueError as e:
+                    self.validator.errors.append(f"Invalid condition value: {e}")
+                    if self.validator.strict_mode:
+                        raise
                 continue
 
-            # Standard conditions: "weight >= 480", "weight <= 400", "weight == 500", "weight >= -200"
-            std_match = re.search(r"(\w+)\s*(>=|<=|==)\s*([-\d.]+)", cond_part)
+            # Standard conditions: "weight >= 480", "weight >= Bold", "weight <= 400", "weight == Regular"
+            # Pattern accepts both numbers (with optional negative sign) and words (labels)
+            std_match = re.search(r"(\w+)\s*(>=|<=|==)\s*([-\d.]+|\w+)", cond_part)
             if std_match:
                 axis = std_match.group(1)
                 operator = std_match.group(2)
-                value = float(std_match.group(3))
+                value_str = std_match.group(3)
+
+                # Resolve value (can be numeric or label)
+                try:
+                    value = self._resolve_condition_value(value_str, axis)
+                except ValueError as e:
+                    self.validator.errors.append(f"Invalid condition value: {e}")
+                    if self.validator.strict_mode:
+                        raise
+                    continue
 
                 # Find axis bounds from document axes (design space)
                 axis_min = -1000  # Default very low minimum
@@ -919,7 +989,7 @@ class DSSParser:
         if axis_values:
             # Generate a few key instances
             for axis_name, values in axis_values.items():
-                for user_val, label, design_val in values:
+                for _, label, design_val in values:
                     if label in ["Regular", "Bold", "Light"]:
                         instance = DSSInstance(
                             name=label,
