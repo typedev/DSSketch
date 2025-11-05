@@ -739,3 +739,15 @@ The `examples/` directory contains:
 ---
 
 **DSSketch makes variable font development human-friendly. Simple syntax, powerful features, dramatic size reduction.**
+
+## Author & Credits
+
+**DSSketch** was developed by **Alexander Lubovenko** in collaboration with **Claude (Anthropic AI)**.
+
+This project represents a collaborative effort combining human expertise in font design and engineering with AI-assisted development to create more accessible and efficient tooling for the variable font community.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2025 Alexander Lubovenko
