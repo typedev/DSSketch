@@ -117,8 +117,8 @@ class DSSParser:
             non_critical_errors = [e for e in errors if not e.startswith("CRITICAL:")]
             if non_critical_errors:
                 if self.validator.strict_mode:
-                    error_msg = f"DSS validation errors ({len(non_critical_errors)}):" + "\\n".join(
-                        [f"\\n  • {error}" for error in non_critical_errors]
+                    error_msg = f"DSS validation errors ({len(non_critical_errors)}):" + "\n".join(
+                        [f"\n  • {error}" for error in non_critical_errors]
                     )
                     raise ValueError(error_msg)
                 else:

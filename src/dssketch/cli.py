@@ -84,6 +84,7 @@ def main():
             )
             ds_doc.write(str(output_path))
             DSSketchLogger.success(f"Converted {input_path.name} -> {output_path.name}")
+            print(f"✓ Conversion completed successfully: {output_path}")
 
         elif output_format == "dssketch":
             # Convert .designspace to .dssketch
@@ -103,15 +104,31 @@ def main():
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(dss_content)
             DSSketchLogger.success(f"Converted {input_path.name} -> {output_path.name}")
+            print(f"✓ Conversion completed successfully: {output_path}")
 
     except Exception as e:
         import traceback
 
-        DSSketchLogger.error(f"Error during conversion: {e}")
+        # Format error message with proper line breaks
+        error_msg = str(e)
+        if '\n' in error_msg:
+            # Split multi-line error messages
+            lines = error_msg.split('\n')
+            DSSketchLogger.error(f"Error during conversion:")
+            for line in lines:
+                if line.strip():  # Skip empty lines
+                    DSSketchLogger.error(f"  {line}")
+        else:
+            DSSketchLogger.error(f"Error during conversion: {error_msg}")
+
         DSSketchLogger.debug("Full traceback:")
         DSSketchLogger.debug(traceback.format_exc())
         return 1
     finally:
+        # Always print log file path for easy IDE access
+        log_path = DSSketchLogger.get_log_file_path()
+        if log_path:
+            print(f"\nLog file: {log_path}")
         DSSketchLogger.cleanup()
 
     return 0
