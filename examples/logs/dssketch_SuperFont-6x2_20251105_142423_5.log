@@ -1,6 +1,0 @@
-2025-11-05 14:24:23 - dssketch - INFO - DSSketch logging started for file: /Users/alexander/WORKS/PythonWorks/DSSketch/examples/SuperFont-6x2.dssketch
-2025-11-05 14:24:23 - dssketch - INFO - Log file: /Users/alexander/WORKS/PythonWorks/DSSketch/examples/logs/dssketch_SuperFont-6x2_20251105_142423_5.log
-2025-11-05 14:24:23 - dssketch - INFO - Starting DSSketch to DesignSpace conversion
-2025-11-05 14:24:23 - dssketch - WARNING - DSS validation warnings (1):
-2025-11-05 14:24:23 - dssketch - WARNING -   • Auto-detected base source: 'SuperFont_Regular' (matches default coordinates)
-2025-11-05 14:24:23 - dssketch - INFO - ✅ Converted SuperFont-6x2.dssketch -> SuperFont-6x2.designspace

@@ -63,4 +63,5 @@ tests/*
 tests/fixtures/*
 backup-before-cleanup.bundle
 .ruff_cache/
-.log
+*.log
+examples/logs/*

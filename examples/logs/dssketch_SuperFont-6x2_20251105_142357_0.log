@@ -1,9 +1,0 @@
-2025-11-05 14:23:57 - dssketch - INFO - DSSketch logging started for file: /Users/alexander/WORKS/PythonWorks/DSSketch/examples/SuperFont-6x2.dssketch
-2025-11-05 14:23:57 - dssketch - INFO - Log file: /Users/alexander/WORKS/PythonWorks/DSSketch/examples/logs/dssketch_SuperFont-6x2_20251105_142357_0.log
-2025-11-05 14:23:57 - dssketch - INFO - Starting DSSketch to DesignSpace conversion
-2025-11-05 14:23:57 - dssketch - WARNING - DSS validation warnings (1):
-2025-11-05 14:23:57 - dssketch - WARNING -   • Auto-detected base source: 'SuperFont_Regular' (matches default coordinates)
-2025-11-05 14:23:57 - dssketch - WARNING - Missing UFO files (1):
-2025-11-05 14:23:57 - dssketch - WARNING -   - /Users/alexander/WORKS/PythonWorks/DSSketch/examples/SuperFont-sources/SuperFont_Italic.ufo
-2025-11-05 14:23:57 - dssketch - WARNING - Continuing conversion despite validation issues...
-2025-11-05 14:23:57 - dssketch - INFO - ✅ Converted SuperFont-6x2.dssketch -> SuperFont-6x2.designspace
