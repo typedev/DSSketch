@@ -28,7 +28,7 @@ dependencies = [
     "fonttools>=4.38.0",
     "defcon>=0.10.0",
     "fontParts>=0.12.0",
-    "designspaceProblems>=0.1.0",
+    "designspaceProblems @ git+https://github.com/LettError/DesignspaceProblems.git",
     "pyyaml>=6.0",
 ]
 
