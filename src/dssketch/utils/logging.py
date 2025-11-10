@@ -86,7 +86,7 @@ class DSSketchLogger:
 
         # Create console handler for important messages
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.WARNING)
+        console_handler.setLevel(logging.INFO)
 
         # Create formatter
         formatter = logging.Formatter(

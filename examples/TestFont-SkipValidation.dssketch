@@ -1,0 +1,32 @@
+family TestFont
+
+axes
+    wght Thin:Regular:Black
+        Thin > 100
+        Regular > 400 @elidable
+        Bold > 700
+        Black > 900
+    ital discrete
+        Upright @elidable
+        Italic
+
+sources [wght, ital]
+    TestFont-Thin [Thin, Upright]
+    TestFont-Regular [Regular, Upright] @base
+    TestFont-Bold [Bold, Upright]
+    TestFont-Black [Black, Upright]
+    TestFont-ThinItalic [Thin, Italic]
+    TestFont-Italic [Regular, Italic]
+    TestFont-BoldItalic [Bold, Italic]
+    TestFont-BlackItalic [Black, Italic]
+
+instances auto
+    skip
+        # Test 1: Valid skip rule - should work
+        Thin Italic
+
+        # Test 2: Skip rule that never matches - WARNING (Regular and Upright are both @elidable)
+        Regular Upright
+
+        # Test 3: Skip rule that doesn't exist - WARNING (Bold Upright becomes just "Bold" after cleanup)
+        Bold Upright

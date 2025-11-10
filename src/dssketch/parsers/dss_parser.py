@@ -32,6 +32,7 @@ class DSSParser:
         self.current_section = None
         self.current_axis = None
         self.source_axis_order = None  # Explicit axis order from sources section
+        self.in_skip_subsection = False  # Track if we're parsing skip subsection
         self.discrete_labels = DiscreteAxisHandler.load_discrete_labels()
         self.validator = DSSValidator(strict_mode=strict_mode)
         # Note: Rule names now handled via @name syntax instead of comments
@@ -194,11 +195,13 @@ class DSSParser:
 
         elif line == "instances" or line.startswith("instances "):
             self.current_section = "instances"
+            self.in_skip_subsection = False  # Reset skip subsection flag
             if "auto" in line:
                 self.document.instances_auto = True
 
         elif line == "rules" or line.startswith("rules "):
             self.current_section = "rules"
+            self.in_skip_subsection = False  # Reset skip subsection flag
 
         # Parse based on current section (highest priority)
         elif self.current_section == "axes":
@@ -805,11 +808,34 @@ class DSSParser:
         self.document.sources.append(source)
 
     def _parse_instance_line(self, line: str):
-        """Parse instance definition line"""
-        # Strip leading whitespace for pattern matching
+        """Parse instance definition line
+
+        Handles:
+        - skip subsection: collects instance combinations to skip
+        - explicit instances (not implemented yet)
+        """
+        # Check if this is the start of skip subsection
+        if line.strip().startswith("skip"):
+            self.in_skip_subsection = True
+            return
+
+        # If we're in skip subsection, collect skip combinations
+        if self.in_skip_subsection:
+            # Skip combinations should be indented
+            if line.startswith("    ") or line.startswith("\t"):
+                combination = line.strip()
+                if combination:  # Ignore empty lines
+                    self.document.instances_skip.append(combination)
+            else:
+                # Non-indented line means we're exiting skip subsection
+                self.in_skip_subsection = False
+                # Don't return - let it fall through to process this line
+
+        # Parse explicit instances (if not auto and not skip)
         line = line.strip()
-        if line != "auto":
+        if line != "auto" and not self.in_skip_subsection:
             # Parse explicit instance (similar to source parsing)
+            # TODO: implement explicit instance parsing if needed
             pass
 
     def _parse_condition_string(self, condition_str: str) -> List[dict]:

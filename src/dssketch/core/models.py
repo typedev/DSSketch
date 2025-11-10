@@ -82,4 +82,5 @@ class DSSDocument:
     variable_fonts: List[Dict] = field(default_factory=list)
     lib: Dict = field(default_factory=dict)
     instances_auto: bool = False  # Flag for automatic instance generation
+    instances_skip: List[str] = field(default_factory=list)  # Instance combinations to skip (e.g., ["Bold Italic", "Light Italic"])
 

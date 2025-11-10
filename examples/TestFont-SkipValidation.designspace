@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="wght" name="weight" minimum="100" maximum="900" default="400">
+      <labelname xml:lang="en">Weight</labelname>
+      <map input="100" output="100"/>
+      <map input="400" output="400"/>
+      <map input="700" output="700"/>
+      <map input="900" output="900"/>
+      <labels ordering="0">
+        <label uservalue="100" name="Thin"/>
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="700" name="Bold"/>
+        <label uservalue="900" name="Black"/>
+      </labels>
+    </axis>
+    <axis tag="ital" name="italic" values="0 1" default="0">
+      <labelname xml:lang="en">Italic</labelname>
+      <labels ordering="1">
+        <label uservalue="0" name="Upright" elidable="true"/>
+        <label uservalue="1" name="Italic"/>
+      </labels>
+    </axis>
+  </axes>
+  <sources>
+    <source filename="TestFont-Thin.ufo" name="source.1" familyname="TestFont" stylename="TestFont-Thin">
+      <location>
+        <dimension name="weight" xvalue="100"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="TestFont-Regular.ufo" name="source.2" familyname="TestFont" stylename="TestFont-Regular">
+      <lib copy="1"/>
+      <groups copy="1"/>
+      <features copy="1"/>
+      <info copy="1"/>
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="TestFont-Bold.ufo" name="source.3" familyname="TestFont" stylename="TestFont-Bold">
+      <location>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="TestFont-Black.ufo" name="source.4" familyname="TestFont" stylename="TestFont-Black">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="TestFont-ThinItalic.ufo" name="source.5" familyname="TestFont" stylename="TestFont-ThinItalic">
+      <location>
+        <dimension name="weight" xvalue="100"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+    <source filename="TestFont-Italic.ufo" name="source.6" familyname="TestFont" stylename="TestFont-Italic">
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+    <source filename="TestFont-BoldItalic.ufo" name="source.7" familyname="TestFont" stylename="TestFont-BoldItalic">
+      <location>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+    <source filename="TestFont-BlackItalic.ufo" name="source.8" familyname="TestFont" stylename="TestFont-BlackItalic">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+  </sources>
+  <instances>
+    <instance familyname="TestFont" stylename="Thin" filename="instances/TestFont-Thin.ufo" postscriptfontname="TestFont-Thin">
+      <location>
+        <dimension name="weight" xvalue="100"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Regular" filename="instances/TestFont-Regular.ufo" postscriptfontname="TestFont-Regular">
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Italic" filename="instances/TestFont-Italic.ufo" postscriptfontname="TestFont-Italic">
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Bold" filename="instances/TestFont-Bold.ufo" postscriptfontname="TestFont-Bold">
+      <location>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Bold Italic" filename="instances/TestFont-BoldItalic.ufo" postscriptfontname="TestFont-BoldItalic">
+      <location>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Black" filename="instances/TestFont-Black.ufo" postscriptfontname="TestFont-Black">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Black Italic" filename="instances/TestFont-BlackItalic.ufo" postscriptfontname="TestFont-BlackItalic">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+  </instances>
+</designspace>

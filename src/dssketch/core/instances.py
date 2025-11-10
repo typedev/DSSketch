@@ -148,11 +148,51 @@ def combineFilters(filter_dict: dict):
     return [" ".join(combination) for combination in itertools.product(*values)]
 
 
+def _validate_skip_labels(skipList: list, labelsmap: list, axisOrder: list) -> list:
+    """
+    Validate that all labels in skip rules exist in axis definitions.
+
+    Note: Labels cannot contain spaces. Use camelCase for compound names
+    (e.g., "ExtraLight", "SemiBold", not "Extra Light", "Semi Bold").
+
+    Args:
+        skipList: List of skip combinations (e.g., ["Bold Italic", "ExtraLight Condensed"])
+        labelsmap: List of dicts with axis labels {label: user_value}
+        axisOrder: List of axis names in order
+
+    Returns:
+        list: List of validation errors (empty if all valid)
+    """
+    errors = []
+
+    # Collect all valid labels from all axes
+    all_valid_labels = set()
+    for axis_labels in labelsmap:
+        all_valid_labels.update(axis_labels.keys())
+
+    # Check each skip combination
+    for skip_combo in skipList:
+        # Split by spaces - each word must be a valid label
+        labels_in_combo = skip_combo.split()
+
+        for label in labels_in_combo:
+            if label not in all_valid_labels:
+                # Label not found in any axis - this is an ERROR
+                errors.append(
+                    f"Skip rule '{skip_combo}' contains label '{label}' which is not defined in any axis. "
+                    f"Available labels: {', '.join(sorted(all_valid_labels))}"
+                )
+                break  # One error per skip combo is enough
+
+    return errors
+
+
 def createInstances(
     dssource: DesignSpaceDocument,
     dss_doc: "DSSDocument" = None,
     defaultFolder="instances",
     skipFilter: dict = {},
+    skipList: list = None,
     filterInstances: dict = {},
 ):
     """
@@ -162,7 +202,8 @@ def createInstances(
         dssource (DesignSpaceDocument): Source designspace document
         dss_doc (DSSDocument): Original DSS document to get axes order from
         defaultFolder (str): Output folder for instances (default: 'instances')
-        skipFilter (dict): Dictionary of style combinations to skip (default: None)
+        skipFilter (dict): Dictionary of style combinations to skip (legacy, generates cartesian product)
+        skipList (list): List of specific instance combinations to skip (e.g., ["Bold Italic", "Light Italic"])
         filter (dict): Dictionary of style combinations to include (default: None) not used yet
 
     Returns:
@@ -197,15 +238,36 @@ def createInstances(
     ]
 
     skippedInstances = []
+    # Support both skipFilter (dict) and skipList (list)
     if skipFilter:
         skippedInstances = combineFilters(skipFilter)
+    if skipList:
+        # Validate skip labels BEFORE processing
+        validation_errors = _validate_skip_labels(skipList, labelsmap, axisOrder)
+        if validation_errors:
+            for error in validation_errors:
+                DSSketchLogger.error(error)
+            raise ValueError(
+                f"Skip rule validation failed: {len(validation_errors)} error(s) found. "
+                "Check that all labels in skip rules are defined in axes section."
+            )
+        skippedInstances.extend(skipList)
+
+    # Log skip information
+    if skippedInstances:
+        DSSketchLogger.info(f"Instance skip rules: {len(skippedInstances)} combinations will be skipped")
+        for skip_combo in skippedInstances:
+            DSSketchLogger.info(f"  - {skip_combo}")
+
+    # Track which skip rules were actually used
+    used_skip_rules = set()
 
     for item in combinations:
         itemlist = list(item.items())
 
         styleNameInstance = " ".join([name for name, _ in itemlist])
-        if skippedInstances and styleNameInstance in skippedInstances:
-            continue
+
+        # Apply elidable name cleanup BEFORE checking skip rules
         if elidableStyleNames:
             for removeStyleName in elidableStyleNames:
                 if removeStyleName in styleNameInstance:
@@ -215,6 +277,12 @@ def createInstances(
         if "Regular Italic" in styleNameInstance:  # just replace -Regular Italic- to -Italic-
             # TODO need check Slants, Obliques, etc.
             styleNameInstance = styleNameInstance.replace("Regular Italic", "Italic")
+
+        # Check skip rules AFTER applying elidable cleanup
+        if skippedInstances and styleNameInstance in skippedInstances:
+            DSSketchLogger.info(f"Skipping instance: {styleNameInstance}")
+            used_skip_rules.add(styleNameInstance)  # Track that this rule was used
+            continue
 
         locationsInstance = {}
         mapUserValues = [uservalue for _, uservalue in itemlist]
@@ -238,6 +306,18 @@ def createInstances(
                 defaultFolder=defaultFolder,
             )
         )
+
+    # Validate that all skip rules were actually used (WARNING level)
+    if skippedInstances:
+        unused_skip_rules = set(skippedInstances) - used_skip_rules
+        if unused_skip_rules:
+            DSSketchLogger.warning(
+                f"Skip validation: {len(unused_skip_rules)} skip rule(s) were never used. "
+                "This may indicate a typo or that elidable cleanup changed the instance names."
+            )
+            for unused_rule in sorted(unused_skip_rules):
+                DSSketchLogger.warning(f"  - Unused skip rule: '{unused_rule}'")
+
     return ds, report
 
 

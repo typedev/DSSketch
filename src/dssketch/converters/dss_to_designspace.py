@@ -66,7 +66,12 @@ class DSSToDesignSpace:
         if dss_doc.instances_auto:
             # Use sophisticated instance generation from instances module
             enhanced_doc, _ = createInstances(
-                doc, dss_doc=dss_doc, defaultFolder="instances", skipFilter={}, filterInstances={}
+                doc,
+                dss_doc=dss_doc,
+                defaultFolder="instances",
+                skipFilter={},
+                skipList=dss_doc.instances_skip if dss_doc.instances_skip else None,
+                filterInstances={}
             )
             # Copy the generated instances back to our document
             doc.instances = enhanced_doc.instances

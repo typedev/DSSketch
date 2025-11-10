@@ -1,0 +1,28 @@
+family TestFont
+suffix VF
+
+axes
+    wght Thin:Regular:Black
+        Thin > 100
+        Light > 300
+        Regular > 400 @elidable
+        Medium > 500
+        Bold > 700
+        Black > 900
+    ital discrete
+        Upright @elidable
+        Italic
+
+sources [wght, ital]
+    Thin-Upright [Thin, Upright]
+    Regular-Upright [Regular, Upright] @base
+    Black-Upright [Black, Upright]
+    Thin-Italic [Thin, Italic]
+    Regular-Italic [Regular, Italic]
+    Black-Italic [Black, Italic]
+
+instances auto
+    skip
+        Thin Italic
+        Light
+        Medium Italic

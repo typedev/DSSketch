@@ -1,0 +1,3063 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="CNTR" name="CONTRAST" minimum="0" maximum="100" default="0">
+      <labelname xml:lang="en">Contrast</labelname>
+      <map input="0" output="0"/>
+      <map input="50" output="100"/>
+      <map input="100" output="200"/>
+      <labels ordering="0">
+        <label uservalue="0" name="NonContrast" elidable="true"/>
+        <label uservalue="50" name="LowContrast"/>
+        <label uservalue="100" name="HighContrast"/>
+      </labels>
+    </axis>
+    <axis tag="wdth" name="width" minimum="60" maximum="200" default="100">
+      <labelname xml:lang="en">Width</labelname>
+      <map input="60" output="0"/>
+      <map input="80" output="380"/>
+      <map input="100" output="560"/>
+      <map input="150" output="700"/>
+      <map input="200" output="1000"/>
+      <labels ordering="1">
+        <label uservalue="60" name="Compressed"/>
+        <label uservalue="80" name="Condensed"/>
+        <label uservalue="100" name="Normal" elidable="true"/>
+        <label uservalue="150" name="Wide"/>
+        <label uservalue="200" name="Extended"/>
+      </labels>
+    </axis>
+    <axis tag="wght" name="weight" minimum="100" maximum="900" default="400">
+      <labelname xml:lang="en">Weight</labelname>
+      <map input="100" output="0"/>
+      <map input="200" output="230"/>
+      <map input="400" output="420"/>
+      <map input="500" output="521"/>
+      <map input="700" output="725"/>
+      <map input="800" output="990"/>
+      <map input="900" output="1000"/>
+      <labels ordering="2">
+        <label uservalue="100" name="Thin"/>
+        <label uservalue="200" name="Light"/>
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="500" name="Medium"/>
+        <label uservalue="700" name="Bold"/>
+        <label uservalue="800" name="Extrabold"/>
+        <label uservalue="900" name="Black"/>
+      </labels>
+    </axis>
+    <axis tag="slnt" name="slant" minimum="-20" maximum="20" default="0">
+      <labelname xml:lang="en">Slant</labelname>
+      <map input="-20" output="-20"/>
+      <map input="0" output="0"/>
+      <map input="20" output="20"/>
+      <labels ordering="3">
+        <label uservalue="-20" name="Reverse"/>
+        <label uservalue="0" name="Neutral" elidable="true"/>
+        <label uservalue="20" name="Slant"/>
+      </labels>
+    </axis>
+  </axes>
+  <rules>
+    <rule name="heavy alternates">
+      <conditionset>
+        <condition name="weight" minimum="725" maximum="1000"/>
+      </conditionset>
+      <sub name="a" with="a.rvrn"/>
+      <sub name="b" with="b.rvrn"/>
+      <sub name="c" with="c.rvrn"/>
+      <sub name="cent" with="cent.rvrn"/>
+      <sub name="dollar" with="dollar.rvrn"/>
+    </rule>
+    <rule name="Compressed B">
+      <conditionset>
+        <condition name="width" minimum="0" maximum="560"/>
+      </conditionset>
+      <sub name="B" with="B.alt"/>
+    </rule>
+  </rules>
+  <sources>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Slant.ufo" name="source.1" familyname="MegaFont" stylename="HighContrast Normal Black Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Reverse.ufo" name="source.2" familyname="MegaFont" stylename="HighContrast Normal Black Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Neutral.ufo" name="source.3" familyname="MegaFont" stylename="HighContrast Normal Black Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Slant.ufo" name="source.4" familyname="MegaFont" stylename="HighContrast Normal Bold Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Reverse.ufo" name="source.5" familyname="MegaFont" stylename="HighContrast Normal Bold Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Neutral.ufo" name="source.6" familyname="MegaFont" stylename="HighContrast Normal Bold Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Slant.ufo" name="source.7" familyname="MegaFont" stylename="HighContrast Normal Thin Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Reverse.ufo" name="source.8" familyname="MegaFont" stylename="HighContrast Normal Thin Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Neutral.ufo" name="source.9" familyname="MegaFont" stylename="HighContrast Normal Thin Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Slant.ufo" name="source.10" familyname="MegaFont" stylename="NonContrast Normal Black Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Reverse.ufo" name="source.11" familyname="MegaFont" stylename="NonContrast Normal Black Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Neutral.ufo" name="source.12" familyname="MegaFont" stylename="NonContrast Normal Black Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Slant.ufo" name="source.13" familyname="MegaFont" stylename="NonContrast Normal Bold Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Reverse.ufo" name="source.14" familyname="MegaFont" stylename="NonContrast Normal Bold Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Neutral.ufo" name="source.15" familyname="MegaFont" stylename="NonContrast Normal Bold Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Slant.ufo" name="source.16" familyname="MegaFont" stylename="NonContrast Normal Thin Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Reverse.ufo" name="source.17" familyname="MegaFont" stylename="NonContrast Normal Thin Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Neutral.ufo" name="source.18" familyname="MegaFont" stylename="NonContrast Normal Thin Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Slant.ufo" name="source.19" familyname="MegaFont" stylename="HighContrast Compressed Black Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Reverse.ufo" name="source.20" familyname="MegaFont" stylename="HighContrast Compressed Black Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Neutral.ufo" name="source.21" familyname="MegaFont" stylename="HighContrast Compressed Black Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Slant.ufo" name="source.22" familyname="MegaFont" stylename="HighContrast Compressed Bold Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Reverse.ufo" name="source.23" familyname="MegaFont" stylename="HighContrast Compressed Bold Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Neutral.ufo" name="source.24" familyname="MegaFont" stylename="HighContrast Compressed Bold Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Slant.ufo" name="source.25" familyname="MegaFont" stylename="HighContrast Compressed Thin Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Reverse.ufo" name="source.26" familyname="MegaFont" stylename="HighContrast Compressed Thin Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Neutral.ufo" name="source.27" familyname="MegaFont" stylename="HighContrast Compressed Thin Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Slant.ufo" name="source.28" familyname="MegaFont" stylename="NonContrast Compressed Black Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Reverse.ufo" name="source.29" familyname="MegaFont" stylename="NonContrast Compressed Black Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Neutral.ufo" name="source.30" familyname="MegaFont" stylename="NonContrast Compressed Black Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Slant.ufo" name="source.31" familyname="MegaFont" stylename="NonContrast Compressed Bold Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Reverse.ufo" name="source.32" familyname="MegaFont" stylename="NonContrast Compressed Bold Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Neutral.ufo" name="source.33" familyname="MegaFont" stylename="NonContrast Compressed Bold Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Slant.ufo" name="source.34" familyname="MegaFont" stylename="NonContrast Compressed Thin Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Reverse.ufo" name="source.35" familyname="MegaFont" stylename="NonContrast Compressed Thin Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Neutral.ufo" name="source.36" familyname="MegaFont" stylename="NonContrast Compressed Thin Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Neutral.ufo" name="source.37" familyname="MegaFont" stylename="NonContrast Extended Thin Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Slant.ufo" name="source.38" familyname="MegaFont" stylename="HighContrast Extended Black Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Reverse.ufo" name="source.39" familyname="MegaFont" stylename="HighContrast Extended Black Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Neutral.ufo" name="source.40" familyname="MegaFont" stylename="HighContrast Extended Black Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Slant.ufo" name="source.41" familyname="MegaFont" stylename="HighContrast Extended Thin Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Reverse.ufo" name="source.42" familyname="MegaFont" stylename="HighContrast Extended Thin Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Neutral.ufo" name="source.43" familyname="MegaFont" stylename="HighContrast Extended Thin Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Slant.ufo" name="source.44" familyname="MegaFont" stylename="NonContrast Extended Black Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Reverse.ufo" name="source.45" familyname="MegaFont" stylename="NonContrast Extended Black Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Neutral.ufo" name="source.46" familyname="MegaFont" stylename="NonContrast Extended Black Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Slant.ufo" name="source.47" familyname="MegaFont" stylename="NonContrast Extended Thin Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Reverse.ufo" name="source.48" familyname="MegaFont" stylename="NonContrast Extended Thin Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Slant.ufo" name="source.49" familyname="MegaFont" stylename="HighContrast Extended Bold Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Reverse.ufo" name="source.50" familyname="MegaFont" stylename="HighContrast Extended Bold Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Neutral.ufo" name="source.51" familyname="MegaFont" stylename="HighContrast Extended Bold Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Slant.ufo" name="source.52" familyname="MegaFont" stylename="NonContrast Extended Bold Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Reverse.ufo" name="source.53" familyname="MegaFont" stylename="NonContrast Extended Bold Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Neutral.ufo" name="source.54" familyname="MegaFont" stylename="NonContrast Extended Bold Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Neutral.ufo" name="source.55" familyname="MegaFont" stylename="NonContrast Compressed Regular Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Reverse.ufo" name="source.56" familyname="MegaFont" stylename="NonContrast Compressed Regular Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Slant.ufo" name="source.57" familyname="MegaFont" stylename="NonContrast Compressed Regular Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Neutral.ufo" name="source.58" familyname="MegaFont" stylename="NonContrast Extended Regular Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Reverse.ufo" name="source.59" familyname="MegaFont" stylename="NonContrast Extended Regular Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Slant.ufo" name="source.60" familyname="MegaFont" stylename="NonContrast Extended Regular Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Neutral.ufo" name="source.61" familyname="MegaFont" stylename="HighContrast Compressed Regular Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Reverse.ufo" name="source.62" familyname="MegaFont" stylename="HighContrast Compressed Regular Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Slant.ufo" name="source.63" familyname="MegaFont" stylename="HighContrast Compressed Regular Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Neutral.ufo" name="source.64" familyname="MegaFont" stylename="HighContrast Extended Regular Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Reverse.ufo" name="source.65" familyname="MegaFont" stylename="HighContrast Extended Regular Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Slant.ufo" name="source.66" familyname="MegaFont" stylename="HighContrast Extended Regular Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Neutral.ufo" name="source.67" familyname="MegaFont" stylename="HighContrast Normal Regular Neutral">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Reverse.ufo" name="source.68" familyname="MegaFont" stylename="HighContrast Normal Regular Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Slant.ufo" name="source.69" familyname="MegaFont" stylename="HighContrast Normal Regular Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Slant.ufo" name="source.70" familyname="MegaFont" stylename="NonContrast Normal Regular Slant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Neutral.ufo" name="source.71" familyname="MegaFont" stylename="NonContrast Normal Regular Neutral">
+      <lib copy="1"/>
+      <groups copy="1"/>
+      <features copy="1"/>
+      <info copy="1"/>
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Reverse.ufo" name="source.72" familyname="MegaFont" stylename="NonContrast Normal Regular Reverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </source>
+  </sources>
+  <instances>
+    <instance familyname="MegaFont" stylename="Compressed Thin" filename="instances/MegaFont-CompressedThin.ufo" postscriptfontname="MegaFont-CompressedThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Thin Slant" filename="instances/MegaFont-CompressedThinSlant.ufo" postscriptfontname="MegaFont-CompressedThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Light Reverse" filename="instances/MegaFont-CompressedLightReverse.ufo" postscriptfontname="MegaFont-CompressedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Light" filename="instances/MegaFont-CompressedLight.ufo" postscriptfontname="MegaFont-CompressedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Light Slant" filename="instances/MegaFont-CompressedLightSlant.ufo" postscriptfontname="MegaFont-CompressedLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Regular Reverse" filename="instances/MegaFont-CompressedRegularReverse.ufo" postscriptfontname="MegaFont-CompressedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Regular" filename="instances/MegaFont-CompressedRegular.ufo" postscriptfontname="MegaFont-CompressedRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Regular Slant" filename="instances/MegaFont-CompressedRegularSlant.ufo" postscriptfontname="MegaFont-CompressedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Medium" filename="instances/MegaFont-CompressedMedium.ufo" postscriptfontname="MegaFont-CompressedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Medium Slant" filename="instances/MegaFont-CompressedMediumSlant.ufo" postscriptfontname="MegaFont-CompressedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Bold Reverse" filename="instances/MegaFont-CompressedBoldReverse.ufo" postscriptfontname="MegaFont-CompressedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Bold" filename="instances/MegaFont-CompressedBold.ufo" postscriptfontname="MegaFont-CompressedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Bold Slant" filename="instances/MegaFont-CompressedBoldSlant.ufo" postscriptfontname="MegaFont-CompressedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Extrabold Reverse" filename="instances/MegaFont-CompressedExtraboldReverse.ufo" postscriptfontname="MegaFont-CompressedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Extrabold Slant" filename="instances/MegaFont-CompressedExtraboldSlant.ufo" postscriptfontname="MegaFont-CompressedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Black" filename="instances/MegaFont-CompressedBlack.ufo" postscriptfontname="MegaFont-CompressedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Compressed Black Slant" filename="instances/MegaFont-CompressedBlackSlant.ufo" postscriptfontname="MegaFont-CompressedBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Thin" filename="instances/MegaFont-CondensedThin.ufo" postscriptfontname="MegaFont-CondensedThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Thin Slant" filename="instances/MegaFont-CondensedThinSlant.ufo" postscriptfontname="MegaFont-CondensedThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Light Reverse" filename="instances/MegaFont-CondensedLightReverse.ufo" postscriptfontname="MegaFont-CondensedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Light" filename="instances/MegaFont-CondensedLight.ufo" postscriptfontname="MegaFont-CondensedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Light Slant" filename="instances/MegaFont-CondensedLightSlant.ufo" postscriptfontname="MegaFont-CondensedLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Regular Reverse" filename="instances/MegaFont-CondensedRegularReverse.ufo" postscriptfontname="MegaFont-CondensedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Regular" filename="instances/MegaFont-CondensedRegular.ufo" postscriptfontname="MegaFont-CondensedRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Regular Slant" filename="instances/MegaFont-CondensedRegularSlant.ufo" postscriptfontname="MegaFont-CondensedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Medium Reverse" filename="instances/MegaFont-CondensedMediumReverse.ufo" postscriptfontname="MegaFont-CondensedMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Medium" filename="instances/MegaFont-CondensedMedium.ufo" postscriptfontname="MegaFont-CondensedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Medium Slant" filename="instances/MegaFont-CondensedMediumSlant.ufo" postscriptfontname="MegaFont-CondensedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Bold Reverse" filename="instances/MegaFont-CondensedBoldReverse.ufo" postscriptfontname="MegaFont-CondensedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Bold" filename="instances/MegaFont-CondensedBold.ufo" postscriptfontname="MegaFont-CondensedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Bold Slant" filename="instances/MegaFont-CondensedBoldSlant.ufo" postscriptfontname="MegaFont-CondensedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Extrabold Reverse" filename="instances/MegaFont-CondensedExtraboldReverse.ufo" postscriptfontname="MegaFont-CondensedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Extrabold" filename="instances/MegaFont-CondensedExtrabold.ufo" postscriptfontname="MegaFont-CondensedExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Extrabold Slant" filename="instances/MegaFont-CondensedExtraboldSlant.ufo" postscriptfontname="MegaFont-CondensedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Black Reverse" filename="instances/MegaFont-CondensedBlackReverse.ufo" postscriptfontname="MegaFont-CondensedBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Black" filename="instances/MegaFont-CondensedBlack.ufo" postscriptfontname="MegaFont-CondensedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Condensed Black Slant" filename="instances/MegaFont-CondensedBlackSlant.ufo" postscriptfontname="MegaFont-CondensedBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Thin Reverse" filename="instances/MegaFont-ThinReverse.ufo" postscriptfontname="MegaFont-ThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Thin" filename="instances/MegaFont-Thin.ufo" postscriptfontname="MegaFont-Thin">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Thin Slant" filename="instances/MegaFont-ThinSlant.ufo" postscriptfontname="MegaFont-ThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Light Reverse" filename="instances/MegaFont-LightReverse.ufo" postscriptfontname="MegaFont-LightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Light" filename="instances/MegaFont-Light.ufo" postscriptfontname="MegaFont-Light">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Light Slant" filename="instances/MegaFont-LightSlant.ufo" postscriptfontname="MegaFont-LightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Regular Reverse" filename="instances/MegaFont-RegularReverse.ufo" postscriptfontname="MegaFont-RegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Regular" filename="instances/MegaFont-Regular.ufo" postscriptfontname="MegaFont-Regular">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Regular Slant" filename="instances/MegaFont-RegularSlant.ufo" postscriptfontname="MegaFont-RegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Medium Reverse" filename="instances/MegaFont-MediumReverse.ufo" postscriptfontname="MegaFont-MediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Medium" filename="instances/MegaFont-Medium.ufo" postscriptfontname="MegaFont-Medium">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Medium Slant" filename="instances/MegaFont-MediumSlant.ufo" postscriptfontname="MegaFont-MediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Bold Reverse" filename="instances/MegaFont-BoldReverse.ufo" postscriptfontname="MegaFont-BoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Bold" filename="instances/MegaFont-Bold.ufo" postscriptfontname="MegaFont-Bold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Bold Slant" filename="instances/MegaFont-BoldSlant.ufo" postscriptfontname="MegaFont-BoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extrabold Reverse" filename="instances/MegaFont-ExtraboldReverse.ufo" postscriptfontname="MegaFont-ExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extrabold" filename="instances/MegaFont-Extrabold.ufo" postscriptfontname="MegaFont-Extrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extrabold Slant" filename="instances/MegaFont-ExtraboldSlant.ufo" postscriptfontname="MegaFont-ExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Black Reverse" filename="instances/MegaFont-BlackReverse.ufo" postscriptfontname="MegaFont-BlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Black" filename="instances/MegaFont-Black.ufo" postscriptfontname="MegaFont-Black">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Black Slant" filename="instances/MegaFont-BlackSlant.ufo" postscriptfontname="MegaFont-BlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Thin Reverse" filename="instances/MegaFont-WideThinReverse.ufo" postscriptfontname="MegaFont-WideThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Thin" filename="instances/MegaFont-WideThin.ufo" postscriptfontname="MegaFont-WideThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Thin Slant" filename="instances/MegaFont-WideThinSlant.ufo" postscriptfontname="MegaFont-WideThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Light Reverse" filename="instances/MegaFont-WideLightReverse.ufo" postscriptfontname="MegaFont-WideLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Light" filename="instances/MegaFont-WideLight.ufo" postscriptfontname="MegaFont-WideLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Light Slant" filename="instances/MegaFont-WideLightSlant.ufo" postscriptfontname="MegaFont-WideLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Regular Reverse" filename="instances/MegaFont-WideRegularReverse.ufo" postscriptfontname="MegaFont-WideRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Regular" filename="instances/MegaFont-WideRegular.ufo" postscriptfontname="MegaFont-WideRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Regular Slant" filename="instances/MegaFont-WideRegularSlant.ufo" postscriptfontname="MegaFont-WideRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Medium Reverse" filename="instances/MegaFont-WideMediumReverse.ufo" postscriptfontname="MegaFont-WideMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Medium" filename="instances/MegaFont-WideMedium.ufo" postscriptfontname="MegaFont-WideMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Medium Slant" filename="instances/MegaFont-WideMediumSlant.ufo" postscriptfontname="MegaFont-WideMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Bold Reverse" filename="instances/MegaFont-WideBoldReverse.ufo" postscriptfontname="MegaFont-WideBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Bold" filename="instances/MegaFont-WideBold.ufo" postscriptfontname="MegaFont-WideBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Bold Slant" filename="instances/MegaFont-WideBoldSlant.ufo" postscriptfontname="MegaFont-WideBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Extrabold Reverse" filename="instances/MegaFont-WideExtraboldReverse.ufo" postscriptfontname="MegaFont-WideExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Extrabold" filename="instances/MegaFont-WideExtrabold.ufo" postscriptfontname="MegaFont-WideExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Extrabold Slant" filename="instances/MegaFont-WideExtraboldSlant.ufo" postscriptfontname="MegaFont-WideExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Black Reverse" filename="instances/MegaFont-WideBlackReverse.ufo" postscriptfontname="MegaFont-WideBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Black" filename="instances/MegaFont-WideBlack.ufo" postscriptfontname="MegaFont-WideBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Wide Black Slant" filename="instances/MegaFont-WideBlackSlant.ufo" postscriptfontname="MegaFont-WideBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Thin" filename="instances/MegaFont-ExtendedThin.ufo" postscriptfontname="MegaFont-ExtendedThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Light Reverse" filename="instances/MegaFont-ExtendedLightReverse.ufo" postscriptfontname="MegaFont-ExtendedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Light" filename="instances/MegaFont-ExtendedLight.ufo" postscriptfontname="MegaFont-ExtendedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Regular Reverse" filename="instances/MegaFont-ExtendedRegularReverse.ufo" postscriptfontname="MegaFont-ExtendedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Regular Slant" filename="instances/MegaFont-ExtendedRegularSlant.ufo" postscriptfontname="MegaFont-ExtendedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Medium Reverse" filename="instances/MegaFont-ExtendedMediumReverse.ufo" postscriptfontname="MegaFont-ExtendedMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Medium" filename="instances/MegaFont-ExtendedMedium.ufo" postscriptfontname="MegaFont-ExtendedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Medium Slant" filename="instances/MegaFont-ExtendedMediumSlant.ufo" postscriptfontname="MegaFont-ExtendedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Bold Reverse" filename="instances/MegaFont-ExtendedBoldReverse.ufo" postscriptfontname="MegaFont-ExtendedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Bold" filename="instances/MegaFont-ExtendedBold.ufo" postscriptfontname="MegaFont-ExtendedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Bold Slant" filename="instances/MegaFont-ExtendedBoldSlant.ufo" postscriptfontname="MegaFont-ExtendedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Extrabold Reverse" filename="instances/MegaFont-ExtendedExtraboldReverse.ufo" postscriptfontname="MegaFont-ExtendedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Extrabold" filename="instances/MegaFont-ExtendedExtrabold.ufo" postscriptfontname="MegaFont-ExtendedExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Extrabold Slant" filename="instances/MegaFont-ExtendedExtraboldSlant.ufo" postscriptfontname="MegaFont-ExtendedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Black Reverse" filename="instances/MegaFont-ExtendedBlackReverse.ufo" postscriptfontname="MegaFont-ExtendedBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Black" filename="instances/MegaFont-ExtendedBlack.ufo" postscriptfontname="MegaFont-ExtendedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="Extended Black Slant" filename="instances/MegaFont-ExtendedBlackSlant.ufo" postscriptfontname="MegaFont-ExtendedBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Light Reverse" filename="instances/MegaFont-LowContrastCompressedLightReverse.ufo" postscriptfontname="MegaFont-LowContrastCompressedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Light" filename="instances/MegaFont-LowContrastCompressedLight.ufo" postscriptfontname="MegaFont-LowContrastCompressedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Light Slant" filename="instances/MegaFont-LowContrastCompressedLightSlant.ufo" postscriptfontname="MegaFont-LowContrastCompressedLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Regular Reverse" filename="instances/MegaFont-LowContrastCompressedRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastCompressedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Regular" filename="instances/MegaFont-LowContrastCompressedRegular.ufo" postscriptfontname="MegaFont-LowContrastCompressedRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Regular Slant" filename="instances/MegaFont-LowContrastCompressedRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastCompressedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Medium Reverse" filename="instances/MegaFont-LowContrastCompressedMediumReverse.ufo" postscriptfontname="MegaFont-LowContrastCompressedMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Medium" filename="instances/MegaFont-LowContrastCompressedMedium.ufo" postscriptfontname="MegaFont-LowContrastCompressedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Medium Slant" filename="instances/MegaFont-LowContrastCompressedMediumSlant.ufo" postscriptfontname="MegaFont-LowContrastCompressedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Bold Reverse" filename="instances/MegaFont-LowContrastCompressedBoldReverse.ufo" postscriptfontname="MegaFont-LowContrastCompressedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Bold" filename="instances/MegaFont-LowContrastCompressedBold.ufo" postscriptfontname="MegaFont-LowContrastCompressedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Bold Slant" filename="instances/MegaFont-LowContrastCompressedBoldSlant.ufo" postscriptfontname="MegaFont-LowContrastCompressedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Extrabold Reverse" filename="instances/MegaFont-LowContrastCompressedExtraboldReverse.ufo" postscriptfontname="MegaFont-LowContrastCompressedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Extrabold" filename="instances/MegaFont-LowContrastCompressedExtrabold.ufo" postscriptfontname="MegaFont-LowContrastCompressedExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Extrabold Slant" filename="instances/MegaFont-LowContrastCompressedExtraboldSlant.ufo" postscriptfontname="MegaFont-LowContrastCompressedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Black Reverse" filename="instances/MegaFont-LowContrastCompressedBlackReverse.ufo" postscriptfontname="MegaFont-LowContrastCompressedBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Black" filename="instances/MegaFont-LowContrastCompressedBlack.ufo" postscriptfontname="MegaFont-LowContrastCompressedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Black Slant" filename="instances/MegaFont-LowContrastCompressedBlackSlant.ufo" postscriptfontname="MegaFont-LowContrastCompressedBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Thin Reverse" filename="instances/MegaFont-LowContrastCondensedThinReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Thin" filename="instances/MegaFont-LowContrastCondensedThin.ufo" postscriptfontname="MegaFont-LowContrastCondensedThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Thin Slant" filename="instances/MegaFont-LowContrastCondensedThinSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Light Reverse" filename="instances/MegaFont-LowContrastCondensedLightReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Light" filename="instances/MegaFont-LowContrastCondensedLight.ufo" postscriptfontname="MegaFont-LowContrastCondensedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Light Slant" filename="instances/MegaFont-LowContrastCondensedLightSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Regular Reverse" filename="instances/MegaFont-LowContrastCondensedRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Regular" filename="instances/MegaFont-LowContrastCondensedRegular.ufo" postscriptfontname="MegaFont-LowContrastCondensedRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Regular Slant" filename="instances/MegaFont-LowContrastCondensedRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Medium Reverse" filename="instances/MegaFont-LowContrastCondensedMediumReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Medium" filename="instances/MegaFont-LowContrastCondensedMedium.ufo" postscriptfontname="MegaFont-LowContrastCondensedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Medium Slant" filename="instances/MegaFont-LowContrastCondensedMediumSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Bold Reverse" filename="instances/MegaFont-LowContrastCondensedBoldReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Bold" filename="instances/MegaFont-LowContrastCondensedBold.ufo" postscriptfontname="MegaFont-LowContrastCondensedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Bold Slant" filename="instances/MegaFont-LowContrastCondensedBoldSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Extrabold Reverse" filename="instances/MegaFont-LowContrastCondensedExtraboldReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Extrabold" filename="instances/MegaFont-LowContrastCondensedExtrabold.ufo" postscriptfontname="MegaFont-LowContrastCondensedExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Extrabold Slant" filename="instances/MegaFont-LowContrastCondensedExtraboldSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Black Reverse" filename="instances/MegaFont-LowContrastCondensedBlackReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Black" filename="instances/MegaFont-LowContrastCondensedBlack.ufo" postscriptfontname="MegaFont-LowContrastCondensedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Black Slant" filename="instances/MegaFont-LowContrastCondensedBlackSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Thin Reverse" filename="instances/MegaFont-LowContrastThinReverse.ufo" postscriptfontname="MegaFont-LowContrastThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Thin" filename="instances/MegaFont-LowContrastThin.ufo" postscriptfontname="MegaFont-LowContrastThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Thin Slant" filename="instances/MegaFont-LowContrastThinSlant.ufo" postscriptfontname="MegaFont-LowContrastThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Light Reverse" filename="instances/MegaFont-LowContrastLightReverse.ufo" postscriptfontname="MegaFont-LowContrastLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Light" filename="instances/MegaFont-LowContrastLight.ufo" postscriptfontname="MegaFont-LowContrastLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Light Slant" filename="instances/MegaFont-LowContrastLightSlant.ufo" postscriptfontname="MegaFont-LowContrastLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Regular Reverse" filename="instances/MegaFont-LowContrastRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Regular" filename="instances/MegaFont-LowContrastRegular.ufo" postscriptfontname="MegaFont-LowContrastRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Regular Slant" filename="instances/MegaFont-LowContrastRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Medium Reverse" filename="instances/MegaFont-LowContrastMediumReverse.ufo" postscriptfontname="MegaFont-LowContrastMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Medium" filename="instances/MegaFont-LowContrastMedium.ufo" postscriptfontname="MegaFont-LowContrastMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Medium Slant" filename="instances/MegaFont-LowContrastMediumSlant.ufo" postscriptfontname="MegaFont-LowContrastMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Bold Reverse" filename="instances/MegaFont-LowContrastBoldReverse.ufo" postscriptfontname="MegaFont-LowContrastBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Bold" filename="instances/MegaFont-LowContrastBold.ufo" postscriptfontname="MegaFont-LowContrastBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Bold Slant" filename="instances/MegaFont-LowContrastBoldSlant.ufo" postscriptfontname="MegaFont-LowContrastBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extrabold Reverse" filename="instances/MegaFont-LowContrastExtraboldReverse.ufo" postscriptfontname="MegaFont-LowContrastExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extrabold" filename="instances/MegaFont-LowContrastExtrabold.ufo" postscriptfontname="MegaFont-LowContrastExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extrabold Slant" filename="instances/MegaFont-LowContrastExtraboldSlant.ufo" postscriptfontname="MegaFont-LowContrastExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Black Reverse" filename="instances/MegaFont-LowContrastBlackReverse.ufo" postscriptfontname="MegaFont-LowContrastBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Black" filename="instances/MegaFont-LowContrastBlack.ufo" postscriptfontname="MegaFont-LowContrastBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Black Slant" filename="instances/MegaFont-LowContrastBlackSlant.ufo" postscriptfontname="MegaFont-LowContrastBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Thin Reverse" filename="instances/MegaFont-LowContrastWideThinReverse.ufo" postscriptfontname="MegaFont-LowContrastWideThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Thin" filename="instances/MegaFont-LowContrastWideThin.ufo" postscriptfontname="MegaFont-LowContrastWideThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Thin Slant" filename="instances/MegaFont-LowContrastWideThinSlant.ufo" postscriptfontname="MegaFont-LowContrastWideThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Light Reverse" filename="instances/MegaFont-LowContrastWideLightReverse.ufo" postscriptfontname="MegaFont-LowContrastWideLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Light" filename="instances/MegaFont-LowContrastWideLight.ufo" postscriptfontname="MegaFont-LowContrastWideLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Light Slant" filename="instances/MegaFont-LowContrastWideLightSlant.ufo" postscriptfontname="MegaFont-LowContrastWideLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Regular Reverse" filename="instances/MegaFont-LowContrastWideRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastWideRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Regular" filename="instances/MegaFont-LowContrastWideRegular.ufo" postscriptfontname="MegaFont-LowContrastWideRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Regular Slant" filename="instances/MegaFont-LowContrastWideRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastWideRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Medium Reverse" filename="instances/MegaFont-LowContrastWideMediumReverse.ufo" postscriptfontname="MegaFont-LowContrastWideMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Medium" filename="instances/MegaFont-LowContrastWideMedium.ufo" postscriptfontname="MegaFont-LowContrastWideMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Medium Slant" filename="instances/MegaFont-LowContrastWideMediumSlant.ufo" postscriptfontname="MegaFont-LowContrastWideMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Bold Reverse" filename="instances/MegaFont-LowContrastWideBoldReverse.ufo" postscriptfontname="MegaFont-LowContrastWideBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Bold" filename="instances/MegaFont-LowContrastWideBold.ufo" postscriptfontname="MegaFont-LowContrastWideBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Bold Slant" filename="instances/MegaFont-LowContrastWideBoldSlant.ufo" postscriptfontname="MegaFont-LowContrastWideBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Extrabold Reverse" filename="instances/MegaFont-LowContrastWideExtraboldReverse.ufo" postscriptfontname="MegaFont-LowContrastWideExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Extrabold" filename="instances/MegaFont-LowContrastWideExtrabold.ufo" postscriptfontname="MegaFont-LowContrastWideExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Extrabold Slant" filename="instances/MegaFont-LowContrastWideExtraboldSlant.ufo" postscriptfontname="MegaFont-LowContrastWideExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Black Reverse" filename="instances/MegaFont-LowContrastWideBlackReverse.ufo" postscriptfontname="MegaFont-LowContrastWideBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Black" filename="instances/MegaFont-LowContrastWideBlack.ufo" postscriptfontname="MegaFont-LowContrastWideBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Wide Black Slant" filename="instances/MegaFont-LowContrastWideBlackSlant.ufo" postscriptfontname="MegaFont-LowContrastWideBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Thin Reverse" filename="instances/MegaFont-LowContrastExtendedThinReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Thin" filename="instances/MegaFont-LowContrastExtendedThin.ufo" postscriptfontname="MegaFont-LowContrastExtendedThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Thin Slant" filename="instances/MegaFont-LowContrastExtendedThinSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Light Reverse" filename="instances/MegaFont-LowContrastExtendedLightReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Light" filename="instances/MegaFont-LowContrastExtendedLight.ufo" postscriptfontname="MegaFont-LowContrastExtendedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Light Slant" filename="instances/MegaFont-LowContrastExtendedLightSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Regular Reverse" filename="instances/MegaFont-LowContrastExtendedRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Regular" filename="instances/MegaFont-LowContrastExtendedRegular.ufo" postscriptfontname="MegaFont-LowContrastExtendedRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Regular Slant" filename="instances/MegaFont-LowContrastExtendedRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Medium Reverse" filename="instances/MegaFont-LowContrastExtendedMediumReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Medium" filename="instances/MegaFont-LowContrastExtendedMedium.ufo" postscriptfontname="MegaFont-LowContrastExtendedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Medium Slant" filename="instances/MegaFont-LowContrastExtendedMediumSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Bold Reverse" filename="instances/MegaFont-LowContrastExtendedBoldReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Bold" filename="instances/MegaFont-LowContrastExtendedBold.ufo" postscriptfontname="MegaFont-LowContrastExtendedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Bold Slant" filename="instances/MegaFont-LowContrastExtendedBoldSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Extrabold Reverse" filename="instances/MegaFont-LowContrastExtendedExtraboldReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Extrabold" filename="instances/MegaFont-LowContrastExtendedExtrabold.ufo" postscriptfontname="MegaFont-LowContrastExtendedExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Extrabold Slant" filename="instances/MegaFont-LowContrastExtendedExtraboldSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Black Reverse" filename="instances/MegaFont-LowContrastExtendedBlackReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Black" filename="instances/MegaFont-LowContrastExtendedBlack.ufo" postscriptfontname="MegaFont-LowContrastExtendedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="LowContrast Extended Black Slant" filename="instances/MegaFont-LowContrastExtendedBlackSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Thin Reverse" filename="instances/MegaFont-HighContrastCompressedThinReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Thin" filename="instances/MegaFont-HighContrastCompressedThin.ufo" postscriptfontname="MegaFont-HighContrastCompressedThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Thin Slant" filename="instances/MegaFont-HighContrastCompressedThinSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Light Reverse" filename="instances/MegaFont-HighContrastCompressedLightReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Light" filename="instances/MegaFont-HighContrastCompressedLight.ufo" postscriptfontname="MegaFont-HighContrastCompressedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Light Slant" filename="instances/MegaFont-HighContrastCompressedLightSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Regular Reverse" filename="instances/MegaFont-HighContrastCompressedRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Regular" filename="instances/MegaFont-HighContrastCompressedRegular.ufo" postscriptfontname="MegaFont-HighContrastCompressedRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Regular Slant" filename="instances/MegaFont-HighContrastCompressedRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Medium Reverse" filename="instances/MegaFont-HighContrastCompressedMediumReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Medium" filename="instances/MegaFont-HighContrastCompressedMedium.ufo" postscriptfontname="MegaFont-HighContrastCompressedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Medium Slant" filename="instances/MegaFont-HighContrastCompressedMediumSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Bold Reverse" filename="instances/MegaFont-HighContrastCompressedBoldReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Bold" filename="instances/MegaFont-HighContrastCompressedBold.ufo" postscriptfontname="MegaFont-HighContrastCompressedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Bold Slant" filename="instances/MegaFont-HighContrastCompressedBoldSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Extrabold Reverse" filename="instances/MegaFont-HighContrastCompressedExtraboldReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Extrabold" filename="instances/MegaFont-HighContrastCompressedExtrabold.ufo" postscriptfontname="MegaFont-HighContrastCompressedExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Extrabold Slant" filename="instances/MegaFont-HighContrastCompressedExtraboldSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Black Reverse" filename="instances/MegaFont-HighContrastCompressedBlackReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Black" filename="instances/MegaFont-HighContrastCompressedBlack.ufo" postscriptfontname="MegaFont-HighContrastCompressedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Black Slant" filename="instances/MegaFont-HighContrastCompressedBlackSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="0"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Thin Reverse" filename="instances/MegaFont-HighContrastCondensedThinReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Thin" filename="instances/MegaFont-HighContrastCondensedThin.ufo" postscriptfontname="MegaFont-HighContrastCondensedThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Thin Slant" filename="instances/MegaFont-HighContrastCondensedThinSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Light Reverse" filename="instances/MegaFont-HighContrastCondensedLightReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Light" filename="instances/MegaFont-HighContrastCondensedLight.ufo" postscriptfontname="MegaFont-HighContrastCondensedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Light Slant" filename="instances/MegaFont-HighContrastCondensedLightSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Regular Reverse" filename="instances/MegaFont-HighContrastCondensedRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Regular" filename="instances/MegaFont-HighContrastCondensedRegular.ufo" postscriptfontname="MegaFont-HighContrastCondensedRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Regular Slant" filename="instances/MegaFont-HighContrastCondensedRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Medium Reverse" filename="instances/MegaFont-HighContrastCondensedMediumReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Medium" filename="instances/MegaFont-HighContrastCondensedMedium.ufo" postscriptfontname="MegaFont-HighContrastCondensedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Medium Slant" filename="instances/MegaFont-HighContrastCondensedMediumSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Bold Reverse" filename="instances/MegaFont-HighContrastCondensedBoldReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Bold" filename="instances/MegaFont-HighContrastCondensedBold.ufo" postscriptfontname="MegaFont-HighContrastCondensedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Bold Slant" filename="instances/MegaFont-HighContrastCondensedBoldSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Extrabold Reverse" filename="instances/MegaFont-HighContrastCondensedExtraboldReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Extrabold" filename="instances/MegaFont-HighContrastCondensedExtrabold.ufo" postscriptfontname="MegaFont-HighContrastCondensedExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Extrabold Slant" filename="instances/MegaFont-HighContrastCondensedExtraboldSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Black Reverse" filename="instances/MegaFont-HighContrastCondensedBlackReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Black" filename="instances/MegaFont-HighContrastCondensedBlack.ufo" postscriptfontname="MegaFont-HighContrastCondensedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Black Slant" filename="instances/MegaFont-HighContrastCondensedBlackSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="380"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Thin Reverse" filename="instances/MegaFont-HighContrastThinReverse.ufo" postscriptfontname="MegaFont-HighContrastThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Thin" filename="instances/MegaFont-HighContrastThin.ufo" postscriptfontname="MegaFont-HighContrastThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Thin Slant" filename="instances/MegaFont-HighContrastThinSlant.ufo" postscriptfontname="MegaFont-HighContrastThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Light Reverse" filename="instances/MegaFont-HighContrastLightReverse.ufo" postscriptfontname="MegaFont-HighContrastLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Light" filename="instances/MegaFont-HighContrastLight.ufo" postscriptfontname="MegaFont-HighContrastLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Light Slant" filename="instances/MegaFont-HighContrastLightSlant.ufo" postscriptfontname="MegaFont-HighContrastLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Regular Reverse" filename="instances/MegaFont-HighContrastRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Regular" filename="instances/MegaFont-HighContrastRegular.ufo" postscriptfontname="MegaFont-HighContrastRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Regular Slant" filename="instances/MegaFont-HighContrastRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Medium Reverse" filename="instances/MegaFont-HighContrastMediumReverse.ufo" postscriptfontname="MegaFont-HighContrastMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Medium" filename="instances/MegaFont-HighContrastMedium.ufo" postscriptfontname="MegaFont-HighContrastMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Medium Slant" filename="instances/MegaFont-HighContrastMediumSlant.ufo" postscriptfontname="MegaFont-HighContrastMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Bold Reverse" filename="instances/MegaFont-HighContrastBoldReverse.ufo" postscriptfontname="MegaFont-HighContrastBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Bold" filename="instances/MegaFont-HighContrastBold.ufo" postscriptfontname="MegaFont-HighContrastBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Bold Slant" filename="instances/MegaFont-HighContrastBoldSlant.ufo" postscriptfontname="MegaFont-HighContrastBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extrabold Reverse" filename="instances/MegaFont-HighContrastExtraboldReverse.ufo" postscriptfontname="MegaFont-HighContrastExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extrabold" filename="instances/MegaFont-HighContrastExtrabold.ufo" postscriptfontname="MegaFont-HighContrastExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extrabold Slant" filename="instances/MegaFont-HighContrastExtraboldSlant.ufo" postscriptfontname="MegaFont-HighContrastExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Black Reverse" filename="instances/MegaFont-HighContrastBlackReverse.ufo" postscriptfontname="MegaFont-HighContrastBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Black" filename="instances/MegaFont-HighContrastBlack.ufo" postscriptfontname="MegaFont-HighContrastBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Black Slant" filename="instances/MegaFont-HighContrastBlackSlant.ufo" postscriptfontname="MegaFont-HighContrastBlackSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="560"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Thin Reverse" filename="instances/MegaFont-HighContrastWideThinReverse.ufo" postscriptfontname="MegaFont-HighContrastWideThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Thin" filename="instances/MegaFont-HighContrastWideThin.ufo" postscriptfontname="MegaFont-HighContrastWideThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Thin Slant" filename="instances/MegaFont-HighContrastWideThinSlant.ufo" postscriptfontname="MegaFont-HighContrastWideThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Light Reverse" filename="instances/MegaFont-HighContrastWideLightReverse.ufo" postscriptfontname="MegaFont-HighContrastWideLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Light" filename="instances/MegaFont-HighContrastWideLight.ufo" postscriptfontname="MegaFont-HighContrastWideLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Light Slant" filename="instances/MegaFont-HighContrastWideLightSlant.ufo" postscriptfontname="MegaFont-HighContrastWideLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Regular Reverse" filename="instances/MegaFont-HighContrastWideRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastWideRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Regular" filename="instances/MegaFont-HighContrastWideRegular.ufo" postscriptfontname="MegaFont-HighContrastWideRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Regular Slant" filename="instances/MegaFont-HighContrastWideRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastWideRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Medium Reverse" filename="instances/MegaFont-HighContrastWideMediumReverse.ufo" postscriptfontname="MegaFont-HighContrastWideMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Medium" filename="instances/MegaFont-HighContrastWideMedium.ufo" postscriptfontname="MegaFont-HighContrastWideMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Medium Slant" filename="instances/MegaFont-HighContrastWideMediumSlant.ufo" postscriptfontname="MegaFont-HighContrastWideMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Bold Reverse" filename="instances/MegaFont-HighContrastWideBoldReverse.ufo" postscriptfontname="MegaFont-HighContrastWideBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Bold" filename="instances/MegaFont-HighContrastWideBold.ufo" postscriptfontname="MegaFont-HighContrastWideBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Bold Slant" filename="instances/MegaFont-HighContrastWideBoldSlant.ufo" postscriptfontname="MegaFont-HighContrastWideBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Extrabold Reverse" filename="instances/MegaFont-HighContrastWideExtraboldReverse.ufo" postscriptfontname="MegaFont-HighContrastWideExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Extrabold" filename="instances/MegaFont-HighContrastWideExtrabold.ufo" postscriptfontname="MegaFont-HighContrastWideExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Extrabold Slant" filename="instances/MegaFont-HighContrastWideExtraboldSlant.ufo" postscriptfontname="MegaFont-HighContrastWideExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Black Reverse" filename="instances/MegaFont-HighContrastWideBlackReverse.ufo" postscriptfontname="MegaFont-HighContrastWideBlackReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Wide Black" filename="instances/MegaFont-HighContrastWideBlack.ufo" postscriptfontname="MegaFont-HighContrastWideBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="700"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Thin Reverse" filename="instances/MegaFont-HighContrastExtendedThinReverse.ufo" postscriptfontname="MegaFont-HighContrastExtendedThinReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Thin" filename="instances/MegaFont-HighContrastExtendedThin.ufo" postscriptfontname="MegaFont-HighContrastExtendedThin">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Thin Slant" filename="instances/MegaFont-HighContrastExtendedThinSlant.ufo" postscriptfontname="MegaFont-HighContrastExtendedThinSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="0"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Light Reverse" filename="instances/MegaFont-HighContrastExtendedLightReverse.ufo" postscriptfontname="MegaFont-HighContrastExtendedLightReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Light" filename="instances/MegaFont-HighContrastExtendedLight.ufo" postscriptfontname="MegaFont-HighContrastExtendedLight">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Light Slant" filename="instances/MegaFont-HighContrastExtendedLightSlant.ufo" postscriptfontname="MegaFont-HighContrastExtendedLightSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="230"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Regular Reverse" filename="instances/MegaFont-HighContrastExtendedRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastExtendedRegularReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Regular" filename="instances/MegaFont-HighContrastExtendedRegular.ufo" postscriptfontname="MegaFont-HighContrastExtendedRegular">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Regular Slant" filename="instances/MegaFont-HighContrastExtendedRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastExtendedRegularSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="420"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Medium Reverse" filename="instances/MegaFont-HighContrastExtendedMediumReverse.ufo" postscriptfontname="MegaFont-HighContrastExtendedMediumReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Medium" filename="instances/MegaFont-HighContrastExtendedMedium.ufo" postscriptfontname="MegaFont-HighContrastExtendedMedium">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Medium Slant" filename="instances/MegaFont-HighContrastExtendedMediumSlant.ufo" postscriptfontname="MegaFont-HighContrastExtendedMediumSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="521"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Bold Reverse" filename="instances/MegaFont-HighContrastExtendedBoldReverse.ufo" postscriptfontname="MegaFont-HighContrastExtendedBoldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Bold" filename="instances/MegaFont-HighContrastExtendedBold.ufo" postscriptfontname="MegaFont-HighContrastExtendedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Bold Slant" filename="instances/MegaFont-HighContrastExtendedBoldSlant.ufo" postscriptfontname="MegaFont-HighContrastExtendedBoldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="725"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Extrabold Reverse" filename="instances/MegaFont-HighContrastExtendedExtraboldReverse.ufo" postscriptfontname="MegaFont-HighContrastExtendedExtraboldReverse">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="-20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Extrabold" filename="instances/MegaFont-HighContrastExtendedExtrabold.ufo" postscriptfontname="MegaFont-HighContrastExtendedExtrabold">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Extrabold Slant" filename="instances/MegaFont-HighContrastExtendedExtraboldSlant.ufo" postscriptfontname="MegaFont-HighContrastExtendedExtraboldSlant">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="990"/>
+        <dimension name="slant" xvalue="20"/>
+      </location>
+    </instance>
+    <instance familyname="MegaFont" stylename="HighContrast Extended Black" filename="instances/MegaFont-HighContrastExtendedBlack.ufo" postscriptfontname="MegaFont-HighContrastExtendedBlack">
+      <location>
+        <dimension name="CONTRAST" xvalue="200"/>
+        <dimension name="width" xvalue="1000"/>
+        <dimension name="weight" xvalue="1000"/>
+        <dimension name="slant" xvalue="0"/>
+      </location>
+    </instance>
+  </instances>
+</designspace>

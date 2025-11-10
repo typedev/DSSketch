@@ -1,0 +1,37 @@
+family TestFont
+
+axes
+    wdth Condensed:Normal:Extended
+        Condensed > 75
+        Normal > 100 @elidable
+        Extended > 150
+    wght 300:400:700
+        Light > 300
+        Regular > 400 @elidable
+        Bold > 700
+    ital discrete
+        Upright @elidable
+        Italic
+
+sources [wdth, wght, ital]
+    Condensed-Light-Upright [Condensed, Light, Upright]
+    Normal-Regular-Upright [Normal, Regular, Upright] @base
+    Extended-Bold-Italic [Extended, Bold, Italic]
+
+instances auto
+    skip
+        # Test different elidable scenarios
+        # After elidable cleanup, these should be:
+
+        # "Normal Regular Upright" → "Regular" (Normal and Upright are elidable)
+        # But Regular on weight is ignored by default, so → "Regular"
+        Regular
+
+        # "Normal Light Upright" → "Light" (Normal and Upright elidable)
+        Light
+
+        # "Normal Regular Italic" → "Regular Italic" → "Italic" (special case)
+        Italic
+
+        # "Condensed Bold Upright" → "Condensed Bold" (Upright elidable)
+        Condensed Bold

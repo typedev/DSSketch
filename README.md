@@ -380,6 +380,9 @@ sources [wght, ital]
     BoldItalic [Bold, 1]
 
 instances auto
+    skip
+        # Skip Light Italic (optional - removes unwanted combinations)
+        Light Italic
 ```
 
 ### Complex Multi-Axis Font
@@ -427,6 +430,10 @@ rules
     dollar cent at number > .fancy (weight >= 700 && width >= 150)  # Complex conditions
 
 instances auto
+    skip
+        # Skip extreme combinations
+        Thin Italic
+        Extended Bold Italic
 ```
 
 ### Advanced Rules and Patterns
@@ -604,6 +611,217 @@ instances auto  # Generates: "Thin", "Regular", "Black", "Italic Thin", "Italic"
    - `Upright Regular` → `Regular` (both parts elidable)
    - `Italic Regular` → `Italic` (Regular is elidable)
 3. **Final instances**: `Thin`, `Regular`, `Black`, `Italic`, `Italic Thin`, `Italic Black`
+
+### Instance Skip Functionality
+
+When using `instances auto`, you can exclude specific instance combinations with the `skip` subsection. This is useful for removing impractical or unwanted style combinations:
+
+```dssketch
+axes
+    wdth 60:100:200
+        Condensed > 60
+        Normal > 100 @elidable
+        Extended > 200
+    wght 100:400:900
+        Thin > 100
+        Light > 300
+        Regular > 400 @elidable
+        Bold > 700
+    ital discrete
+        Upright @elidable
+        Italic
+
+instances auto
+    skip
+        # Skip extreme thin italic combinations (too fragile)
+        Thin Italic
+        Light Italic
+
+        # Skip extremely wide and heavy combinations
+        Extended Bold
+
+# Without skip: 3 widths × 4 weights × 2 italics = 24 instances
+# With 3 skipped: 24 - 3 = 21 instances
+```
+
+**Important rules for skip:**
+
+1. **Use FINAL instance names** (after elidable cleanup):
+   ```dssketch
+   axes
+       wdth 60:100:200
+           Condensed > 60
+           Normal > 100 @elidable
+       wght 100:400:900
+           Regular > 400 @elidable
+           Bold > 700
+
+   instances auto
+       skip
+           # ✅ CORRECT: Uses final name after "Normal" and "Regular" are removed
+           Bold
+
+           # ❌ WRONG: Would not match because "Normal Regular Bold" becomes "Bold"
+           Normal Regular Bold
+   ```
+
+2. **Follow axis order** from axes section:
+   ```dssketch
+   # Axes order: wdth → wght → ital
+   skip
+       Condensed Thin Italic      # ✅ Correct: width → weight → italic
+       Thin Condensed Italic      # ❌ Wrong: doesn't match axis order
+   ```
+
+3. **Comments supported**: Use `#` for inline comments explaining skip rules
+
+**Example with multiple elidable labels:**
+```dssketch
+family MegaFont
+
+axes
+    CONTRAST CNTR 0:0:100
+        NonContrast > 0 @elidable
+        HighContrast > 100
+    wdth 60:100:200
+        Condensed > 60
+        Normal > 100 @elidable
+        Extended > 200
+    wght 100:400:900
+        Thin > 100
+        Regular > 400 @elidable
+        Bold > 700
+
+instances auto
+    skip
+        # "NonContrast Normal Thin" → "Thin" (after cleanup) - so we skip "Thin"
+        Thin
+
+        # "NonContrast Normal Regular" → "Regular" (after cleanup)
+        Regular
+
+        # "HighContrast Normal Thin" → "HighContrast Thin" (after cleanup)
+        HighContrast Thin
+
+        # "NonContrast Extended Thin" → "Extended Thin" (after cleanup)
+        Extended Thin
+
+# Generation process:
+# 1. Create all combinations: 2 contrasts × 3 widths × 3 weights = 18 combinations
+# 2. Apply elidable cleanup (remove NonContrast, Normal, Regular where appropriate)
+# 3. Check skip rules on FINAL names
+# 4. Generate remaining instances
+```
+
+**Production example from `examples/MegaFont-WithSkip.dssketch`:**
+```dssketch
+instances auto
+    skip
+        # Skip extreme thin weights with reverse slant (too fragile)
+        Compressed Thin Reverse
+        Condensed Thin Reverse
+        Extended Thin Reverse
+
+        # Skip low contrast with compressed thin (readability issues)
+        LowContrast Compressed Thin
+        LowContrast Compressed Thin Slant
+        LowContrast Compressed Thin Reverse
+
+        # Skip high contrast extended black (too heavy/wide)
+        HighContrast Extended Black Slant
+        HighContrast Extended Black Reverse
+
+        # Skip middle-weight compressed (redundant)
+        Compressed Medium Reverse
+        Compressed Extrabold
+
+# Result: 315 total combinations - 14 skipped = 301 instances generated
+```
+
+### Skip Rule Validation
+
+DSSketch validates skip rules at **two levels** to ensure correctness and provide helpful feedback:
+
+**1. ERROR Level - Invalid Label Detection**
+
+Stops conversion if skip rules contain labels that don't exist in axis definitions:
+
+```
+# Example DSSketch with error:
+axes
+    wght 100:700
+        Thin > 100
+        Bold > 700
+    ital discrete
+        Upright
+        Italic
+
+instances auto
+    skip
+        Heavy Italic  # ERROR: "Heavy" not defined in any axis
+```
+
+**Error message:**
+```
+ERROR: Skip rule 'Heavy Italic' contains label 'Heavy' which is not defined in any axis.
+Available labels: Bold, Italic, Thin, Upright
+```
+
+**2. WARNING Level - Unused Skip Rule Detection**
+
+Logs warnings for skip rules that never match any generated instance (may indicate typo or elidable cleanup):
+
+```
+# Example DSSketch with warning:
+axes
+    wght 100:700
+        Thin > 100
+        Bold > 700
+    ital discrete
+        Upright @elidable
+        Italic
+
+instances auto
+    skip
+        Bold Upright  # WARNING: "Upright" is @elidable, so "Bold Upright" becomes just "Bold"
+```
+
+**Warning message:**
+```
+WARNING: Skip validation: 1 skip rule(s) were never used. This may indicate a typo or that elidable cleanup changed the instance names.
+  - Unused skip rule: 'Bold Upright'
+```
+
+**Label Naming Rules:**
+
+Labels cannot contain spaces. Use camelCase for compound names:
+
+```
+# ✅ CORRECT - camelCase labels
+axes
+    wght 100:900
+        ExtraLight > 100    # camelCase, no spaces
+        SemiBold > 900      # camelCase, no spaces
+
+instances auto
+    skip
+        ExtraLight Italic   # Two labels: "ExtraLight" + "Italic"
+
+# ❌ INCORRECT - spaces in labels
+axes
+    wght 100:900
+        Extra Light > 100   # ERROR: spaces not allowed
+        Semi Bold > 900     # ERROR: spaces not allowed
+```
+
+This matches standard font naming conventions (ExtraLight, SemiBold) from `data/unified-mappings.yaml`.
+
+**Benefits:**
+- **Catches typos**: Detects misspelled labels before they cause silent failures
+- **Identifies unreachable rules**: Warns about skip rules affected by elidable cleanup
+- **Clear error messages**: Shows available labels for easy correction
+- **Simple and predictable**: Each space separates labels, no ambiguity
+- **Production-ready**: All validation tested on large MegaFont example (15 skip rules)
 
 **Axis order controls name sequence:**
 ```dssketch

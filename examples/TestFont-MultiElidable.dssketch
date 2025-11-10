@@ -1,0 +1,33 @@
+family TestFont
+
+axes
+    CONTRAST CNTR 0:0:100
+        NoContrast > 0 @elidable
+        HighContrast > 100
+    wdth Normal:Normal:Extended
+        Normal > 100 @elidable
+        Extended > 150
+    wght Regular:Regular:Bold
+        Regular > 400 @elidable
+        Bold > 700
+
+sources [CONTRAST, wdth, wght]
+    NoContrast-Normal-Regular [NoContrast, Normal, Regular] @base
+    HighContrast-Extended-Bold [HighContrast, Extended, Bold]
+
+instances auto
+    skip
+        # Test combined elidable cleanup
+        # Multiple elidable: NoContrast @elidable, Normal @elidable, Regular @elidable (ignored on weight)
+
+        # "NoContrast Normal Regular" → "Regular" (NoContrast, Normal elidable)
+        Regular
+
+        # "NoContrast Normal Bold" → "Bold" (NoContrast, Normal elidable)
+        Bold
+
+        # "HighContrast Normal Regular" → "HighContrast Regular" (Normal elidable)
+        HighContrast Regular
+
+        # "NoContrast Extended Regular" → "Extended Regular" (NoContrast elidable)
+        Extended Regular

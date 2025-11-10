@@ -1,0 +1,132 @@
+family MegaFont
+path MegaFont-sources
+axes
+    CONTRAST CNTR 0:0:100
+        0 NonContrast > 0 @elidable
+        50 LowContrast > 100
+        100 HighContrast > 200
+    wdth 60:100:200
+        Compressed > 0
+        Condensed > 380
+        Normal > 560 @elidable
+        150 Wide > 700
+        200 Extended > 1000
+    wght Thin:Regular:Black
+        Thin > 0
+        200 Light > 230
+        Regular > 420 @elidable
+        Medium > 521
+        Bold > 725
+        Extrabold > 990
+        Black > 1000
+    slnt -20:0:20
+        -20 Reverse > -20
+        0 Neutral > 0 @elidable
+        20 Slant > 20
+rules
+    * > .rvrn (weight >= Bold) "heavy alternates"
+    B > B.alt (width <= Normal) "Compressed B"
+
+sources [CONTRAST, wdth, wght, slnt]
+    MegaFont_HighContrast-Normal-Black-Slant [ HighContrast, Normal, Black, Slant ]
+    MegaFont_HighContrast-Normal-Black-Reverse [ HighContrast, Normal, Black, Reverse ]
+    MegaFont_HighContrast-Normal-Black-Neutral [ HighContrast, Normal, Black, Neutral ]
+    MegaFont_HighContrast-Normal-Bold-Slant [ HighContrast, Normal, Bold, Slant ]
+    MegaFont_HighContrast-Normal-Bold-Reverse [ HighContrast, Normal, Bold, Reverse ]
+    MegaFont_HighContrast-Normal-Bold-Neutral [ HighContrast, Normal, Bold, Neutral ]
+    MegaFont_HighContrast-Normal-Thin-Slant [ HighContrast, Normal, Thin, Slant ]
+    MegaFont_HighContrast-Normal-Thin-Reverse [ HighContrast, Normal, Thin, Reverse ]
+    MegaFont_HighContrast-Normal-Thin-Neutral [ HighContrast, Normal, Thin, Neutral ]
+    MegaFont_NonContrast-Normal-Black-Slant [ NonContrast, Normal, Black, Slant ]
+    MegaFont_NonContrast-Normal-Black-Reverse [ NonContrast, Normal, Black, Reverse ]
+    MegaFont_NonContrast-Normal-Black-Neutral [ NonContrast, Normal, Black, Neutral ]
+    MegaFont_NonContrast-Normal-Bold-Slant [ NonContrast, Normal, Bold, Slant ]
+    MegaFont_NonContrast-Normal-Bold-Reverse [ NonContrast, Normal, Bold, Reverse ]
+    MegaFont_NonContrast-Normal-Bold-Neutral [ NonContrast, Normal, Bold, Neutral ]
+    MegaFont_NonContrast-Normal-Thin-Slant [ NonContrast, Normal, Thin, Slant ]
+    MegaFont_NonContrast-Normal-Thin-Reverse [ NonContrast, Normal, Thin, Reverse ]
+    MegaFont_NonContrast-Normal-Thin-Neutral [ NonContrast, Normal, Thin, Neutral ]
+    MegaFont_HighContrast-Compressed-Black-Slant [ HighContrast, Compressed, Black, Slant ]
+    MegaFont_HighContrast-Compressed-Black-Reverse [ HighContrast, Compressed, Black, Reverse ]
+    MegaFont_HighContrast-Compressed-Black-Neutral [ HighContrast, Compressed, Black, Neutral ]
+    MegaFont_HighContrast-Compressed-Bold-Slant [ HighContrast, Compressed, Bold, Slant ]
+    MegaFont_HighContrast-Compressed-Bold-Reverse [ HighContrast, Compressed, Bold, Reverse ]
+    MegaFont_HighContrast-Compressed-Bold-Neutral [ HighContrast, Compressed, Bold, Neutral ]
+    MegaFont_HighContrast-Compressed-Thin-Slant [ HighContrast, Compressed, Thin, Slant ]
+    MegaFont_HighContrast-Compressed-Thin-Reverse [ HighContrast, Compressed, Thin, Reverse ]
+    MegaFont_HighContrast-Compressed-Thin-Neutral [ HighContrast, Compressed, Thin, Neutral ]
+    MegaFont_NonContrast-Compressed-Black-Slant [ NonContrast, Compressed, Black, Slant ]
+    MegaFont_NonContrast-Compressed-Black-Reverse [ NonContrast, Compressed, Black, Reverse ]
+    MegaFont_NonContrast-Compressed-Black-Neutral [ NonContrast, Compressed, Black, Neutral ]
+    MegaFont_NonContrast-Compressed-Bold-Slant [ NonContrast, Compressed, Bold, Slant ]
+    MegaFont_NonContrast-Compressed-Bold-Reverse [ NonContrast, Compressed, Bold, Reverse ]
+    MegaFont_NonContrast-Compressed-Bold-Neutral [ NonContrast, Compressed, Bold, Neutral ]
+    MegaFont_NonContrast-Compressed-Thin-Slant [ NonContrast, Compressed, Thin, Slant ]
+    MegaFont_NonContrast-Compressed-Thin-Reverse [ NonContrast, Compressed, Thin, Reverse ]
+    MegaFont_NonContrast-Compressed-Thin-Neutral [ NonContrast, Compressed, Thin, Neutral ]
+    MegaFont_NonContrast-Extended-Thin-Neutral [ NonContrast, Extended, Thin, Neutral ]
+    MegaFont_HighContrast-Extended-Black-Slant [ HighContrast, Extended, Black, Slant ]
+    MegaFont_HighContrast-Extended-Black-Reverse [ HighContrast, Extended, Black, Reverse ]
+    MegaFont_HighContrast-Extended-Black-Neutral [ HighContrast, Extended, Black, Neutral ]
+    MegaFont_HighContrast-Extended-Thin-Slant [ HighContrast, Extended, Thin, Slant ]
+    MegaFont_HighContrast-Extended-Thin-Reverse [ HighContrast, Extended, Thin, Reverse ]
+    MegaFont_HighContrast-Extended-Thin-Neutral [ HighContrast, Extended, Thin, Neutral ]
+    MegaFont_NonContrast-Extended-Black-Slant [ NonContrast, Extended, Black, Slant ]
+    MegaFont_NonContrast-Extended-Black-Reverse [ NonContrast, Extended, Black, Reverse ]
+    MegaFont_NonContrast-Extended-Black-Neutral [ NonContrast, Extended, Black, Neutral ]
+    MegaFont_NonContrast-Extended-Thin-Slant [ NonContrast, Extended, Thin, Slant ]
+    MegaFont_NonContrast-Extended-Thin-Reverse [ NonContrast, Extended, Thin, Reverse ]
+    MegaFont_HighContrast-Extended-Bold-Slant [ HighContrast, Extended, Bold, Slant ]
+    MegaFont_HighContrast-Extended-Bold-Reverse [ HighContrast, Extended, Bold, Reverse ]
+    MegaFont_HighContrast-Extended-Bold-Neutral [ HighContrast, Extended, Bold, Neutral ]
+    MegaFont_NonContrast-Extended-Bold-Slant [ NonContrast, Extended, Bold, Slant ]
+    MegaFont_NonContrast-Extended-Bold-Reverse [ NonContrast, Extended, Bold, Reverse ]
+    MegaFont_NonContrast-Extended-Bold-Neutral [ NonContrast, Extended, Bold, Neutral ]
+    MegaFont_NonContrast-Compressed-Regular-Neutral [ NonContrast, Compressed, Regular, Neutral ]
+    MegaFont_NonContrast-Compressed-Regular-Reverse [ NonContrast, Compressed, Regular, Reverse ]
+    MegaFont_NonContrast-Compressed-Regular-Slant [ NonContrast, Compressed, Regular, Slant ]
+    MegaFont_NonContrast-Extended-Regular-Neutral [ NonContrast, Extended, Regular, Neutral ]
+    MegaFont_NonContrast-Extended-Regular-Reverse [ NonContrast, Extended, Regular, Reverse ]
+    MegaFont_NonContrast-Extended-Regular-Slant [ NonContrast, Extended, Regular, Slant ]
+    MegaFont_HighContrast-Compressed-Regular-Neutral [ HighContrast, Compressed, Regular, Neutral ]
+    MegaFont_HighContrast-Compressed-Regular-Reverse [ HighContrast, Compressed, Regular, Reverse ]
+    MegaFont_HighContrast-Compressed-Regular-Slant [ HighContrast, Compressed, Regular, Slant ]
+    MegaFont_HighContrast-Extended-Regular-Neutral [ HighContrast, Extended, Regular, Neutral ]
+    MegaFont_HighContrast-Extended-Regular-Reverse [ HighContrast, Extended, Regular, Reverse ]
+    MegaFont_HighContrast-Extended-Regular-Slant [ HighContrast, Extended, Regular, Slant ]
+    MegaFont_HighContrast-Normal-Regular-Neutral [ HighContrast, Normal, Regular, Neutral ]
+    MegaFont_HighContrast-Normal-Regular-Reverse [ HighContrast, Normal, Regular, Reverse ]
+    MegaFont_HighContrast-Normal-Regular-Slant [ HighContrast, Normal, Regular, Slant ]
+    MegaFont_NonContrast-Normal-Regular-Slant [ NonContrast, Normal, Regular, Slant ]
+    MegaFont_NonContrast-Normal-Regular-Neutral [ NonContrast, Normal, Regular, Neutral ]
+    MegaFont_NonContrast-Normal-Regular-Reverse [ NonContrast, Normal, Regular, Reverse ]
+
+instances auto
+    skip
+        # NOTE: Skip rules must follow axis order: [CONTRAST] [WIDTH] [WEIGHT] [SLANT]
+        # NonContrast is @elidable, so it's omitted from instance names
+
+        # Skip extreme thin weights with reverse slant (too fragile for practical use)
+        Compressed Thin Reverse
+        Condensed Thin Reverse
+        Extended Thin Reverse
+        Extended Regular
+
+        # Skip low contrast with compressed thin (readability issues)
+        LowContrast Compressed Thin
+        LowContrast Compressed Thin Slant
+        LowContrast Compressed Thin Reverse
+
+        # Skip high contrast extended black combinations (too heavy/wide)
+        HighContrast Extended Black Slant
+        HighContrast Extended Black Reverse
+        HighContrast Wide Black Slant
+
+        # Skip some middle-weight compressed combinations (redundant with condensed)
+        Compressed Medium Reverse
+        Compressed Extrabold
+
+        # Skip extreme slant with extreme width (distorted appearance)
+        Extended Thin Slant
+        Extended Light Slant
+        Compressed Black Reverse

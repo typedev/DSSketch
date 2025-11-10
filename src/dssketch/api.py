@@ -13,6 +13,7 @@ from fontTools.designspaceLib import DesignSpaceDocument
 from .converters.designspace_to_dss import DesignSpaceToDSS
 from .converters.dss_to_designspace import DSSToDesignSpace
 from .parsers.dss_parser import DSSParser
+from .utils.logging import DSSketchLogger
 from .writers.dss_writer import DSSWriter
 
 
@@ -78,6 +79,9 @@ def convert_to_designspace(dss_path: str) -> DesignSpaceDocument:
         ds.write("MyFont.designspace")
     """
     dss_file = Path(dss_path)
+
+    # Setup logger for conversion
+    DSSketchLogger.setup_logger(str(dss_file))
 
     # Parse DSS file
     parser = DSSParser()

@@ -369,6 +369,13 @@ rules
     slanted* > .back (slnt <= -15)  # negative slant coordinate
 
 instances auto  # instances follow axes section order
+    skip  # optional: skip specific instance combinations
+        # Skip rules must use FINAL instance names (after elidable cleanup)
+        # Must follow axis order from "axes" section
+        # Comments supported for documentation
+
+        Bold Italic  # skip this specific combination
+        Thin Italic  # skip another combination
 ```
 
 ### Label-Based Syntax
@@ -628,18 +635,33 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Handles elidable style names (removes redundant parts like "Regular" from "Regular Italic" → "Italic")
 - **Respects axes order from DSS document**: instances follow the sequence defined in axes section
 - **Order determines naming**: First axis appears first in names (e.g., `wdth, wght` → "Condensed Light" vs `wght, wdth` → "Light Condensed")
-- Supports filtering and skipping unwanted combinations via `skipFilter` parameter
+- **Instance Skip Support**: Optionally exclude specific combinations via `skip` subsection
 - Generates proper PostScript names and file paths
 - Integration: `dss_to_designspace.py:67` calls `createInstances()` when `instances_auto=True`
 - **Custom axis ordering**: Change axes order in DSS to control instance name generation
+
+**Instance Skip Functionality (`instances auto skip`):**
+- **Purpose**: Exclude specific instance combinations from automatic generation
+- **Syntax**: Indented list under `skip` keyword within `instances auto` section
+- **Critical**: Skip rules must use FINAL instance names (after elidable cleanup)
+- **Axis order**: Skip combinations must follow the axis order defined in `axes` section
+- **Comment support**: Lines starting with `#` are ignored, useful for documentation
+- **Logging**: All skip operations logged at INFO level for visibility
+- **Example**: `instances auto skip` → `Bold Italic` → `Thin Italic`
+- **Use cases**: Skip impractical combinations (e.g., Thin Italic too fragile, Extended Black Slant distorted)
+- **Implementation**: `instances.py:230-233` checks skip rules after elidable cleanup
+- **Testing**: See `examples/MegaFont-WithSkip.dssketch` (315 → 301 instances)
 
 **Algorithm Steps (core/instances.py):**
 1. `sortAxisOrder()` - Extract axes order from DSS document or use DEFAULT_AXIS_ORDER fallback
 2. `getInstancesMapping()` - Extract axis label mappings for each axis
 3. `itertools.product()` - Generate all combinations of labels (cartesian product)
 4. `getElidabledNames()` - Determine which style names are elidable
-5. Name cleanup - Remove elidable labels from instance names
-6. `createInstance()` - Create InstanceDescriptor with location, familyName, styleName, PostScript name
+5. For each combination:
+   a. Name cleanup - Remove elidable labels from instance names
+   b. Special case handling - "Regular Italic" → "Italic"
+   c. **Skip check** - If final name in skip list, skip this instance (logged at INFO level)
+   d. `createInstance()` - Create InstanceDescriptor with location, familyName, styleName, PostScript name
 
 **Example:**
 ```dssketch
@@ -662,6 +684,34 @@ axes
 # - "Italic Regular" → "Italic"
 # - "Italic Black" → "Italic Black"
 ```
+
+**Skip Validation (Two Levels):**
+
+DSSketch validates skip rules at two levels to ensure correctness:
+
+1. **ERROR Level** - Invalid label detection (stops conversion):
+   - Validates that all labels in skip rules exist in axis definitions
+   - Each word in skip combination must be a valid axis label (no spaces allowed in labels)
+   - Use camelCase for compound names: "ExtraLight", "SemiBold" (not "Extra Light", "Semi Bold")
+   - Provides clear error message with available labels
+   - Example: `Heavy Italic` where "Heavy" not defined → ERROR with full label list
+
+2. **WARNING Level** - Unused skip rule detection (logs warning):
+   - Tracks which skip rules are actually used during generation
+   - After completion, reports skip rules that never matched any instance
+   - Helps identify typos or rules affected by elidable cleanup
+   - Example: `Bold Upright` where Upright is @elidable → WARNING "never used"
+
+**Implementation Details:**
+- Validation function: `_validate_skip_labels()` in `instances.py:151-187`
+- Simple split-based validation: each space-separated word must be valid label
+- Unused tracking: Set-based tracking of `used_skip_rules` (lines 259, 280, 306-315)
+- Error messages include full list of available labels for easy correction
+
+**Test Coverage:**
+- 6 comprehensive tests in `tests/test_skip_validation.py`
+- Tests cover: invalid labels, typos, camelCase labels, unused rules, valid rules
+- All tests pass, including production MegaFont example (15 skip rules)
 
 ## Important Implementation Details
 
