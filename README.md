@@ -301,6 +301,8 @@ sources [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width
 
 ### Command Line
 ```bash
+pip install dssketch
+
 # Install from source
 pip install -e .
 
