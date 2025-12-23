@@ -1,20 +1,14 @@
-# avar2 Quadratic Rotation example - parametric use case
-# One user axis (ZROT) controls two hidden axes (A, B)
-
-family TestFont-avar2Rotation
+family Unknown
 
 axes
-    ZROT 0:0:90
+    ROTATION IN Z ZROT 0:0:90 "Rotation in Z"
 
 axes hidden
     AAAA 0:0:90
     BBBB 0:0:90
 
-sources
-    TestFont-Default.ufo [0] @base
-
-# User rotates ZROT, which drives both A and B axes
-# This is the "HOI" (Higher Order Interpolation) use case
 avar2
     [ZROT=0] > AAAA=0, BBBB=0
     [ZROT=90] > AAAA=90, BBBB=90
+
+instances auto

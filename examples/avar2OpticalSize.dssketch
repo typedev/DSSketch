@@ -1,18 +1,12 @@
-# avar2 Optical Size example - distortion use case
-# Optical size affects weight and width (inter-axis dependencies)
-
-family TestFont-avar2OpticalSize
+family Unknown
 
 axes
-    wght 1:400:1000
-    wdth 50:100:150
-    opsz 6:16:144
+    wght 1:400:1000 "Weight"
+    wdth 50:100:150 "Width"
+    opsz 6:16:144 "Optical size"
 
-sources
-    TestFont-Default.ufo [400, 100, 16] @base
-
-# At small optical sizes (6pt): make bolder and wider for legibility
-# At large optical sizes (144pt): make lighter and narrower for elegance
 avar2
     [opsz=6, wght=400, wdth=100] > wght=600, wdth=125
     [opsz=144, wght=400, wdth=100] > wght=200, wdth=75
+
+instances auto

@@ -1,26 +1,18 @@
-# avar2 Fences example - constraining axis combinations
-# Prevents extreme weight at narrow widths (would be too fragile/unreadable)
-
-family TestFont-avar2Fences
+family Fences
 
 axes
-    wght 1:400:1000
-    wdth 50:100:150
-    opsz 6:16:144
+    wght 1:400:1000 "Weight"
+    wdth 50:100:150 "Width"
+    opsz 6:16:144 "Optical size"
 
-sources
-    TestFont-Default.ufo [400, 100, 16] @base
+avar2 vars
+    $wght = 600
 
-# Fences: limit weight to 600 when width is narrow (50-90)
-# This creates a "fence" that blocks extreme combinations
 avar2
-    # At wdth=50, cap wght at 600
-    [wght=1000, wdth=50] > wght=600, wdth=50
-    [wght=600, wdth=50] > wght=600, wdth=50
-
-    # At wdth=90, cap wght at 600
-    [wght=1000, wdth=90] > wght=600, wdth=90
-    [wght=600, wdth=90] > wght=600, wdth=90
-
-    # At wdth=90.02 (just past fence), allow full weight
+    [wght=1000, wdth=50] > wght=$, wdth=50
+    [wght=1000, wdth=90] > wght=$, wdth=90
+    [wght=600, wdth=50] > wght=$, wdth=50
+    [wght=600, wdth=90] > wght=$, wdth=90
     [wght=1000, wdth=90.02] > wght=1000, wdth=90.02
+
+instances auto

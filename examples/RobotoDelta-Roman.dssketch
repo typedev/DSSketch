@@ -1,163 +1,205 @@
-# RobotoDelta-Roman avar2 example
-# Demonstrates linear format with variable shorthand
-# Full version has 38 mappings and 39 axes
+family "Roboto Delta"
+path instances
 
-family RobotoDelta
-suffix Roman
-
-# User-facing axes (6)
 axes
     opsz 8:14:144
+        8  > -1
+        14  > 0
+        36  > 0.492
+        84  > 0.946
+        144  > 1
     wght 100:400:1000
-        Thin > 100
-        Regular > 400 @elidable
-        Black > 1000
     wdth 25:100:151
-        Compressed > 25
-        Normal > 100 @elidable
-        Wide > 151
     slnt -12:0:3
-        BackSlant > 3
-        Upright > 0 @elidable
-        Slant > -12
-    GRAD -250:0:150
-    XTSP -100:0:100
+    GRAD GRAD -250:0:150
+    XOPQ XOPQ 2:96:310
+    YOPQ YOPQ 2:79:280
+    XTRA XTRA 244:463:741
+    BDSZ BDSZ -1:0:1.4
 
-# Hidden parametric axes (33)
 axes hidden
-    # Opaque - all glyphs
-    XOPQ 2:96:310
-    YOPQ 2:79:280
-    # Opaque - specific
+    XTSP -100:0:100
+    WDSP 0:246:1000
     XOUC 2:96:310
     YOUC 2:79:280
-    XOLC 2:96:310
-    YOLC 2:79:280
-    XOFI 2:96:310
-    YOFI 2:79:280
-    YOPE 79:79:280
-    YOLB 79:132:280
-    # Transparent
-    XTRA 244:463:741
     XTUC 244:463:741
-    XTLC 244:463:741
-    XTFI 244:463:741
-    XTUR 463:463:741
     XTUD 463:463:741
-    # Vertical metrics
+    XTUR 463:463:741
+    YOPE 79:79:280
     YTUC 528:728:778
-    YTLC 500:545:600
-    YTAS 700:768:850
-    YTDE -280:-208:-150
-    YTFI 650:743:850
-    YTOS 0:30:50
-    YTTL 0:25:50
-    # Other
-    XTTW 0:5:30
-    WDSP 0:246:1000
-    BARS 0:1000:1000
-    BDSZ -1:0:1.4
-    # Stems
     STUI 2:92:736
     STUO 2:92:722
-    STLI 2:32:400
-    STLO 2:32:400
-    # Rotation (for slant)
-    VANG 0:0:45
-    VROT 0:0:15
+    XOLC 2:96:310
+    YOLC 2:79:280
+    XTLC 244:463:741
+    YTAS 665:728:875
+    YTDE -310:-208:-100
+    YTLC 426:526:584
+    STLI 2:32:412
+    STLO 2:32:426
+    YOLB 132:132:280
+    XOFI 2:96:310
+    YOFI 2:79:280
+    XTFI 244:463:741
+    YTFI 270:743:793
+    BARS 0:1000:1000
+    VANG -3:0:13
+    VROT 0:0:13
+    YTTL 0:25:50
+    XTTW 0:5:30
+    YTOS 0:30:50
 
-# Variables for frequently repeated values
+sources
+    Roboto-Delta-wght400 opsz=0 @base
+    Roboto-Delta-GRAD-250 opsz=0, GRAD=-250
+    Roboto-Delta-GRAD150 opsz=0, GRAD=150
+    Roboto-Delta-VANG-3 opsz=0, VANG=-3
+    Roboto-Delta-VANG13 opsz=0, VANG=13
+    Roboto-Delta-VROT13 opsz=0, VANG=13, VROT=13
+    Roboto-Delta-XOFI2 opsz=0, XOFI=2
+    Roboto-Delta-XOFI310 opsz=0, XOFI=310
+    Roboto-Delta-XOUC2 opsz=0, XOUC=2
+    Roboto-Delta-XOUC310 opsz=0, XOUC=310
+    Roboto-Delta-XOLC2 opsz=0, XOLC=2
+    Roboto-Delta-XOLC310 opsz=0, XOLC=310
+    Roboto-Delta-XTUC244 opsz=0, XTUC=244
+    Roboto-Delta-XTUC244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTUC=244
+    Roboto-Delta-XTUC244-opsz144-wdth25-wght400 opsz=1, wdth=25, XTUC=244
+    Roboto-Delta-XTUC741 opsz=0, XTUC=741
+    Roboto-Delta-XTUC741-opsz144-wdth100-wght100 opsz=1, wght=100, XTUC=741
+    Roboto-Delta-XTUC741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTUC=741
+    Roboto-Delta-XTLC244 opsz=0, XTLC=244
+    Roboto-Delta-XTLC244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTLC=244
+    Roboto-Delta-XTLC244-opsz144-wdth25-wght400 opsz=1, XTLC=244
+    Roboto-Delta-XTLC741 opsz=0, XTLC=741
+    Roboto-Delta-XTLC741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTLC=741
+    Roboto-Delta-XTFI244 opsz=0, XTFI=244
+    Roboto-Delta-XTFI244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTFI=244
+    Roboto-Delta-XTFI741 opsz=0, XTFI=741
+    Roboto-Delta-XTFI741-opsz144-wdth100-wght100 opsz=1, wght=100, XTFI=741
+    Roboto-Delta-XTFI741-opsz144-wdth151-wght400 opsz=1, wdth=151, XTFI=741
+    Roboto-Delta-XTFI741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTFI=741
+    Roboto-Delta-XTSP-100 opsz=0, XTSP=-100
+    Roboto-Delta-XTSP100 opsz=0, XTSP=100
+    Roboto-Delta-YOFI2 opsz=0, YOFI=2
+    Roboto-Delta-YOFI280 opsz=0, YOFI=280
+    Roboto-Delta-YOUC2 opsz=0, YOUC=2
+    Roboto-Delta-YOUC280 opsz=0, YOUC=280
+    Roboto-Delta-YOLC2 opsz=0, YOLC=2
+    Roboto-Delta-YOLC280 opsz=0, YOLC=280
+    Roboto-Delta-YOPE280 opsz=0, YOPE=280
+    Roboto-Delta-YOLB280 opsz=0, YOLB=280
+    Roboto-Delta-YTAS665 opsz=0, YTAS=665
+    Roboto-Delta-YTAS875 opsz=0, YTAS=875
+    Roboto-Delta-YTDE-100 opsz=0, YTDE=-100
+    Roboto-Delta-YTDE-310 opsz=0, YTDE=-310
+    Roboto-Delta-YTFI270 opsz=0, YTFI=270
+    Roboto-Delta-YTFI793 opsz=0, YTFI=793
+    Roboto-Delta-YTLC426 opsz=0, YTLC=426
+    Roboto-Delta-YTLC584 opsz=0, YTLC=584
+    Roboto-Delta-YTOS0 opsz=0, YTOS=0
+    Roboto-Delta-YTOS50 opsz=0, YTOS=50
+    Roboto-Delta-YTUC528 opsz=0, YTUC=528
+    Roboto-Delta-YTUC778 opsz=0, YTUC=778
+    Roboto-Delta-YTTL50 opsz=0, YTTL=50
+    Roboto-Delta-YTTL0 opsz=0, YTTL=0
+    Roboto-Delta-XTTW30 opsz=0, XTTW=30
+    Roboto-Delta-XTTW0 opsz=0, XTTW=0
+    Roboto-Delta-XTUR741 opsz=0, XTUR=741
+    Roboto-Delta-WDSP0 opsz=0, WDSP=0
+    Roboto-Delta-WDSP1000 opsz=0, WDSP=1000
+    Roboto-Delta-BARS0 opsz=0, BARS=0
+    Roboto-Delta-XTUD741 opsz=0, XTUD=741
+    Roboto-Delta-STLI2 opsz=0, STLI=2
+    Roboto-Delta-STLI412 opsz=0, STLI=412
+    Roboto-Delta-STLO2 opsz=0, STLO=2
+    Roboto-Delta-STLO426 opsz=0, STLO=426
+    Roboto-Delta-STUI2 opsz=0, STUI=2
+    Roboto-Delta-STUI736 opsz=0, STUI=736
+    Roboto-Delta-STUO2 opsz=0, STUO=2
+    Roboto-Delta-STUO722 opsz=0, STUO=722
+    Roboto-Delta-opsz14-wdth100-wght1000 opsz=0, wght=1000
+    Roboto-Delta-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25
+    Roboto-Delta-opsz144-wdth25-wght400 opsz=1, wdth=25
+    Roboto-Delta-opsz144-wdth25-wght1000 opsz=1, wght=1000, wdth=25
+    Roboto-Delta-opsz144-wdth100-wght100 opsz=1, wght=100
+    Roboto-Delta-opsz144-wdth100-wght400 opsz=1
+    Roboto-Delta-opsz144-wdth100-wght1000 opsz=1, wght=1000
+
 avar2 vars
-    $YTAS = 768
+    $VANG = 0
+    $VROT = 0
+    $XOPQ = 96
+    $XOFI = 96
+    $XOUC = 96
+    $XOLC = 96
+    $XTRA = 463
+    $XTUC = 463
+    $XTLC = 463
+    $XTFI = 463
+    $XTSP = 0
+    $YOPE = 79
+    $YOLB = 132
+    $YOPQ = 79
+    $YOFI = 79
+    $YOUC = 79
+    $YOLC = 79
+    $BDSZ = 0
+    $YTAS = 728
     $YTDE = -208
     $YTFI = 743
-    $YTLC = 545
+    $YTLC = 526
     $YTOS = 30
     $YTUC = 728
     $YTTL = 25
     $XTTW = 5
-    $WDSP = 235
+    $XTUR = 463
+    $WDSP = 246
     $BARS = 1000
+    $XTUD = 463
     $STUI = 92
     $STUO = 92
     $STLI = 32
     $STLO = 32
-    $YOPE = 79
-    $YOLB = 132
-    $BDSZ = 0
-    $VANG = 0
-    $VROT = 0
-    $XTSP = 0
-    $XTUR = 463
-    $XTUD = 463
 
-# Linear format - all outputs for each mapping in one place
-# Note: RobotoDelta uses 5-dimensional input (opsz, slnt, wght, wdth, GRAD)
-# Note: Original file uses normalized coords (-1=min, 0=default, 1=max)
-#       We convert to absolute values for clarity
 avar2
-    # === wdth=Compressed (25) combinations ===
+    [opsz=-1, slnt=0, wght=100, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=50, XOFI=50, XOUC=50, XOLC=50, XTRA=451, XTUC=451, XTLC=500, XTFI=451, XTSP=$, YOPE=$, YOLB=$, YOPQ=48, YOFI=48, YOUC=48, YOLC=48, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=545, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=235, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=-1, slnt=0, wght=400, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=100, XOFI=100, XOUC=100, XOLC=100, XTRA=430, XTUC=430, XTLC=430, XTFI=430, XTSP=$, YOPE=$, YOLB=$, YOPQ=85, YOFI=85, YOUC=85, YOLC=85, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=545, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=235, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=-1, slnt=0, wght=1000, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=150, XOFI=150, XOUC=150, XOLC=150, XTRA=400, XTUC=400, XTLC=390, XTFI=400, XTSP=$, YOPE=$, YOLB=145, YOPQ=105, YOFI=105, YOUC=105, YOLC=105, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=558, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=235, BARS=0, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=-1, slnt=0, wght=100, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=54, XOFI=54, XOUC=54, XOLC=54, XTRA=532, XTUC=532, XTLC=532, XTFI=532, XTSP=20, YOPE=$, YOLB=$, YOPQ=50, YOFI=50, YOUC=50, YOLC=50, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=545, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=250, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=-1, slnt=0, wght=400, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=103, XOFI=103, XOUC=103, XOLC=103, XTRA=480, XTUC=480, XTLC=480, XTFI=480, XTSP=$, YOPE=$, YOLB=$, YOPQ=86, YOFI=86, YOUC=86, YOLC=86, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=545, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=250, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=-1, slnt=0, wght=1000, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=200, XOFI=200, XOUC=200, XOLC=200, XTRA=400, XTUC=400, XTLC=400, XTFI=400, XTSP=$, YOPE=$, YOLB=170, YOPQ=155, YOFI=155, YOUC=155, YOLC=155, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=558, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=250, BARS=0, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=-1, slnt=0, wght=100, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=60, XOFI=60, XOUC=60, XOLC=60, XTRA=590, XTUC=590, XTLC=640, XTFI=540, XTSP=30, YOPE=$, YOLB=$, YOPQ=54, YOFI=54, YOUC=54, YOLC=54, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=545, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=265, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=-1, slnt=0, wght=400, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=108, XOFI=108, XOUC=108, XOLC=108, XTRA=530, XTUC=530, XTLC=550, XTFI=530, XTSP=30, YOPE=$, YOLB=$, YOPQ=88, YOFI=88, YOUC=88, YOLC=88, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=545, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=265, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=-1, slnt=0, wght=1000, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=210, XOFI=210, XOUC=210, XOLC=210, XTRA=414, XTUC=414, XTLC=414, XTFI=414, XTSP=10, YOPE=$, YOLB=170, YOPQ=158, YOFI=158, YOUC=158, YOLC=158, BDSZ=$, YTAS=768, YTDE=$, YTFI=$, YTLC=566, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=265, BARS=0, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=0, slnt=0, wght=100, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=44, XOFI=44, XOUC=44, XOLC=44, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=42, YOFI=42, YOUC=42, YOLC=42, BDSZ=$, YTAS=756, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=220, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=0, slnt=0, wght=400, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=92, XOFI=92, XOUC=92, XOLC=92, XTRA=420, XTUC=420, XTLC=420, XTFI=420, XTSP=$, YOPE=$, YOLB=$, YOPQ=78, YOFI=78, YOUC=78, YOLC=78, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=220, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=0, slnt=0, wght=1000, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=206, XOFI=206, XOUC=206, XOLC=206, XTRA=327, XTUC=327, XTLC=327, XTFI=327, XTSP=-30, YOPE=$, YOLB=$, YOPQ=154, YOFI=154, YOUC=154, YOLC=154, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=220, BARS=0, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=0, slnt=0, wght=100, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=47, XOFI=47, XOUC=47, XOLC=47, XTRA=516, XTUC=516, XTLC=516, XTFI=516, XTSP=10, YOPE=$, YOLB=$, YOPQ=44, YOFI=44, YOUC=44, YOLC=44, BDSZ=$, YTAS=756, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=0, wght=400, wdth=100, slnt=0] > XOPQ=$, YOPQ=$, XTRA=$, XTSP=$, WDSP=$, VANG=$, VROT=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, STUI=$, STUO=$, STLI=$, STLO=$, BARS=$, XTUD=$, XTUR=$, YOPE=$, YOLB=$, XOUC=$, XOLC=$, XOFI=$, YOUC=$, YOLC=$, YOFI=$, XTUC=$, XTLC=$, XTFI=$, BDSZ=$
+    [opsz=0, slnt=0, wght=1000, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=210, XOFI=210, XOUC=210, XOLC=210, XTRA=380, XTUC=380, XTLC=380, XTFI=380, XTSP=-30, YOPE=$, YOLB=$, YOPQ=156, YOFI=156, YOUC=156, YOLC=156, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=0, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=0, slnt=0, wght=100, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=53, XOFI=53, XOUC=53, XOLC=53, XTRA=620, XTUC=620, XTLC=620, XTFI=620, XTSP=10, YOPE=$, YOLB=$, YOPQ=46, YOFI=46, YOUC=46, YOLC=46, BDSZ=$, YTAS=756, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=250, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=0, slnt=0, wght=400, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=100, XOFI=100, XOUC=100, XOLC=100, XTRA=560, XTUC=558, XTLC=575, XTFI=560, XTSP=10, YOPE=$, YOLB=$, YOPQ=80, YOFI=80, YOUC=80, YOLC=80, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=250, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=0, slnt=0, wght=1000, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=214, XOFI=214, XOUC=214, XOLC=214, XTRA=415, XTUC=415, XTLC=415, XTFI=415, XTSP=10, YOPE=$, YOLB=$, YOPQ=158, YOFI=158, YOUC=158, YOLC=158, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=250, BARS=0, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=1, slnt=0, wght=100, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=2, XOFI=2, XOUC=2, XOLC=2, XTRA=278, XTUC=278, XTLC=278, XTFI=278, XTSP=-75, YOPE=$, YOLB=$, YOPQ=2, YOFI=2, YOUC=2, YOLC=2, BDSZ=144, YTAS=756, YTDE=-155, YTFI=$, YTLC=458, YTOS=2, YTUC=$, YTTL=0, XTTW=0, XTUR=$, WDSP=70, BARS=$, XTUD=$, STUI=736, STUO=722, STLI=412, STLO=426
+    [opsz=1, slnt=0, wght=400, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=48, XOFI=48, XOUC=48, XOLC=48, XTRA=267, XTUC=267, XTLC=267, XTFI=267, XTSP=-70, YOPE=$, YOLB=$, YOPQ=48, YOFI=48, YOUC=48, YOLC=48, BDSZ=144, YTAS=$, YTDE=-155, YTFI=$, YTLC=458, YTOS=5, YTUC=$, YTTL=0, XTTW=0, XTUR=$, WDSP=70, BARS=0, XTUD=$, STUI=566, STUO=722, STLI=330, STLO=340
+    [opsz=1, slnt=0, wght=1000, wdth=25, GRAD=0] > VANG=$, VROT=$, XOPQ=248, XOFI=248, XOUC=248, XOLC=248, XTRA=244, XTUC=244, XTLC=244, XTFI=244, XTSP=-100, YOPE=116, YOPQ=200, YOFI=200, YOUC=200, YOLC=200, BDSZ=144, YTAS=$, YTDE=-155, YTFI=$, YTLC=458, YTOS=15, YTUC=$, YTTL=0, XTTW=0, XTUR=$, WDSP=250, BARS=0, XTUD=515, STUI=180, STUO=256, STLI=$, STLO=80
+    [opsz=1, slnt=0, wght=100, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=4, XOFI=4, XOUC=4, XOLC=4, XTRA=506, XTUC=506, XTLC=506, XTFI=506, XTSP=-10, YOPE=$, YOLB=$, YOPQ=4, YOFI=4, YOUC=4, YOLC=4, BDSZ=144, YTAS=756, YTDE=-155, YTFI=$, YTLC=458, YTOS=10, YTUC=$, YTTL=0, XTTW=0, XTUR=$, WDSP=175, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=1, slnt=0, wght=400, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=55, XOFI=55, XOUC=55, XOLC=55, XTRA=449, XTUC=449, XTLC=449, XTFI=449, XTSP=-24.9, YOPE=$, YOLB=$, YOPQ=49, YOFI=49, YOUC=49, YOLC=49, BDSZ=144, YTAS=$, YTDE=-155, YTFI=$, YTLC=458, YTOS=15, YTUC=$, YTTL=0, XTTW=0, XTUR=$, WDSP=175, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=1, slnt=0, wght=500, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=418, XTUC=418, XTLC=418, XTFI=418, XTSP=-40, YOPQ=82, YOFI=82, YOUC=82, YOLC=82, BDSZ=144, YTAS=$, YTDE=-155, YTFI=$, YTLC=458, YTOS=15, YTUC=$, YTTL=0, XTTW=0, XTUR=$, WDSP=175, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=1, slnt=0, wght=1000, wdth=100, GRAD=0] > VANG=$, VROT=$, XOPQ=300, XOFI=300, XOUC=300, XOLC=300, XTRA=270, XTUC=270, XTLC=270, XTFI=270, XTSP=-80, YOPE=96, YOPQ=200, YOFI=200, YOUC=200, YOLC=200, BDSZ=144, YTAS=$, YTDE=-155, YTFI=$, YTLC=458, YTOS=15, YTUC=$, YTTL=0, XTTW=0, XTUR=$, WDSP=250, BARS=0, XTUD=550, STUI=444, STUO=$, STLI=$, STLO=$
+    [opsz=1, slnt=0, wght=100, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=4, XOFI=4, XOUC=4, XOLC=4, XTRA=658, XTUC=658, XTLC=678, XTFI=658, XTSP=30, YOPE=$, YOLB=$, YOPQ=4, YOFI=4, YOUC=4, YOLC=4, BDSZ=144, YTAS=756, YTDE=-155, YTFI=$, YTLC=458, YTOS=15, YTUC=$, YTTL=0, XTTW=0, XTUR=532, WDSP=250, BARS=$, XTUD=$, STUI=60, STUO=60, STLI=$, STLO=$
+    [opsz=1, slnt=0, wght=400, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=53, XOFI=53, XOUC=53, XOLC=53, XTRA=600, XTUC=600, XTLC=600, XTFI=600, XTSP=20, YOPE=$, YOLB=$, YOPQ=50, YOFI=50, YOUC=50, YOLC=50, BDSZ=144, YTAS=$, YTDE=-155, YTFI=$, YTLC=458, YTOS=15, YTUC=$, YTTL=0, XTTW=0, XTUR=542, WDSP=250, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [opsz=1, slnt=0, wght=1000, wdth=151, GRAD=0] > VANG=$, VROT=$, XOPQ=300, XOFI=300, XOUC=300, XOLC=300, XTRA=390, XTUC=390, XTLC=390, XTFI=390, XTSP=-50, YOPE=86, YOPQ=205, YOFI=205, YOUC=205, YOLC=205, BDSZ=144, YTAS=$, YTDE=-155, YTFI=$, YTLC=458, YTOS=20, YTUC=$, YTTL=0, XTTW=0, XTUR=480, WDSP=390, BARS=0, XTUD=$, STUI=$, STUO=$, STLI=2, STLO=$
+    [slnt=-12] > VANG=$, VROT=$, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=$, YOFI=$, YOUC=$, YOLC=$, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [slnt=3] > VANG=-3, VROT=4, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=$, YOFI=$, YOUC=$, YOLC=$, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [XTRA=244] > VANG=$, VROT=$, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=244, XTUC=244, XTLC=244, XTFI=244, XTSP=$, YOPE=$, YOLB=$, YOPQ=$, YOFI=$, YOUC=$, YOLC=$, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [XTRA=741] > VANG=$, VROT=$, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=741, XTUC=741, XTLC=741, XTFI=741, XTSP=$, YOPE=$, YOLB=$, YOPQ=$, YOFI=$, YOUC=$, YOLC=$, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [XOPQ=2] > VANG=$, VROT=$, XOPQ=2, XOFI=2, XOUC=2, XOLC=2, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=$, YOFI=$, YOUC=$, YOLC=$, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [XOPQ=310] > VANG=$, VROT=$, XOPQ=310, XOFI=310, XOUC=310, XOLC=310, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=$, YOFI=$, YOUC=$, YOLC=$, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [YOPQ=2] > VANG=$, VROT=$, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=2, YOFI=2, YOUC=2, YOLC=2, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [YOPQ=280] > VANG=$, VROT=$, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=280, YOFI=280, YOUC=280, YOLC=280, BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [BDSZ=-1] > VANG=$, VROT=$, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=$, YOFI=$, YOUC=$, YOLC=$, BDSZ=-1, YTAS=665, YTDE=-100, YTFI=$, YTLC=$, YTOS=$, YTUC=665, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
+    [BDSZ=1.4] > VANG=$, VROT=$, XOPQ=$, XOFI=$, XOUC=$, XOLC=$, XTRA=$, XTUC=$, XTLC=$, XTFI=$, XTSP=$, YOPE=$, YOLB=$, YOPQ=$, YOFI=$, YOUC=$, YOLC=$, BDSZ=1.4, YTAS=778, YTDE=-252, YTFI=$, YTLC=$, YTOS=$, YTUC=778, YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$, STUI=$, STUO=$, STLI=$, STLO=$
 
-    [opsz=8, slnt=0, wght=Thin, wdth=Compressed, GRAD=0] > {
-        VANG=$, VROT=$,
-        XOPQ=50, XOFI=50, XOUC=50, XOLC=50,
-        XTRA=451, XTUC=451, XTLC=500, XTFI=451, XTSP=$,
-        YOPE=$, YOLB=$, YOPQ=48, YOFI=48, YOUC=48, YOLC=48,
-        BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$,
-        YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$,
-        STUI=$, STUO=$, STLI=$, STLO=$
-    }
-
-    [opsz=8, slnt=0, wght=Regular, wdth=Compressed, GRAD=0] > {
-        VANG=$, VROT=$,
-        XOPQ=100, XOFI=100, XOUC=100, XOLC=100,
-        XTRA=430, XTUC=430, XTLC=430, XTFI=430, XTSP=$,
-        YOPE=$, YOLB=$, YOPQ=85, YOFI=85, YOUC=85, YOLC=85,
-        BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$,
-        YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$,
-        STUI=$, STUO=$, STLI=$, STLO=$
-    }
-
-    [opsz=8, slnt=0, wght=Black, wdth=Compressed, GRAD=0] > {
-        VANG=$, VROT=$,
-        XOPQ=310, XOFI=310, XOUC=310, XOLC=310,
-        XTRA=451, XTUC=451, XTLC=438, XTFI=451, XTSP=$,
-        YOPE=$, YOLB=$, YOPQ=132, YOFI=132, YOUC=132, YOLC=132,
-        BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$,
-        YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$,
-        STUI=$, STUO=$, STLI=$, STLO=$
-    }
-
-    # === wdth=Normal (100) combinations ===
-
-    [opsz=8, slnt=0, wght=Thin, wdth=Normal, GRAD=0] > {
-        VANG=$, VROT=$,
-        XOPQ=50, XOFI=50, XOUC=50, XOLC=50,
-        XTRA=463, XTUC=463, XTLC=500, XTFI=463, XTSP=$,
-        YOPE=$, YOLB=$, YOPQ=48, YOFI=48, YOUC=48, YOLC=48,
-        BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$,
-        YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$,
-        STUI=$, STUO=$, STLI=$, STLO=$
-    }
-
-    [opsz=8, slnt=0, wght=Regular, wdth=Normal, GRAD=0] > {
-        VANG=$, VROT=$,
-        XOPQ=96, XOFI=96, XOUC=96, XOLC=96,
-        XTRA=463, XTUC=463, XTLC=463, XTFI=463, XTSP=$,
-        YOPE=$, YOLB=$, YOPQ=79, YOFI=79, YOUC=79, YOLC=79,
-        BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$,
-        YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$,
-        STUI=$, STUO=$, STLI=$, STLO=$
-    }
-
-    [opsz=8, slnt=0, wght=Black, wdth=Normal, GRAD=0] > {
-        VANG=$, VROT=$,
-        XOPQ=170, XOFI=170, XOUC=170, XOLC=170,
-        XTRA=463, XTUC=463, XTLC=463, XTFI=463, XTSP=$,
-        YOPE=$, YOLB=$, YOPQ=132, YOFI=132, YOUC=132, YOLC=132,
-        BDSZ=$, YTAS=$, YTDE=$, YTFI=$, YTLC=$, YTOS=$, YTUC=$,
-        YTTL=$, XTTW=$, XTUR=$, WDSP=$, BARS=$, XTUD=$,
-        STUI=$, STUO=$, STLI=$, STLO=$
-    }
-
-# TODO: Add remaining 32 mappings covering all (opsz, slnt, wght, wdth, GRAD) combinations
+instances auto
