@@ -1,0 +1,26 @@
+# avar2 example - same mappings as avar1, but using avar2 syntax
+# This shows that single-axis avar2 mappings are equivalent to avar1
+
+family TestFont-avar2
+
+axes
+    wght 1:400:1000
+    wdth 50:100:150
+    opsz 6:16:144
+
+# avar2 format for single-axis mappings (equivalent to avar1)
+avar2
+    # Weight mappings
+    [wght=1] > wght=1
+    [wght=100] > wght=300
+    [wght=400] > wght=400
+    [wght=700] > wght=600
+    [wght=900] > wght=700
+    [wght=1000] > wght=1000
+
+    # Width mappings
+    [wdth=50] > wdth=50
+    [wdth=75] > wdth=90
+    [wdth=100] > wdth=100
+    [wdth=125] > wdth=110
+    [wdth=150] > wdth=150

@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.2">
+  <axes>
+    <axis tag="wght" name="Weight" minimum="1" maximum="1000" default="400"/>
+    <axis tag="wdth" name="Width" minimum="50" maximum="150" default="100"/>
+    <axis tag="opsz" name="Optical size" minimum="6" maximum="144" default="16"/>
+    <mappings>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="1"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="1"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="100"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="300"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="400"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="400"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="700"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="600"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="900"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="700"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="1000"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="1000"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Width" xvalue="50"/>
+        </input>
+        <output>
+          <dimension name="Width" xvalue="50"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Width" xvalue="75"/>
+        </input>
+        <output>
+          <dimension name="Width" xvalue="90"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Width" xvalue="100"/>
+        </input>
+        <output>
+          <dimension name="Width" xvalue="100"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Width" xvalue="125"/>
+        </input>
+        <output>
+          <dimension name="Width" xvalue="110"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Width" xvalue="150"/>
+        </input>
+        <output>
+          <dimension name="Width" xvalue="150"/>
+        </output>
+      </mapping>
+    </mappings>
+  </axes>
+</designspace>

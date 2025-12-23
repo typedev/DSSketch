@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.2">
+  <axes>
+    <axis tag="wght" name="Weight" minimum="1" maximum="1000" default="400"/>
+    <axis tag="wdth" name="Width" minimum="50" maximum="150" default="100"/>
+    <axis tag="opsz" name="Optical size" minimum="6" maximum="144" default="16"/>
+    <mappings>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="1000"/>
+          <dimension name="Width" xvalue="50"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="600"/>
+          <dimension name="Width" xvalue="50"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="1000"/>
+          <dimension name="Width" xvalue="90"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="600"/>
+          <dimension name="Width" xvalue="90"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="600"/>
+          <dimension name="Width" xvalue="50"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="600"/>
+          <dimension name="Width" xvalue="50"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="600"/>
+          <dimension name="Width" xvalue="90"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="600"/>
+          <dimension name="Width" xvalue="90"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Weight" xvalue="1000"/>
+          <dimension name="Width" xvalue="90.02"/>
+        </input>
+        <output>
+          <dimension name="Weight" xvalue="1000"/>
+          <dimension name="Width" xvalue="90.02"/>
+        </output>
+      </mapping>
+    </mappings>
+  </axes>
+</designspace>
