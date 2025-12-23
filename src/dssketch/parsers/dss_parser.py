@@ -766,61 +766,177 @@ class DSSParser:
         )
 
     def _parse_source_line(self, line: str):
-        """Parse source definition line"""
+        """Parse source definition line
+
+        Supports three formats:
+        1. Positional: Source [val, val, val]
+        2. Named: Source axis=val, axis=val
+        3. Default-only: Source @base (all coordinates = axis defaults)
+        """
         # Strip leading whitespace for pattern matching
         line = line.strip()
         # Extract flags
         is_base = "@base" in line
         line = line.replace("@base", "").strip()
 
-        # Parse coordinates
+        # Detect format and parse accordingly
         if "[" in line and "]" in line:
-            # Format: "Light [0, 0]" or "My Font Light.ufo" [0, 0]
-            # Also supports: "Regular [Regular, Upright]" (label-based)
-            name_part = line[: line.index("[")].strip()
-            name = self._extract_quoted_or_plain_value(name_part)
-            coords_str = line[line.index("[") + 1 : line.index("]")]
-
-            # Validate coordinates (skip if using labels - will validate during resolution)
-            coord_parts = [x.strip() for x in coords_str.split(",")]
-
-            # Check if all parts are numeric
-            all_numeric = all(
-                x.replace(".", "")
-                .replace("-", "")
-                .replace("+", "")
-                .replace("e", "")
-                .replace("E", "")
-                .isdigit()
-                for x in coord_parts
-                if x
-            )
-
-            if all_numeric:
-                # Traditional numeric validation
-                is_valid, error_msg = DSSValidator.validate_coordinates(coords_str)
-                if not is_valid:
-                    self.validator.errors.append(
-                        f"Invalid coordinates in source '{name}': {error_msg}"
-                    )
-                    return
-
-            # Resolve coordinates - supports both numbers and labels
-            coords = []
-            for i, coord_str in enumerate(coord_parts):
-                try:
-                    value = self._resolve_coordinate_value(coord_str, i)
-                    coords.append(value)
-                except ValueError as e:
-                    self.validator.errors.append(
-                        f"Invalid coordinate in source '{name}' at position {i}: {e}"
-                    )
-                    return
+            # Positional format: Source [val, val, val]
+            self._parse_source_positional(line, is_base)
+        elif "=" in line:
+            # Named format: Source axis=val, axis=val
+            self._parse_source_named(line, is_base)
         else:
-            # Format: "Light 0 0" (space-separated, only works without quotes)
-            parts = line.split()
-            name = parts[0]
-            coords = [float(x) for x in parts[1:] if x.replace(".", "").replace("-", "").isdigit()]
+            # Default-only format: just source name, all coords = defaults
+            self._parse_source_defaults_only(line, is_base)
+
+    def _parse_source_defaults_only(self, line: str, is_base: bool):
+        """Parse source with all default coordinates"""
+        name = self._extract_quoted_or_plain_value(line.strip())
+
+        # Build location with all default values
+        location = {}
+        for axis in self.document.axes:
+            location[axis.name] = axis.default
+        for axis in self.document.hidden_axes:
+            location[axis.name] = axis.default
+
+        # Determine filename
+        if "/" in name:
+            filename = name if name.endswith(".ufo") else f"{name}.ufo"
+            name = Path(name).stem
+        else:
+            filename = name if name.endswith(".ufo") else f"{name}.ufo"
+
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
+        self.document.sources.append(source)
+
+    def _parse_source_named(self, line: str, is_base: bool):
+        """Parse source with named coordinates: Source axis=val, axis=val"""
+        import re
+
+        # Find where named coordinates start (first word=value pattern)
+        # Pattern: word=value where value can be number, label, or negative number
+        named_pattern = r'\s+(\w+)=([\w.-]+)'
+
+        # Find first match to split name from coordinates
+        match = re.search(named_pattern, line)
+        if not match:
+            self.validator.errors.append(f"Invalid named coordinate format: {line}")
+            return
+
+        name_part = line[:match.start()].strip()
+        coords_part = line[match.start():].strip()
+
+        name = self._extract_quoted_or_plain_value(name_part)
+
+        # Build location starting with all defaults
+        location = {}
+        for axis in self.document.axes:
+            location[axis.name] = axis.default
+        for axis in self.document.hidden_axes:
+            location[axis.name] = axis.default
+
+        # Parse named coordinates and override defaults
+        coord_pairs = re.findall(r'(\w+)=([\w.-]+)', coords_part)
+        for axis_ref, value_str in coord_pairs:
+            # Find axis by name or tag
+            axis = self._find_axis_by_name_or_tag(axis_ref)
+            if axis is None:
+                self.validator.errors.append(
+                    f"Unknown axis '{axis_ref}' in source '{name}'"
+                )
+                continue
+
+            # Resolve value (can be numeric or label)
+            try:
+                value = self._resolve_named_coordinate_value(value_str, axis)
+                location[axis.name] = value
+            except ValueError as e:
+                self.validator.errors.append(
+                    f"Invalid value '{value_str}' for axis '{axis_ref}' in source '{name}': {e}"
+                )
+
+        # Determine filename
+        if "/" in name:
+            filename = name if name.endswith(".ufo") else f"{name}.ufo"
+            name = Path(name).stem
+        else:
+            filename = name if name.endswith(".ufo") else f"{name}.ufo"
+
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
+        self.document.sources.append(source)
+
+    def _find_axis_by_name_or_tag(self, axis_ref: str):
+        """Find axis by name or tag in both visible and hidden axes"""
+        # Search visible axes
+        for axis in self.document.axes:
+            if axis.name == axis_ref or axis.tag == axis_ref:
+                return axis
+        # Search hidden axes
+        for axis in self.document.hidden_axes:
+            if axis.name == axis_ref or axis.tag == axis_ref:
+                return axis
+        return None
+
+    def _resolve_named_coordinate_value(self, value_str: str, axis) -> float:
+        """Resolve named coordinate value - can be numeric or label"""
+        # Try numeric first
+        try:
+            return float(value_str)
+        except ValueError:
+            pass
+
+        # Try to find label in axis mappings
+        for mapping in axis.mappings:
+            if mapping.label == value_str:
+                return mapping.design_value
+
+        raise ValueError(f"Unknown label '{value_str}' for axis '{axis.name}'")
+
+    def _parse_source_positional(self, line: str, is_base: bool):
+        """Parse source with positional coordinates: Source [val, val, val]"""
+        # Format: "Light [0, 0]" or "My Font Light.ufo" [0, 0]
+        # Also supports: "Regular [Regular, Upright]" (label-based)
+        name_part = line[: line.index("[")].strip()
+        name = self._extract_quoted_or_plain_value(name_part)
+        coords_str = line[line.index("[") + 1 : line.index("]")]
+
+        # Validate coordinates (skip if using labels - will validate during resolution)
+        coord_parts = [x.strip() for x in coords_str.split(",")]
+
+        # Check if all parts are numeric
+        all_numeric = all(
+            x.replace(".", "")
+            .replace("-", "")
+            .replace("+", "")
+            .replace("e", "")
+            .replace("E", "")
+            .isdigit()
+            for x in coord_parts
+            if x
+        )
+
+        if all_numeric:
+            # Traditional numeric validation
+            is_valid, error_msg = DSSValidator.validate_coordinates(coords_str)
+            if not is_valid:
+                self.validator.errors.append(
+                    f"Invalid coordinates in source '{name}': {error_msg}"
+                )
+                return
+
+        # Resolve coordinates - supports both numbers and labels
+        coords = []
+        for i, coord_str in enumerate(coord_parts):
+            try:
+                value = self._resolve_coordinate_value(coord_str, i)
+                coords.append(value)
+            except ValueError as e:
+                self.validator.errors.append(
+                    f"Invalid coordinate in source '{name}' at position {i}: {e}"
+                )
+                return
 
         # Create location dict using explicit axis order if available
         location = {}
@@ -849,7 +965,6 @@ class DSSParser:
             filename = name if name.endswith(".ufo") else f"{name}.ufo"
 
         source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
-
         self.document.sources.append(source)
 
     def _parse_instance_line(self, line: str):

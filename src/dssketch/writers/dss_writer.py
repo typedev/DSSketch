@@ -100,15 +100,23 @@ class DSSWriter:
 
         # Sources section
         if dss_doc.sources:
-            # Add sources keyword with explicit axis order
-            if dss_doc.axes:
-                axis_tags = [self._get_axis_tag(axis.name) for axis in dss_doc.axes]
-                lines.append(f"sources [{', '.join(axis_tags)}]")
-            else:
-                lines.append("sources")
+            # Determine format: named (if hidden axes) or positional
+            use_named_format = bool(dss_doc.hidden_axes)
 
-            for source in dss_doc.sources:
-                lines.append(self._format_source(source, dss_doc.axes))
+            if use_named_format:
+                # Named format: no axis header needed
+                lines.append("sources")
+                for source in dss_doc.sources:
+                    lines.append(self._format_source_named(source, dss_doc))
+            else:
+                # Positional format: include axis header
+                if dss_doc.axes:
+                    axis_tags = [self._get_axis_tag(axis.name) for axis in dss_doc.axes]
+                    lines.append(f"sources [{', '.join(axis_tags)}]")
+                else:
+                    lines.append("sources")
+                for source in dss_doc.sources:
+                    lines.append(self._format_source(source, dss_doc.axes))
             lines.append("")
 
         # avar2 vars section
@@ -375,6 +383,62 @@ class DSSWriter:
         display_name = self._quote_if_spaces(display_name)
 
         line = f"    {display_name} [{', '.join(coords)}]"
+
+        if source.is_base:
+            line += " @base"
+
+        return line
+
+    def _format_source_named(self, source: DSSSource, dss_doc) -> str:
+        """Format source with named coordinates (only non-default values)
+
+        Used when document has hidden axes.
+        Only outputs coordinates that differ from axis defaults.
+        """
+        # Collect all axes (visible + hidden) with their defaults
+        all_axes = {}
+        for axis in dss_doc.axes:
+            all_axes[axis.name] = axis
+        for axis in dss_doc.hidden_axes:
+            all_axes[axis.name] = axis
+
+        # Find non-default coordinates
+        non_default_coords = []
+        for axis_name, value in source.location.items():
+            axis = all_axes.get(axis_name)
+            if axis is None:
+                continue
+
+            # Check if value differs from default
+            if value != axis.default:
+                # Use axis tag for output (shorter)
+                axis_ref = axis.tag
+
+                # Try to use label if available
+                if self.use_label_coordinates:
+                    label = self._get_label_for_coordinate(axis, value)
+                    if label:
+                        non_default_coords.append(f"{axis_ref}={label}")
+                        continue
+
+                # Fallback to numeric
+                formatted_value = self._format_number(value)
+                non_default_coords.append(f"{axis_ref}={formatted_value}")
+
+        # Use filename if it contains path, otherwise use name
+        if "/" in source.filename:
+            display_name = source.filename.replace(".ufo", "")
+        else:
+            display_name = source.name
+
+        # Add quotes if display_name contains spaces
+        display_name = self._quote_if_spaces(display_name)
+
+        # Build line
+        if non_default_coords:
+            line = f"    {display_name} {', '.join(non_default_coords)}"
+        else:
+            line = f"    {display_name}"
 
         if source.is_base:
             line += " @base"

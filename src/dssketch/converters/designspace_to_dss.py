@@ -51,11 +51,15 @@ class DesignSpaceToDSS:
         if sources_path:
             dss_doc.path = sources_path
 
+        # Determine hidden axes BEFORE converting axes
+        # Uses both hidden="1" attribute AND avar2 input/output analysis
+        hidden_axis_names = self._determine_hidden_axes(ds_doc)
+
         # Convert axes - separate regular and hidden axes
         for axis in ds_doc.axes:
             dss_axis = self._convert_axis(axis)
-            # Check if this is a hidden axis (avar2)
-            if getattr(axis, 'hidden', False):
+            # Check if this axis should be hidden
+            if axis.name in hidden_axis_names:
                 dss_doc.hidden_axes.append(dss_axis)
             else:
                 dss_doc.axes.append(dss_axis)
@@ -209,16 +213,19 @@ class DesignSpaceToDSS:
         # Base source has coordinates matching default values in design space
         is_base = self._is_default_source(source, ds_doc)
 
-        # Build complete location with default values for missing axes
+        # Build complete location with ALL coordinates from source
+        # Include both visible and hidden axis coordinates
         # In DesignSpace, missing coordinate means default value
         complete_location = {}
+
+        # First, add defaults for all axes (visible and hidden)
         for axis in ds_doc.axes:
-            axis_name = axis.name
-            if axis_name in source.location:
-                complete_location[axis_name] = source.location[axis_name]
-            else:
-                # Missing coordinate = default value (standard DesignSpace behavior)
-                complete_location[axis_name] = axis.default
+            complete_location[axis.name] = axis.default
+
+        # Then, override with actual source coordinates
+        # This preserves ALL coordinates including hidden axes
+        for axis_name, value in source.location.items():
+            complete_location[axis_name] = value
 
         return DSSSource(
             name=name,
@@ -372,6 +379,79 @@ class DesignSpaceToDSS:
             if axis.name == axis_name:
                 return axis.tag
         return axis_name
+
+    def _collect_avar2_input_axes(self, ds_doc: DesignSpaceDocument) -> set:
+        """Collect all axis names/tags that appear in avar2 INPUT locations.
+
+        Axes in input are user-controllable (visible axes).
+
+        Returns:
+            Set of axis names that appear in any avar2 input location.
+        """
+        input_axes = set()
+
+        if not hasattr(ds_doc, 'axisMappings') or not ds_doc.axisMappings:
+            return input_axes
+
+        for mapping in ds_doc.axisMappings:
+            if hasattr(mapping, 'inputLocation') and mapping.inputLocation:
+                for axis_name in mapping.inputLocation.keys():
+                    input_axes.add(axis_name)
+
+        return input_axes
+
+    def _collect_avar2_output_axes(self, ds_doc: DesignSpaceDocument) -> set:
+        """Collect all axis names/tags that appear in avar2 OUTPUT locations.
+
+        Axes only in output (never in input) are typically hidden parametric axes.
+
+        Returns:
+            Set of axis names that appear in any avar2 output location.
+        """
+        output_axes = set()
+
+        if not hasattr(ds_doc, 'axisMappings') or not ds_doc.axisMappings:
+            return output_axes
+
+        for mapping in ds_doc.axisMappings:
+            if hasattr(mapping, 'outputLocation') and mapping.outputLocation:
+                for axis_name in mapping.outputLocation.keys():
+                    output_axes.add(axis_name)
+
+        return output_axes
+
+    def _determine_hidden_axes(self, ds_doc: DesignSpaceDocument) -> set:
+        """Determine which axes should be hidden based on avar2 usage.
+
+        Priority:
+        1. If axis has hidden="1" attribute -> hidden
+        2. If axis appears ONLY in avar2 output (never in input) -> hidden
+        3. Otherwise -> visible
+
+        Returns:
+            Set of axis names that should be hidden.
+        """
+        hidden_axes = set()
+
+        # Collect axes from avar2 mappings
+        input_axes = self._collect_avar2_input_axes(ds_doc)
+        output_axes = self._collect_avar2_output_axes(ds_doc)
+
+        for axis in ds_doc.axes:
+            # Priority 1: explicit hidden attribute
+            if getattr(axis, 'hidden', False):
+                hidden_axes.add(axis.name)
+                continue
+
+            # Priority 2: axis only in output, never in input
+            # Check both by name and by tag
+            in_input = axis.name in input_axes or axis.tag in input_axes
+            in_output = axis.name in output_axes or axis.tag in output_axes
+
+            if in_output and not in_input:
+                hidden_axes.add(axis.name)
+
+        return hidden_axes
 
     def _extract_avar2_variables_from_dss(self, dss_mappings) -> dict:
         """Extract repeated values from CONVERTED DSS avar2 mappings to create variables
