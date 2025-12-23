@@ -203,9 +203,13 @@ class DSSWriter:
         if is_discrete:
             # Standard discrete axis (like italic) - use 'discrete' keyword
             if axis_name:
-                lines.append(f"    {axis_name} {axis.tag} discrete")
+                axis_line = f"    {axis_name} {axis.tag} discrete"
             else:
-                lines.append(f"    {axis.tag} discrete")
+                axis_line = f"    {axis.tag} discrete"
+            # Add display_name if present and different from tag
+            if axis.display_name and axis.display_name != axis.tag:
+                axis_line += f' "{axis.display_name}"'
+            lines.append(axis_line)
         else:
             # Continuous axis or non-standard discrete axis
             # Try to use label-based range if enabled and available
@@ -242,9 +246,13 @@ class DSSWriter:
                 range_str = f"{self._format_number(axis.minimum)}:{self._format_number(axis.default)}:{self._format_number(axis.maximum)}"
 
             if axis_name:
-                lines.append(f"    {axis_name} {axis.tag} {range_str}")
+                axis_line = f"    {axis_name} {axis.tag} {range_str}"
             else:
-                lines.append(f"    {axis.tag} {range_str}")
+                axis_line = f"    {axis.tag} {range_str}"
+            # Add display_name if present and different from tag
+            if axis.display_name and axis.display_name != axis.tag:
+                axis_line += f' "{axis.display_name}"'
+            lines.append(axis_line)
 
         # Mappings
         if axis.mappings:

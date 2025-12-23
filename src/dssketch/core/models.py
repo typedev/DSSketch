@@ -26,6 +26,7 @@ class DSSAxis:
     default: float
     maximum: float
     mappings: List[DSSAxisMapping] = field(default_factory=list)
+    display_name: Optional[str] = None  # UI display name (e.g., "Optical size" for opsz)
 
     def get_design_value(self, user_value: float) -> float:
         """Convert user value to design value"""

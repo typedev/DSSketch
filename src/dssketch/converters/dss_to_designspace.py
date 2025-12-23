@@ -113,11 +113,13 @@ class DSSToDesignSpace:
         if is_discrete:
             # Create DiscreteAxisDescriptor for discrete axes
             axis = DiscreteAxisDescriptor()
-            axis.name = dss_axis.name
+            # Use display_name if available, otherwise fall back to name
+            axis.name = dss_axis.display_name if dss_axis.display_name else dss_axis.name
             axis.tag = dss_axis.tag
-            # For custom axes (UPPERCASE tags), preserve original name
-            # For standard axes, use title case (italic → Italic)
-            if dss_axis.tag.isupper():
+            # For labelNames, use display_name if available
+            if dss_axis.display_name:
+                axis.labelNames = {"en": dss_axis.display_name}
+            elif dss_axis.tag.isupper():
                 axis.labelNames = {"en": dss_axis.name}
             else:
                 axis.labelNames = {"en": dss_axis.name.title()}
@@ -144,11 +146,13 @@ class DSSToDesignSpace:
         else:
             # Create regular AxisDescriptor for continuous axes
             axis = AxisDescriptor()
-            axis.name = dss_axis.name
+            # Use display_name if available, otherwise fall back to name
+            axis.name = dss_axis.display_name if dss_axis.display_name else dss_axis.name
             axis.tag = dss_axis.tag
-            # For custom axes (UPPERCASE tags), preserve original name
-            # For standard axes, use title case (weight → Weight)
-            if dss_axis.tag.isupper():
+            # For labelNames, use display_name if available
+            if dss_axis.display_name:
+                axis.labelNames = {"en": dss_axis.display_name}
+            elif dss_axis.tag.isupper():
                 axis.labelNames = {"en": dss_axis.name}  # WDSP, GRAD, etc.
             else:
                 axis.labelNames = {"en": dss_axis.name.title()}  # Weight, Italic, etc.
@@ -183,7 +187,8 @@ class DSSToDesignSpace:
         They are not exposed to users but control internal font parameters.
         """
         axis = AxisDescriptor()
-        axis.name = dss_axis.name
+        # Use display_name if available, otherwise fall back to name
+        axis.name = dss_axis.display_name if dss_axis.display_name else dss_axis.name
         axis.tag = dss_axis.tag
         axis.minimum = dss_axis.minimum
         axis.default = dss_axis.default
@@ -192,7 +197,10 @@ class DSSToDesignSpace:
 
         # Hidden axes typically don't have label names or mappings
         # but we set a basic labelNames for consistency
-        axis.labelNames = {"en": dss_axis.name}
+        if dss_axis.display_name:
+            axis.labelNames = {"en": dss_axis.display_name}
+        else:
+            axis.labelNames = {"en": dss_axis.name}
 
         return axis
 
@@ -242,23 +250,26 @@ class DSSToDesignSpace:
         """Resolve axis key (name or tag) to the axis name used in DesignSpace
 
         Searches both regular and hidden axes.
+        Uses display_name if available (for preserving original names like "Optical size").
 
         Args:
             axis_key: Axis name or tag from DSS (e.g., "opsz", "wght", "XOUC")
             dss_doc: DSS document with axis definitions
 
         Returns:
-            Resolved axis name for DesignSpace
+            Resolved axis name for DesignSpace (display_name if available, else name)
         """
         # Search in regular axes
         for axis in dss_doc.axes:
             if axis.name == axis_key or axis.tag == axis_key:
-                return axis.name
+                # Use display_name if available, otherwise fall back to name
+                return axis.display_name if axis.display_name else axis.name
 
         # Search in hidden axes
         for axis in dss_doc.hidden_axes:
             if axis.name == axis_key or axis.tag == axis_key:
-                return axis.name
+                # Use display_name if available, otherwise fall back to name
+                return axis.display_name if axis.display_name else axis.name
 
         # If not found, return the key as-is (might be a custom axis)
         DSSketchLogger.warning(

@@ -292,6 +292,15 @@ class DSSParser:
         # Strip leading whitespace for pattern matching
         line = line.strip()
 
+        # Extract optional display name from end of line: opsz 8:14:144 "Optical size"
+        display_name = None
+        if '"' in line:
+            # Check for quoted string at end
+            match = re.search(r'"([^"]+)"$', line)
+            if match:
+                display_name = match.group(1)
+                line = line[:match.start()].strip()
+
         # Check for axis definition patterns
         # Pattern 1: "weight wght 100:400:900" (full form)
         # Pattern 2: "CONTRAST CNTR 0:0:100" (custom axis)
@@ -304,7 +313,8 @@ class DSSParser:
         # Look for: [name words] [4-char tag] [range]
         # Strategy: find the range (contains ':' or is binary/discrete), then tag before it
         # Range can be numeric (100:400:900) or label-based (Thin:Regular:Black)
-        full_form_match = re.search(r"(\w{4})\s+(\S+)$", line)
+        # Use \b word boundary to ensure tag is a standalone 4-char word (not end of "weight")
+        full_form_match = re.search(r"\b(\w{4})\s+(\S+)$", line)
 
         # Validate that range_part looks like a range (contains ':' or is binary/discrete)
         if full_form_match and ">" not in line:
@@ -519,7 +529,8 @@ class DSSParser:
             return
 
         self.current_axis = DSSAxis(
-            name=name, tag=tag, minimum=minimum, default=default, maximum=maximum
+            name=name, tag=tag, minimum=minimum, default=default, maximum=maximum,
+            display_name=display_name
         )
         self.document.axes.append(self.current_axis)
 

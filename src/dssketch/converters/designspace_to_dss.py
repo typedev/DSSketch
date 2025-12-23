@@ -146,8 +146,13 @@ class DesignSpaceToDSS:
             maximum = getattr(axis, "maximum", 1000)
             default = getattr(axis, "default", minimum)
 
+        # Store original axis.name as display_name for UI preservation
+        # Use tag as the internal name (will be normalized later)
+        display_name = axis.name if axis.name != axis.tag else None
+
         dss_axis = DSSAxis(
-            name=axis.name, tag=axis.tag, minimum=minimum, default=default, maximum=maximum
+            name=axis.name, tag=axis.tag, minimum=minimum, default=default, maximum=maximum,
+            display_name=display_name
         )
 
         # Process mappings and labels
