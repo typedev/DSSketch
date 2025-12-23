@@ -115,7 +115,12 @@ class DSSToDesignSpace:
             axis = DiscreteAxisDescriptor()
             axis.name = dss_axis.name
             axis.tag = dss_axis.tag
-            axis.labelNames = {"en": dss_axis.name.title()}  # Weight, Italic, etc.
+            # For custom axes (UPPERCASE tags), preserve original name
+            # For standard axes, use title case (italic → Italic)
+            if dss_axis.tag.isupper():
+                axis.labelNames = {"en": dss_axis.name}
+            else:
+                axis.labelNames = {"en": dss_axis.name.title()}
             axis.values = [0, 1]
             axis.default = dss_axis.default
 
@@ -141,7 +146,12 @@ class DSSToDesignSpace:
             axis = AxisDescriptor()
             axis.name = dss_axis.name
             axis.tag = dss_axis.tag
-            axis.labelNames = {"en": dss_axis.name.title()}  # Weight, Italic, etc.
+            # For custom axes (UPPERCASE tags), preserve original name
+            # For standard axes, use title case (weight → Weight)
+            if dss_axis.tag.isupper():
+                axis.labelNames = {"en": dss_axis.name}  # WDSP, GRAD, etc.
+            else:
+                axis.labelNames = {"en": dss_axis.name.title()}  # Weight, Italic, etc.
             axis.minimum = dss_axis.minimum
             axis.default = dss_axis.default
             axis.maximum = dss_axis.maximum
@@ -154,13 +164,15 @@ class DSSToDesignSpace:
                 # Add mapping as tuple (older format)
                 axis.map.append((mapping.user_value, mapping.design_value))
 
-                # Add label
-                label_desc = AxisLabelDescriptor(
-                    name=mapping.label,
-                    userValue=mapping.user_value,
-                    elidable=mapping.elidable,
-                )
-                axis.axisLabels.append(label_desc)
+                # Add label only if it's not empty
+                # (pure numeric mappings like opsz don't have labels)
+                if mapping.label:
+                    label_desc = AxisLabelDescriptor(
+                        name=mapping.label,
+                        userValue=mapping.user_value,
+                        elidable=mapping.elidable,
+                    )
+                    axis.axisLabels.append(label_desc)
 
         return axis
 

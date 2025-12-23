@@ -291,20 +291,18 @@ class DSSWriter:
 
     def _get_axis_display_name(self, axis_name: str, axis_tag: str) -> str:
         """Get the display name for an axis - omit registered names, use uppercase for custom"""
-        axis_name_lower = axis_name.lower()
+        # Standard axis tags that can be written without name
+        STANDARD_TAGS = {"wght", "wdth", "ital", "slnt", "opsz"}
 
-        # Check if it's a registered axis (can be omitted)
-        if self.optimize and axis_name_lower in self.REGISTERED_AXES:
-            expected_tag = self.REGISTERED_AXES[axis_name_lower]
-            # Only omit if the tag matches the expected registered tag
-            if axis_tag == expected_tag:
-                return ""  # Will be handled in the caller
+        # If tag is standard, omit the name entirely (simpler format)
+        if self.optimize and axis_tag in STANDARD_TAGS:
+            return ""  # Just use tag
 
-        # For non-registered axes, use uppercase
-        if axis_name_lower not in self.REGISTERED_AXES:
+        # For custom axes (UPPERCASE tags), use name in uppercase
+        if axis_tag.isupper() and len(axis_tag) == 4:
             return axis_name.upper()
 
-        # For registered axes with non-standard tags, keep original name
+        # Fallback: keep original name
         return axis_name
 
     def _get_label_for_coordinate(self, axis: DSSAxis, value: float) -> Optional[str]:
@@ -581,6 +579,7 @@ class DSSWriter:
             "slant": "slnt",
             "optical": "opsz",
             "opticalsize": "opsz",
+            "optical size": "opsz",
         }
 
         # Convert to lowercase for lookup

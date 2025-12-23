@@ -298,142 +298,137 @@ class DSSParser:
         # Pattern 3: "wght 100:400:900" (registered axis, name omitted)
         # Pattern 4: "ital binary" (registered binary axis)
         # Pattern 5: "weight 100:400:900" (legacy form with inferred tag)
+        # Pattern 6: "OPTICAL SIZE opsz 8:14:144" (name with spaces)
 
-        if re.match(r"^\w+\s+\w{4}\s+", line) and ">" not in line:
-            # Full form: name tag range
-            # Note: Exclude lines with ">" to avoid matching mappings like "500 Bold > 1000"
+        # Try to match full form with potential spaces in name
+        # Look for: [name words] [4-char tag] [range]
+        # Strategy: find the range (contains ':' or is binary/discrete), then tag before it
+        # Range can be numeric (100:400:900) or label-based (Thin:Regular:Black)
+        full_form_match = re.search(r"(\w{4})\s+(\S+)$", line)
+
+        # Validate that range_part looks like a range (contains ':' or is binary/discrete)
+        if full_form_match and ">" not in line:
+            range_part = full_form_match.group(2)
+            is_valid_range = ":" in range_part or range_part in ["binary", "discrete"]
+            if not is_valid_range:
+                full_form_match = None  # Not a valid axis definition
+
+        if full_form_match and ">" not in line:
+            # Full form: name tag range (name may contain spaces)
+            tag = full_form_match.group(1)
+            range_part = full_form_match.group(2)
+            # Everything before the tag is the name
+            name_end = full_form_match.start()
+            name = line[:name_end].strip()
+
+            # If name is empty, this is shortened form (tag range only)
+            if not name:
+                name = self.TAG_TO_NAME.get(tag, tag.upper())
+
+            # Validate axis tag for potential typos
+            is_valid_tag, suggested_tag = DSSValidator.validate_axis_tag(tag)
+            if not is_valid_tag and suggested_tag:
+                error_msg = (
+                    f"Axis tag '{tag}' looks like a typo of standard axis '{suggested_tag}'. "
+                    f"Did you mean '{suggested_tag}'? "
+                    f"If you want to create a custom axis, use an UPPERCASE tag (e.g., '{tag.upper()}'). "
+                    f"Standard axis tags: wght, wdth, ital, slnt, opsz"
+                )
+                if self.validator.strict_mode:
+                    raise ValueError(error_msg)
+                else:
+                    self.validator.errors.append(error_msg)
+                    # Continue parsing - let the axis be created even with typo
+
+            # Validate axis range (skip validation for label-based ranges)
+            # Check if this might be a label-based range
+            is_label_based = ":" in range_part and not all(
+                v.replace(".", "").replace("-", "").replace("+", "").isdigit()
+                for v in range_part.split(":")
+            )
+
+            if not is_label_based:
+                is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
+                if not is_valid:
+                    self.validator.errors.append(
+                        f"Invalid axis range for '{name}': {error_msg}"
+                    )
+                    return
+
+            # Parse range values
+            if range_part in ["binary", "discrete"]:
+                minimum, default, maximum = 0, 0, 1
+            elif ":" in range_part:
+                values = range_part.split(":")
+                try:
+                    # Try to resolve each value (supports both numbers and labels)
+                    minimum = self._resolve_axis_range_value(values[0], name)
+                    default = (
+                        self._resolve_axis_range_value(values[1], name)
+                        if len(values) > 2
+                        else minimum
+                    )
+                    maximum = self._resolve_axis_range_value(values[-1], name)
+                except ValueError as e:
+                    self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                    return
+            else:
+                try:
+                    minimum = default = maximum = self._resolve_axis_range_value(
+                        range_part, name
+                    )
+                except ValueError as e:
+                    self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                    return
+
+        elif re.match(r"^\w+\s+[\d.:+-]+$", line) and ">" not in line:
+            # Legacy form: name range (infer tag from name)
+            # e.g., "weight 100:400:900"
             parts = line.split()
             name = parts[0]
-            tag = parts[1]
+            range_part = parts[1]
 
-            # Validate axis tag for potential typos
-            is_valid_tag, suggested_tag = DSSValidator.validate_axis_tag(tag)
-            if not is_valid_tag and suggested_tag:
-                error_msg = (
-                    f"Axis tag '{tag}' looks like a typo of standard axis '{suggested_tag}'. "
-                    f"Did you mean '{suggested_tag}'? "
-                    f"If you want to create a custom axis, use an UPPERCASE tag (e.g., '{tag.upper()}'). "
-                    f"Standard axis tags: wght, wdth, ital, slnt, opsz"
-                )
-                if self.validator.strict_mode:
-                    raise ValueError(error_msg)
-                else:
-                    self.validator.errors.append(error_msg)
-                    # Continue parsing - let the axis be created even with typo
+            # Infer tag from name
+            tag = self.NAME_TO_TAG.get(name.lower(), name.upper()[:4])
 
-            # Parse range, binary, or discrete
-            if len(parts) > 2:
-                range_part = parts[2]
+            # Check if this might be a label-based range
+            is_label_based = ":" in range_part and not all(
+                v.replace(".", "").replace("-", "").replace("+", "").isdigit()
+                for v in range_part.split(":")
+            )
 
-                # Validate axis range (skip validation for label-based ranges)
-                # Check if this might be a label-based range
-                is_label_based = ":" in range_part and not all(
-                    v.replace(".", "").replace("-", "").replace("+", "").isdigit()
-                    for v in range_part.split(":")
-                )
+            if not is_label_based:
+                is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
+                if not is_valid:
+                    self.validator.errors.append(
+                        f"Invalid axis range for '{name}': {error_msg}"
+                    )
+                    return
 
-                if not is_label_based:
-                    is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
-                    if not is_valid:
-                        self.validator.errors.append(
-                            f"Invalid axis range for '{name}': {error_msg}"
-                        )
-                        return
-
-                if range_part in ["binary", "discrete"]:
-                    minimum, default, maximum = 0, 0, 1
-                elif ":" in range_part:
-                    values = range_part.split(":")
-                    try:
-                        # Try to resolve each value (supports both numbers and labels)
-                        minimum = self._resolve_axis_range_value(values[0], name)
-                        default = (
-                            self._resolve_axis_range_value(values[1], name)
-                            if len(values) > 2
-                            else minimum
-                        )
-                        maximum = self._resolve_axis_range_value(values[-1], name)
-                    except ValueError as e:
-                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
-                        return
-                else:
-                    try:
-                        minimum = default = maximum = self._resolve_axis_range_value(
-                            range_part, name
-                        )
-                    except ValueError as e:
-                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
-                        return
+            if range_part in ["binary", "discrete"]:
+                minimum, default, maximum = 0, 0, 1
+            elif ":" in range_part:
+                values = range_part.split(":")
+                try:
+                    minimum = self._resolve_axis_range_value(values[0], name)
+                    default = (
+                        self._resolve_axis_range_value(values[1], name)
+                        if len(values) > 2
+                        else minimum
+                    )
+                    maximum = self._resolve_axis_range_value(values[-1], name)
+                except ValueError as e:
+                    self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                    return
             else:
-                minimum = default = maximum = 0
+                try:
+                    minimum = default = maximum = self._resolve_axis_range_value(
+                        range_part, name
+                    )
+                except ValueError as e:
+                    self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
+                    return
 
-        elif re.match(r"^\w{4}\s+", line) and ">" not in line:
-            # Shortened form: tag range (for registered axes)
-            # But not if it contains '>' (that's a mapping)
-            parts = line.split()
-            tag = parts[0]
-
-            # Validate axis tag for potential typos
-            is_valid_tag, suggested_tag = DSSValidator.validate_axis_tag(tag)
-            if not is_valid_tag and suggested_tag:
-                error_msg = (
-                    f"Axis tag '{tag}' looks like a typo of standard axis '{suggested_tag}'. "
-                    f"Did you mean '{suggested_tag}'? "
-                    f"If you want to create a custom axis, use an UPPERCASE tag (e.g., '{tag.upper()}'). "
-                    f"Standard axis tags: wght, wdth, ital, slnt, opsz"
-                )
-                if self.validator.strict_mode:
-                    raise ValueError(error_msg)
-                else:
-                    self.validator.errors.append(error_msg)
-                    # Continue parsing - let the axis be created even with typo
-
-            # Get standard name from tag
-            name = self.TAG_TO_NAME.get(tag, tag.upper())
-
-            # Parse range, binary, or discrete
-            if len(parts) > 1:
-                range_part = parts[1]
-
-                # Validate axis range (skip validation for label-based ranges)
-                is_label_based = ":" in range_part and not all(
-                    v.replace(".", "").replace("-", "").replace("+", "").isdigit()
-                    for v in range_part.split(":")
-                )
-
-                if not is_label_based:
-                    is_valid, error_msg = DSSValidator.validate_axis_range(range_part)
-                    if not is_valid:
-                        self.validator.errors.append(
-                            f"Invalid axis range for '{name}': {error_msg}"
-                        )
-                        return
-
-                if range_part in ["binary", "discrete"]:
-                    minimum, default, maximum = 0, 0, 1
-                elif ":" in range_part:
-                    values = range_part.split(":")
-                    try:
-                        minimum = self._resolve_axis_range_value(values[0], name)
-                        default = (
-                            self._resolve_axis_range_value(values[1], name)
-                            if len(values) > 2
-                            else minimum
-                        )
-                        maximum = self._resolve_axis_range_value(values[-1], name)
-                    except ValueError as e:
-                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
-                        return
-                else:
-                    try:
-                        minimum = default = maximum = self._resolve_axis_range_value(
-                            range_part, name
-                        )
-                    except ValueError as e:
-                        self.validator.errors.append(f"Invalid axis range for '{name}': {e}")
-                        return
-            else:
-                minimum = default = maximum = 0
         elif re.match(r"^\w+\s+(\S+)", line) and ">" not in line and "@elidable" not in line:
             # Human-readable axis names: "weight 100:400:900" or "width Condensed:Normal:Extended"
             # Supports both numeric and label-based ranges
@@ -550,11 +545,11 @@ class DSSParser:
             left_parts = left.split()
 
             if left_parts[0].replace(".", "").replace("-", "").isdigit():
-                # Format: "300 Light" or "0.0 Upright"
+                # Format: "300 Light" or "0.0 Upright" or just "8" (pure numeric)
                 user = float(left_parts[0])
                 label = " ".join(left_parts[1:]) if len(left_parts) > 1 else ""
-                if not label:
-                    label = Standards.get_name_for_user_value(user, self.current_axis.name)
+                # Don't generate fake labels for pure numeric mappings
+                # Keep label empty if not provided - this is valid for axis maps without labels
             else:
                 # Format: "Light > 295" or "XX > 60" - infer user value
                 label = left
@@ -734,9 +729,22 @@ class DSSParser:
             pass
 
         # Find the axis in document by name or tag
+        # Support human-readable names: weight -> wght, width -> wdth, etc.
+        axis_name_lower = axis_name.lower()
+        name_to_tag = {
+            "weight": "wght",
+            "width": "wdth",
+            "italic": "ital",
+            "slant": "slnt",
+            "optical": "opsz",
+        }
+        expected_tag = name_to_tag.get(axis_name_lower, axis_name_lower)
+
         target_axis = None
         for axis in self.document.axes:
-            if axis.name == axis_name or axis.tag == axis_name:
+            if (axis.name.lower() == axis_name_lower or
+                axis.tag == axis_name or
+                axis.tag == expected_tag):
                 target_axis = axis
                 break
 

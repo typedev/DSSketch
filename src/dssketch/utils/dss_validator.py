@@ -248,6 +248,9 @@ class DSSValidator:
         for axis in document.axes:
             for mapping in axis.mappings:
                 label = mapping.label
+                # Skip empty labels - they are valid for pure numeric axis maps
+                if not label:
+                    continue
                 if label not in label_to_axes:
                     label_to_axes[label] = []
                 label_to_axes[label].append((axis.name, axis.tag))
@@ -796,14 +799,16 @@ class DSSValidator:
                 for source in document.sources
             )
 
-            if not min_source_exists and min_mapping:
+            # Only check for sources if mapping has a label (for instance generation)
+            # Pure numeric axis maps (empty labels) don't require sources at extremes
+            if not min_source_exists and min_mapping and min_mapping.label:
                 self.errors.append(
                     f"Missing source for minimum mapping '{min_mapping.label}' "
                     f"at coordinate {min_design} on axis '{axis.name}'. "
                     f"Variable fonts require sources at extreme coordinates for proper interpolation."
                 )
 
-            if not max_source_exists and max_mapping:
+            if not max_source_exists and max_mapping and max_mapping.label:
                 self.errors.append(
                     f"Missing source for maximum mapping '{max_mapping.label}' "
                     f"at coordinate {max_design} on axis '{axis.name}'. "

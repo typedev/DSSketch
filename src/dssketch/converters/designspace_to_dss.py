@@ -172,6 +172,19 @@ class DesignSpaceToDSS:
                     elidable=getattr(label, "elidable", False),
                 )
                 dss_axis.mappings.append(mapping)
+        elif mappings_dict:
+            # No labels but has axis map - create mappings from map directly
+            # This preserves non-linear axis mappings like opsz
+            for user_val, design_val in mappings_dict.items():
+                # Only add non-identity mappings (where user != design)
+                # or all mappings if there's a non-linear relationship
+                mapping = DSSAxisMapping(
+                    user_value=user_val,
+                    design_value=design_val,
+                    label="",  # No label for pure numeric mappings
+                    elidable=False,
+                )
+                dss_axis.mappings.append(mapping)
 
         # Sort mappings by user value
         dss_axis.mappings.sort(key=lambda m: m.user_value)
@@ -196,10 +209,21 @@ class DesignSpaceToDSS:
         # Base source has coordinates matching default values in design space
         is_base = self._is_default_source(source, ds_doc)
 
+        # Build complete location with default values for missing axes
+        # In DesignSpace, missing coordinate means default value
+        complete_location = {}
+        for axis in ds_doc.axes:
+            axis_name = axis.name
+            if axis_name in source.location:
+                complete_location[axis_name] = source.location[axis_name]
+            else:
+                # Missing coordinate = default value (standard DesignSpace behavior)
+                complete_location[axis_name] = axis.default
+
         return DSSSource(
             name=name,
             filename=filename or f"{name}.ufo",
-            location=dict(source.location),
+            location=complete_location,
             is_base=is_base,
             copy_lib=source.copyLib,
             copy_info=source.copyInfo,
@@ -215,9 +239,10 @@ class DesignSpaceToDSS:
             axis_name = axis.name
 
             # Get source's coordinate in design space
+            # Missing coordinate means default value (standard DesignSpace behavior)
             source_coord = source.location.get(axis_name)
             if source_coord is None:
-                return False
+                source_coord = axis.default
 
             # Skip discrete axes - they can have any value
             # We need base sources for each discrete value (e.g., both Roman and Italic)
