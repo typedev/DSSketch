@@ -111,7 +111,8 @@ class DSSWriter:
             else:
                 # Positional format: include axis header
                 if dss_doc.axes:
-                    axis_tags = [self._get_axis_tag(axis.name) for axis in dss_doc.axes]
+                    # Use axis.tag directly, not axis.name (which may be display name)
+                    axis_tags = [axis.tag for axis in dss_doc.axes]
                     lines.append(f"sources [{', '.join(axis_tags)}]")
                 else:
                     lines.append("sources")
@@ -202,8 +203,14 @@ class DSSWriter:
 
         if is_discrete:
             # Standard discrete axis (like italic) - use 'discrete' keyword
-            if axis_name:
-                axis_line = f"    {axis_name} {axis.tag} discrete"
+            # If display_name exists and matches axis_name, skip axis_name to avoid duplication
+            use_axis_name = axis_name
+            if axis.display_name and axis_name:
+                if axis_name.lower() == axis.display_name.lower():
+                    use_axis_name = ""
+
+            if use_axis_name:
+                axis_line = f"    {use_axis_name} {axis.tag} discrete"
             else:
                 axis_line = f"    {axis.tag} discrete"
             # Add display_name if present and different from tag
@@ -245,8 +252,16 @@ class DSSWriter:
             if not range_str:
                 range_str = f"{self._format_number(axis.minimum)}:{self._format_number(axis.default)}:{self._format_number(axis.maximum)}"
 
-            if axis_name:
-                axis_line = f"    {axis_name} {axis.tag} {range_str}"
+            # If display_name exists and is essentially the same as axis_name, skip axis_name
+            # to avoid duplication like "ROTATION IN Z ZROT 0:0:90 "Rotation in Z""
+            use_axis_name = axis_name
+            if axis.display_name and axis_name:
+                # Compare case-insensitively to detect duplicates
+                if axis_name.lower() == axis.display_name.lower():
+                    use_axis_name = ""
+
+            if use_axis_name:
+                axis_line = f"    {use_axis_name} {axis.tag} {range_str}"
             else:
                 axis_line = f"    {axis.tag} {range_str}"
             # Add display_name if present and different from tag

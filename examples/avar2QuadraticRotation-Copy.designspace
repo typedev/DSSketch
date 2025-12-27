@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.1">
+  <axes>
+    <axis tag="ZROT" name="Rotation in Z" minimum="0" maximum="90" default="0">
+      <labelname xml:lang="en">Rotation in Z</labelname>
+      <labels ordering="0"/>
+    </axis>
+    <axis tag="AAAA" name="AAAA" minimum="0" maximum="90" default="0" hidden="1">
+      <labelname xml:lang="en">AAAA</labelname>
+      <labels ordering="1"/>
+    </axis>
+    <axis tag="BBBB" name="BBBB" minimum="0" maximum="90" default="0" hidden="1">
+      <labelname xml:lang="en">BBBB</labelname>
+      <labels ordering="2"/>
+    </axis>
+    <mappings>
+      <mapping>
+        <input>
+          <dimension name="Rotation in Z" xvalue="0"/>
+        </input>
+        <output>
+          <dimension name="AAAA" xvalue="0"/>
+          <dimension name="BBBB" xvalue="0"/>
+        </output>
+      </mapping>
+      <mapping>
+        <input>
+          <dimension name="Rotation in Z" xvalue="90"/>
+        </input>
+        <output>
+          <dimension name="AAAA" xvalue="90"/>
+          <dimension name="BBBB" xvalue="90"/>
+        </output>
+      </mapping>
+    </mappings>
+  </axes>
+</designspace>

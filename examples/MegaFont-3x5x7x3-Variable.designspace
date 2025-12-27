@@ -2,7 +2,7 @@
 <designspace format="5.0">
   <axes>
     <axis tag="CNTR" name="CONTRAST" minimum="0" maximum="100" default="0">
-      <labelname xml:lang="en">Contrast</labelname>
+      <labelname xml:lang="en">CONTRAST</labelname>
       <map input="0" output="0"/>
       <map input="50" output="100"/>
       <map input="100" output="200"/>

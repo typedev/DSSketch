@@ -131,10 +131,10 @@ class DSSValidator:
                         f"CRITICAL: Axis '{axis.name}' has invalid range (min = max = {axis.minimum})"
                     )
 
-        # Check sources - CRITICAL
+        # Check sources - WARNING (allows testing avar2 and other logic without sources)
         if not document.sources:
-            self.errors.append(
-                "CRITICAL: No sources found - cannot generate valid DesignSpace without sources"
+            self.warnings.append(
+                "No sources found - DesignSpace will be created but cannot be used for font compilation"
             )
         else:
             # Check for base source and auto-detect if missing

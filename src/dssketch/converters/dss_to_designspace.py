@@ -306,7 +306,19 @@ class DSSToDesignSpace:
         else:
             source.styleName = dss_source.name
 
-        source.location = dss_source.location.copy()
+        # Convert location keys from tags to axis names (fontTools uses axis.name)
+        # Build mapping: tag -> axis_name (display_name if available, else name)
+        tag_to_name = {}
+        for axis in dss_doc.axes + dss_doc.hidden_axes:
+            axis_name = axis.display_name if axis.display_name else axis.name
+            tag_to_name[axis.tag] = axis_name
+            tag_to_name[axis.name] = axis_name  # Also map name to itself
+
+        source.location = {}
+        for key, value in dss_source.location.items():
+            # Convert tag to axis name if needed
+            axis_name = tag_to_name.get(key, key)
+            source.location[axis_name] = value
 
         # Set copy flags
         if dss_source.is_base:

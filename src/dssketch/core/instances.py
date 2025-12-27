@@ -334,7 +334,12 @@ def sortAxisOrder(ds: DesignSpaceDocument, dss_doc: "DSSDocument" = None):
     """
     if dss_doc and dss_doc.axes:
         # Use the exact order from DSS axes section
-        orderAxis = [axis.name for axis in dss_doc.axes]
+        # But use display_name (which becomes axis.name in DesignSpace) for lookup
+        orderAxis = []
+        for dss_axis in dss_doc.axes:
+            # DesignSpace axis.name is set from display_name or name
+            ds_name = dss_axis.display_name if dss_axis.display_name else dss_axis.name
+            orderAxis.append(ds_name)
 
         # Ensure all DS axes are included (safety check)
         ds_axis_names = [axis.name for axis in ds.axes]
