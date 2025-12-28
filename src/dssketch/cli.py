@@ -27,6 +27,20 @@ def main():
     parser.add_argument("input", help="Input file (.dssketch or .designspace)")
     parser.add_argument("-o", "--output", help="Output file (optional, defaults to same directory)")
 
+    # avar2 format options (mutually exclusive)
+    avar2_group = parser.add_mutually_exclusive_group()
+    avar2_group.add_argument(
+        "--matrix",
+        action="store_true",
+        default=True,
+        help="Use matrix format for avar2 output (default)",
+    )
+    avar2_group.add_argument(
+        "--linear",
+        action="store_true",
+        help="Use linear format for avar2 output",
+    )
+
     args = parser.parse_args()
 
     input_path = Path(args.input)
@@ -97,7 +111,15 @@ def main():
 
             ds_doc = DesignSpaceDocument.fromfile(str(input_path))
 
-            writer = DSSWriter(optimize=True, ds_doc=ds_doc, base_path=str(input_path.parent))
+            # Determine avar2 format
+            avar2_format = "linear" if args.linear else "matrix"
+
+            writer = DSSWriter(
+                optimize=True,
+                ds_doc=ds_doc,
+                base_path=str(input_path.parent),
+                avar2_format=avar2_format,
+            )
             dss_content = writer.write(dss_doc)
 
             output_path = Path(args.output) if args.output else input_path.with_suffix(".dssketch")

@@ -37,12 +37,14 @@ class DSSWriter:
         base_path: Optional[str] = None,
         use_label_coordinates: bool = True,
         use_label_ranges: bool = True,
+        avar2_format: str = "matrix",
     ):
         self.optimize = optimize
         self.ds_doc = ds_doc
         self.base_path = base_path
         self.use_label_coordinates = use_label_coordinates
         self.use_label_ranges = use_label_ranges
+        self.avar2_format = avar2_format  # "matrix" or "linear"
 
     @staticmethod
     def _quote_if_spaces(value: str) -> str:
@@ -129,9 +131,12 @@ class DSSWriter:
 
         # avar2 mappings section
         if dss_doc.avar2_mappings:
-            lines.append("avar2")
-            for mapping in dss_doc.avar2_mappings:
-                lines.extend(self._format_avar2_mapping(mapping, dss_doc))
+            if self.avar2_format == "matrix":
+                lines.extend(self._format_avar2_as_matrix(dss_doc))
+            else:
+                lines.append("avar2")
+                for mapping in dss_doc.avar2_mappings:
+                    lines.extend(self._format_avar2_mapping(mapping, dss_doc))
             lines.append("")
 
         # Rules section
@@ -773,3 +778,111 @@ class DSSWriter:
 
         # Hidden axes typically don't have labels
         return None
+
+    def _format_avar2_as_matrix(self, dss_doc: DSSDocument) -> List[str]:
+        """Format avar2 mappings as matrix format
+
+        Matrix format is more compact when multiple mappings share the same output axes.
+
+        Format:
+            avar2 matrix
+                outputs  AXIS1  AXIS2  AXIS3
+                [input1]  val1   val2   val3
+                [input2]  val1   val2   val3
+        """
+        lines = []
+
+        if not dss_doc.avar2_mappings:
+            return lines
+
+        # Collect all unique output axes in consistent order
+        output_axes = []
+        for mapping in dss_doc.avar2_mappings:
+            for axis_name in mapping.output.keys():
+                if axis_name not in output_axes:
+                    output_axes.append(axis_name)
+
+        # Start matrix section
+        lines.append("avar2 matrix")
+
+        # Output header row
+        header_parts = ["outputs"] + output_axes
+        # Calculate column widths for alignment
+        col_widths = self._calculate_matrix_column_widths(dss_doc, output_axes)
+        header_line = "    " + "  ".join(
+            part.ljust(col_widths.get(i, len(part)))
+            for i, part in enumerate(header_parts)
+        )
+        lines.append(header_line)
+
+        # Format each mapping as a data row
+        for mapping in dss_doc.avar2_mappings:
+            # Format input conditions
+            input_parts = []
+            for axis_name, value in mapping.input.items():
+                label = self._get_avar2_label_for_value(axis_name, value, dss_doc)
+                if label:
+                    input_parts.append(f"{axis_name}={label}")
+                else:
+                    input_parts.append(f"{axis_name}={self._format_number(value)}")
+            input_str = f"[{', '.join(input_parts)}]"
+
+            # Format output values in column order
+            value_parts = []
+            for axis_name in output_axes:
+                if axis_name in mapping.output:
+                    value = mapping.output[axis_name]
+                    # Check for variable shorthand
+                    if axis_name in dss_doc.avar2_vars and dss_doc.avar2_vars[axis_name] == value:
+                        value_parts.append("$")
+                    else:
+                        value_parts.append(self._format_number(value))
+                else:
+                    # Missing value - use dash or empty
+                    value_parts.append("-")
+
+            # Build the row with alignment
+            row_parts = [input_str] + value_parts
+            row_line = "    " + "  ".join(
+                part.ljust(col_widths.get(i, len(part)))
+                for i, part in enumerate(row_parts)
+            )
+            lines.append(row_line)
+
+        return lines
+
+    def _calculate_matrix_column_widths(self, dss_doc: DSSDocument, output_axes: List[str]) -> dict:
+        """Calculate column widths for matrix alignment
+
+        Returns dict mapping column index to width.
+        """
+        widths = {}
+
+        # Column 0 is the input/outputs column
+        max_input_len = len("outputs")
+        for mapping in dss_doc.avar2_mappings:
+            input_parts = []
+            for axis_name, value in mapping.input.items():
+                label = self._get_avar2_label_for_value(axis_name, value, dss_doc)
+                if label:
+                    input_parts.append(f"{axis_name}={label}")
+                else:
+                    input_parts.append(f"{axis_name}={self._format_number(value)}")
+            input_str = f"[{', '.join(input_parts)}]"
+            max_input_len = max(max_input_len, len(input_str))
+        widths[0] = max_input_len
+
+        # Columns 1+ are output axes
+        for i, axis_name in enumerate(output_axes):
+            max_len = len(axis_name)
+            for mapping in dss_doc.avar2_mappings:
+                if axis_name in mapping.output:
+                    value = mapping.output[axis_name]
+                    if axis_name in dss_doc.avar2_vars and dss_doc.avar2_vars[axis_name] == value:
+                        val_str = "$"
+                    else:
+                        val_str = self._format_number(value)
+                    max_len = max(max_len, len(val_str))
+            widths[i + 1] = max_len
+
+        return widths

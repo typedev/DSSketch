@@ -74,9 +74,64 @@ def copyDS(
         destinationDesignspace.rules = sourceDesignspace.rules.copy()
 
 
-def getInstancesMapping(designSpaceDocument: DesignSpaceDocument, axisName="weight"):
+def _extract_avar2_points_for_axis(dss_doc: "DSSDocument", axis_tag: str) -> set:
+    """
+    Extract unique input points from avar2 mappings for a specific axis.
+
+    Args:
+        dss_doc: DSS document with avar2_mappings
+        axis_tag: Axis tag to look for (e.g., 'wght', 'wdth')
+
+    Returns:
+        Set of unique float values from avar2 inputs for this axis
+    """
+    points = set()
+    if not dss_doc or not dss_doc.avar2_mappings:
+        return points
+
+    for mapping in dss_doc.avar2_mappings:
+        for input_axis, input_value in mapping.input.items():
+            # Match by tag (case-insensitive)
+            if input_axis.lower() == axis_tag.lower():
+                points.add(input_value)
+    return points
+
+
+def _format_axis_value_label(axis_tag: str, value: float) -> str:
+    """
+    Format axis value as a label name for instances without defined labels.
+
+    Args:
+        axis_tag: Axis tag (e.g., 'wght', 'wdth')
+        value: The axis value
+
+    Returns:
+        Formatted label like 'wght400' or 'wdth100'
+    """
+    # Format value: remove .0 for integers
+    if isinstance(value, float) and value.is_integer():
+        value_str = str(int(value))
+    else:
+        value_str = str(value)
+    return f"{axis_tag.lower()}{value_str}"
+
+
+def getInstancesMapping(
+    designSpaceDocument: DesignSpaceDocument,
+    axisName: str = "weight",
+    dss_doc: "DSSDocument" = None,
+):
     """
     Extracts the mapping of the axis values to the user values from the designspace document.
+
+    If the axis has no labels, generates fallback points from:
+    1. min, default, max values
+    2. Unique input points from avar2 mappings (if dss_doc provided)
+
+    Args:
+        designSpaceDocument: The DesignSpace document
+        axisName: Name of the axis to get mapping for
+        dss_doc: Optional DSS document for avar2 points extraction
     """
     axisDescriptor = designSpaceDocument.getAxis(axisName)
     if not axisDescriptor:
@@ -87,19 +142,27 @@ def getInstancesMapping(designSpaceDocument: DesignSpaceDocument, axisName="weig
         )
 
     axisMap = axisDescriptor.map
+    has_labels = bool(axisDescriptor.axisLabels)
+
+    # If no labels, always use fallback (even if map exists)
+    # This handles avar2 cases where map exists but labels don't
+    if not has_labels:
+        DSSketchLogger.info(
+            f"Axis '{axisName}' has no labels, generating instances from range + avar2"
+        )
+        return _generate_fallback_mapping(axisDescriptor, dss_doc)
+
     if not axisMap:
         # For discrete axes (like italic), no map is normal - user space = design space
         # Check if this is a discrete axis by looking for the 'values' attribute
         is_discrete = hasattr(axisDescriptor, 'values') and axisDescriptor.values is not None
 
         if not is_discrete:
-            # Only warn for non-discrete axes where missing map might be unexpected
             axis_labels_info = [(label.userValue, label.name) for label in axisDescriptor.axisLabels]
             DSSketchLogger.warning(
                 f"Axis '{axisName}' has no map, using axis labels and their user values {axis_labels_info}"
             )
         else:
-            # Debug level for discrete axes where this is expected
             DSSketchLogger.debug(
                 f"Discrete axis '{axisName}' has no map (expected for discrete axes)"
             )
@@ -110,13 +173,10 @@ def getInstancesMapping(designSpaceDocument: DesignSpaceDocument, axisName="weig
 
     reverseMap = {}
     axisLabelsList = {}
-    # logger.warning(f'axisMap: {axisMap}')
     for item in axisMap:
         uservalue, axisvalue = item
         labelName = None
-        # logger.warning(f'axisDescriptor.axisLabels: {axisDescriptor.axisLabels}')
         for axisLabel in axisDescriptor.axisLabels:
-            # logger.warning(f"loop:{axisLabel.userValue}, {uservalue}")
             if axisLabel.userValue == uservalue:
                 labelName = axisLabel.name
                 axisLabelsList[labelName] = uservalue
@@ -127,7 +187,57 @@ def getInstancesMapping(designSpaceDocument: DesignSpaceDocument, axisName="weig
             )
 
         reverseMap[axisvalue] = uservalue
-    # logger.warning(f'reverseMap: {reverseMap}')
+    return {"reverseMap": reverseMap, "axisLabels": axisLabelsList}
+
+
+def _generate_fallback_mapping(axisDescriptor, dss_doc: "DSSDocument" = None) -> dict:
+    """
+    Generate fallback mapping for axes without labels.
+
+    Uses min:def:max as base points, plus unique avar2 input points.
+    Labels are generated as tag+value (e.g., 'wght400').
+
+    Args:
+        axisDescriptor: The axis descriptor from DesignSpace
+        dss_doc: Optional DSS document for avar2 points
+
+    Returns:
+        Dict with 'reverseMap' and 'axisLabels'
+    """
+    axis_tag = axisDescriptor.tag
+
+    # Start with min, default, max
+    points = {
+        axisDescriptor.minimum,
+        axisDescriptor.default,
+        axisDescriptor.maximum,
+    }
+
+    # Add avar2 input points
+    if dss_doc:
+        avar2_points = _extract_avar2_points_for_axis(dss_doc, axis_tag)
+        if avar2_points:
+            DSSketchLogger.debug(
+                f"Adding {len(avar2_points)} avar2 points for axis '{axis_tag}': {sorted(avar2_points)}"
+            )
+            points.update(avar2_points)
+
+    # Sort points
+    sorted_points = sorted(points)
+
+    DSSketchLogger.info(
+        f"Axis '{axisDescriptor.name}' ({axis_tag}): generated {len(sorted_points)} instance points: {sorted_points}"
+    )
+
+    # Generate mapping with tag+value labels
+    reverseMap = {}
+    axisLabelsList = {}
+    for value in sorted_points:
+        label = _format_axis_value_label(axis_tag, value)
+        # For no-map axes, user value = design value
+        reverseMap[value] = value
+        axisLabelsList[label] = value
+
     return {"reverseMap": reverseMap, "axisLabels": axisLabelsList}
 
 
@@ -227,7 +337,7 @@ def createInstances(
     labelsmap = []
     report = []
     for axisname in axisOrder:
-        mapAxis = getInstancesMapping(ds, axisname)
+        mapAxis = getInstancesMapping(ds, axisname, dss_doc=dss_doc)
         locations[axisname] = mapAxis["reverseMap"]
         labelsmap.append(mapAxis["axisLabels"])
 
@@ -287,14 +397,21 @@ def createInstances(
         mapUserValues = [uservalue for _, uservalue in itemlist]
         for i, uservalue in enumerate(mapUserValues):
             axisName = axisOrder[i]
-            axisDescriptor = ds.getAxis(axisName)
-            mapAxis = dict(axisDescriptor.map)
-            if not mapAxis:
-                # if no map, then use user values
-                mapAxis = {}
-                for axisLabel in axisDescriptor.axisLabels:
-                    mapAxis[axisLabel.userValue] = axisLabel.userValue
-            locationsInstance[axisName] = mapAxis[uservalue]
+            # Use the reverseMap we already built (handles fallback cases correctly)
+            axisReverseMap = locations[axisName]
+            if uservalue in axisReverseMap:
+                # reverseMap: design_value -> user_value, but for no-map axes user=design
+                # For fallback mapping, both key and value are the same
+                locationsInstance[axisName] = uservalue
+            else:
+                # Fallback to axisDescriptor.map for standard cases
+                axisDescriptor = ds.getAxis(axisName)
+                mapAxis = dict(axisDescriptor.map)
+                if mapAxis and uservalue in mapAxis:
+                    locationsInstance[axisName] = mapAxis[uservalue]
+                else:
+                    # user value = design value (no mapping)
+                    locationsInstance[axisName] = uservalue
         report.append({"styleName": styleNameInstance, "location": locationsInstance})
 
         ds.addInstance(
@@ -333,19 +450,16 @@ def sortAxisOrder(ds: DesignSpaceDocument, dss_doc: "DSSDocument" = None):
         list: Sorted list of axis names
     """
     if dss_doc and dss_doc.axes:
-        # Use the exact order from DSS axes section
-        # But use display_name (which becomes axis.name in DesignSpace) for lookup
+        # Use the exact order from DSS axes section (PUBLIC axes only)
+        # Hidden axes are excluded from instance generation
         orderAxis = []
         for dss_axis in dss_doc.axes:
             # DesignSpace axis.name is set from display_name or name
             ds_name = dss_axis.display_name if dss_axis.display_name else dss_axis.name
             orderAxis.append(ds_name)
 
-        # Ensure all DS axes are included (safety check)
-        ds_axis_names = [axis.name for axis in ds.axes]
-        for axis_name in ds_axis_names:
-            if axis_name not in orderAxis:
-                orderAxis.append(axis_name)
+        # NOTE: We intentionally do NOT add hidden axes from ds.axes
+        # Hidden axes (from dss_doc.hidden_axes) should not participate in instance generation
     else:
         # Fallback to DEFAULT_AXIS_ORDER logic for backward compatibility
         axisNames = [axis.name for axis in ds.axes]

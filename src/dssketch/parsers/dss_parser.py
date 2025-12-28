@@ -1613,6 +1613,10 @@ class DSSParser:
         for i, axis_name in enumerate(self.current_avar2_matrix_outputs):
             value_str = value_strings[i]
 
+            # Handle skip marker (no value for this axis in this mapping)
+            if value_str == "-":
+                continue  # Skip this axis - not included in output
+
             # Handle variable references
             if value_str == "$":
                 # Shorthand for $AXIS
