@@ -48,10 +48,67 @@ class DSSToDesignSpace:
     def __init__(self, base_path: Optional[Path] = None):
         """Initialize converter with optional base path for UFO files"""
         self.base_path = base_path
+        self.logger = DSSketchLogger()
+
+    def _detect_family_name(self, dss_doc: DSSDocument) -> str:
+        """Detect family name from UFO if not specified in DSS document.
+
+        Priority:
+        1. Explicit family name from DSS document
+        2. familyName from base source UFO
+        3. Fallback to "Unknown"
+        """
+        # If family is explicitly specified, use it
+        if dss_doc.family and dss_doc.family.strip():
+            return dss_doc.family
+
+        # Try to find base source
+        base_source = None
+        for source in dss_doc.sources:
+            if source.is_base:
+                base_source = source
+                break
+
+        if not base_source:
+            self.logger.warning("No base source found - using 'Unknown' as family name")
+            return "Unknown"
+
+        # Construct UFO path
+        ufo_filename = base_source.filename
+        if dss_doc.path:
+            ufo_path = Path(dss_doc.path) / ufo_filename
+        else:
+            ufo_path = Path(ufo_filename)
+
+        # Make path absolute if base_path is set
+        if self.base_path and not ufo_path.is_absolute():
+            ufo_path = self.base_path / ufo_path
+
+        # Try to read familyName from UFO
+        try:
+            if not ufo_path.exists() or not ufo_path.is_dir():
+                self.logger.warning(f"UFO not found at '{ufo_path}' - using 'Unknown' as family name")
+                return "Unknown"
+
+            font = Font(str(ufo_path))
+            family_name = font.info.familyName
+
+            if family_name:
+                self.logger.info(f"Detected family name '{family_name}' from {ufo_path.name}")
+                return family_name
+            else:
+                self.logger.warning(f"No familyName in UFO '{ufo_path.name}' - using 'Unknown'")
+                return "Unknown"
+        except Exception as e:
+            self.logger.warning(f"Failed to read UFO '{ufo_path}': {e} - using 'Unknown'")
+            return "Unknown"
 
     def convert(self, dss_doc: DSSDocument) -> DesignSpaceDocument:
         """Convert DSS document to DesignSpace document"""
         doc = DesignSpaceDocument()
+
+        # Detect family name if not specified
+        dss_doc.family = self._detect_family_name(dss_doc)
 
         # Convert regular axes
         for dss_axis in dss_doc.axes:

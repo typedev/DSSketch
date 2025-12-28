@@ -81,9 +81,13 @@ class DesignSpaceToDSS:
             dss_doc.sources.append(dss_source)
 
         # Convert instances (optional - can be auto-generated)
-        for instance in ds_doc.instances:
-            dss_instance = self._convert_instance(instance, ds_doc)
-            dss_doc.instances.append(dss_instance)
+        if ds_doc.instances:
+            for instance in ds_doc.instances:
+                dss_instance = self._convert_instance(instance, ds_doc)
+                dss_doc.instances.append(dss_instance)
+        else:
+            # No instances in original - set instances_off to preserve this
+            dss_doc.instances_off = True
 
         # Convert rules
         for rule in ds_doc.rules:

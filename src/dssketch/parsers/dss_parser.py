@@ -162,14 +162,14 @@ class DSSParser:
         if line.startswith("family "):
             family_value = self._extract_quoted_or_plain_value(line[7:])
             if not family_value:
-                self.validator.errors.append("Family name cannot be empty")
+                self.validator.warnings.append("Family name is empty - will try to detect from UFO")
                 return
             self.document.family = family_value
             self.current_section = "family"
 
         elif line == "family":
             # Handle case where "family " was stripped to "family"
-            self.validator.errors.append("Family name cannot be empty")
+            self.validator.warnings.append("Family name is empty - will try to detect from UFO")
             return
 
         elif line.startswith("suffix "):

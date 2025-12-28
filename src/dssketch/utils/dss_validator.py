@@ -106,10 +106,10 @@ class DSSValidator:
         if parsing_errors is None:
             parsing_errors = []
 
-        # Check family name
+        # Check family name - now just a warning, will be auto-detected from UFO if missing
         if not document.family or not document.family.strip():
-            self.errors.append(
-                "CRITICAL: Missing or empty family name - required for valid DesignSpace"
+            self.warnings.append(
+                "No family name specified - will try to detect from base source UFO"
             )
 
         # Check axes - CRITICAL

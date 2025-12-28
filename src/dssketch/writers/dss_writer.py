@@ -149,12 +149,17 @@ class DSSWriter:
         # Instances section
         if dss_doc.instances_off:
             lines.append("instances off")
-        elif dss_doc.instances and not self.optimize:
-            lines.append("instances")
-            for instance in dss_doc.instances:
-                lines.append(self._format_instance(instance, dss_doc.axes))
-        elif self.optimize or dss_doc.instances_auto:
+        elif dss_doc.instances_auto:
             lines.append("instances auto")
+        elif dss_doc.instances:
+            if self.optimize:
+                # When optimizing with explicit instances, use instances auto
+                # (assumes instances can be regenerated from axis labels)
+                lines.append("instances auto")
+            else:
+                lines.append("instances")
+                for instance in dss_doc.instances:
+                    lines.append(self._format_instance(instance, dss_doc.axes))
 
         return "\n".join(lines).strip()
 
