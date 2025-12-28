@@ -299,13 +299,33 @@ sources [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width
 
 ## Installation & Usage
 
-### Command Line
+### Installation
+
+#### Using uv (recommended)
+```bash
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install DSSketch
+uv pip install dssketch
+
+# Or install from source (for development)
+uv pip install -e .
+
+# Install with development dependencies
+uv pip install -e ".[dev]"
+```
+
+#### Using pip
 ```bash
 pip install dssketch
 
-# Install from source
+# Or install from source
 pip install -e .
+```
 
+### Command Line
+```bash
 # Convert DesignSpace → DSSketch (with UFO validation)
 dssketch font.designspace
 
@@ -317,6 +337,10 @@ dssketch input.designspace -o output.dssketch
 
 # Skip UFO validation (not recommended)
 dssketch font.dssketch --no-validation
+
+# avar2 format options
+dssketch font.designspace --matrix    # Matrix format (default)
+dssketch font.designspace --linear    # Linear format
 
 # Without installation (using Python module directly)
 python -m dssketch.cli font.designspace
@@ -572,6 +596,36 @@ axes
         Bold > 725
         Black > 1000
 ```
+
+### Family Auto-Detection
+
+The `family` field is optional in DSSketch. If not specified, DSSketch will automatically detect the family name from the base source UFO file:
+
+```dssketch
+# Family name is optional - will be detected from UFO
+path sources
+
+axes
+    wght 100:400:900
+        Thin > 100
+        Regular > 400
+        Black > 900
+
+sources [wght]
+    Thin [100]
+    Regular [400] @base    # Family name detected from this UFO's font.info.familyName
+    Black [900]
+
+instances auto
+```
+
+**How it works:**
+- When `family` is missing, DSSketch reads the base source UFO (`@base` flag)
+- Extracts `font.info.familyName` from the UFO using fontParts
+- Falls back to "Unknown" if UFO is not found or has no familyName
+- Logs a warning if auto-detection is used (non-critical)
+
+This is useful for quick prototyping or when the family name should always match the UFO metadata.
 
 ### Discrete Axes
 Traditional XML requires complex `values="0 1"` attributes. DSSketch makes it simple:

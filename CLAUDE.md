@@ -48,8 +48,14 @@ dss_string = dssketch.convert_designspace_to_dss_string(ds)
 
 ### Development setup
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Using uv (recommended):
+uv pip install -e .                  # Install in editable mode
+uv pip install -e ".[dev]"           # Install with dev dependencies
+uv run pytest tests/                 # Run tests
+
+# Using pip:
+pip install -e .                     # Install in editable mode
+pip install -r requirements.txt      # Or install dependencies manually
 
 # Dependencies: fonttools, fontParts, defcon, pyyaml
 ```
@@ -1203,6 +1209,93 @@ instances off
 - avar2 fonts where instances are not needed
 - Build pipelines that generate instances externally
 - Testing axis configurations without instance overhead
+
+### Implementation Notes for Family Auto-Detection (2025-12)
+
+**Purpose:** Make the `family` field optional - auto-detect from base source UFO if not specified.
+
+**Code Locations:**
+- Validator: `src/dssketch/utils/dss_validator.py` - changed from CRITICAL error to warning
+- Parser: `src/dssketch/parsers/dss_parser.py` - handles empty family with warning
+- Converter: `src/dssketch/converters/dss_to_designspace.py` - `_detect_family_name()` method
+
+**How it works:**
+1. If `family` is specified in DSSketch - use it as-is
+2. If `family` is missing or empty:
+   - Find the base source (`@base` flag)
+   - Read the UFO using fontParts
+   - Extract `font.info.familyName`
+   - Falls back to "Unknown" if UFO not found or has no familyName
+   - Logs a warning (non-critical)
+
+**Key Implementation (`dss_to_designspace.py`):**
+```python
+def _detect_family_name(self, dss_doc: DSSDocument) -> str:
+    """Detect family name from UFO if not specified in DSS document."""
+    if dss_doc.family and dss_doc.family.strip():
+        return dss_doc.family
+
+    # Find base source
+    base_source = None
+    for source in dss_doc.sources:
+        if source.is_base:
+            base_source = source
+            break
+
+    if not base_source:
+        self.logger.warning("No base source found - using 'Unknown'")
+        return "Unknown"
+
+    # Build UFO path
+    ufo_path = Path(dss_doc.path or "") / base_source.filename
+    if self.base_path and not ufo_path.is_absolute():
+        ufo_path = self.base_path / ufo_path
+
+    try:
+        font = Font(str(ufo_path))
+        family_name = font.info.familyName
+        if family_name:
+            self.logger.info(f"Detected family name '{family_name}' from {ufo_path.name}")
+            return family_name
+    except Exception as e:
+        self.logger.warning(f"Failed to read UFO '{ufo_path}': {e}")
+
+    return "Unknown"
+```
+
+**Usage:**
+```dssketch
+# Family is optional - will be auto-detected from base source UFO
+path sources
+
+axes
+    wght 100:400:900
+sources [wght]
+    Regular [400] @base  # Family detected from this UFO
+```
+
+### Implementation Notes for Instances Roundtrip (2025-12)
+
+**Purpose:** Preserve zero-instance state during DesignSpace → DSSketch → DesignSpace roundtrip.
+
+**Problem:** Original DesignSpace files with 0 instances were getting thousands of auto-generated instances after roundtrip conversion (due to `instances auto` default).
+
+**Fix:** When converting DesignSpace → DSSketch, if original has 0 instances, set `instances_off=True`.
+
+**Code Location:** `src/dssketch/converters/designspace_to_dss.py`
+
+```python
+# Convert instances (optional - can be auto-generated)
+if ds_doc.instances:
+    for instance in ds_doc.instances:
+        dss_instance = self._convert_instance(instance, ds_doc)
+        dss_doc.instances.append(dss_instance)
+else:
+    # No instances in original - set instances_off to preserve this
+    dss_doc.instances_off = True
+```
+
+**Result:** Files with 0 instances now correctly roundtrip to 0 instances.
 
 ### Module Reference
 
