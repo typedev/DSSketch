@@ -146,12 +146,14 @@ class DSSWriter:
                 lines.extend(self._format_rule(rule, dss_doc.axes))
             lines.append("")
 
-        # Instances (if not using auto)
-        if dss_doc.instances and not self.optimize:
+        # Instances section
+        if dss_doc.instances_off:
+            lines.append("instances off")
+        elif dss_doc.instances and not self.optimize:
             lines.append("instances")
             for instance in dss_doc.instances:
                 lines.append(self._format_instance(instance, dss_doc.axes))
-        elif self.optimize:
+        elif self.optimize or dss_doc.instances_auto:
             lines.append("instances auto")
 
         return "\n".join(lines).strip()

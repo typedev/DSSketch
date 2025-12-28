@@ -200,7 +200,9 @@ class DSSParser:
         elif line == "instances" or line.startswith("instances "):
             self.current_section = "instances"
             self.in_skip_subsection = False  # Reset skip subsection flag
-            if "auto" in line:
+            if "off" in line:
+                self.document.instances_off = True
+            elif "auto" in line:
                 self.document.instances_auto = True
 
         elif line == "rules" or line.startswith("rules "):
