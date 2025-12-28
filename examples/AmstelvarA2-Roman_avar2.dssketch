@@ -205,95 +205,152 @@ sources
     AmstelvarA2-Roman_BARS683 BARS=683
 
 avar2 vars
-    $XOUC = 90
-    $XOLC = 85
-    $XOFI = 88
-    $XTUC = 400
-    $XTUR = 561
-    $XTUD = 410
-    $XTLC = 243
-    $XTLR = 337
-    $XTLD = 248
-    $XTFI = 329
-    $YOUC = 66
-    $YOLC = 58
-    $YOFI = 56
-    $YTUC = 750
-    $YTLC = 536
-    $YTAS = 767
-    $YTDE = -240
-    $YTFI = 771
-    $XSHU = 104
-    $XSHL = 74
-    $XSHF = 104
-    $YSHU = 50
-    $YSHL = 40
-    $YSHF = 12
-    $XSVU = 55
-    $XSVL = 54
-    $XSVF = 61
-    $YSVU = 143
-    $YSVL = 70
-    $YSVF = 117
-    $XUCS = 110
-    $XUCR = 32
-    $XUCD = 2
-    $XLCR = 27
-    $XLCD = 0
-    $XFIR = 37
-    $XDOT = 144
-    $YTOS = 10
-    $XOUA = 40
-    $XOLA = 50
-    $YOUA = 5
-    $YOLA = 5
-    $WDSP = 320
-    $XQLC = 82
-    $XQUC = 136
-    $XQFI = 80
-    $YQUC = 186
-    $YQLC = 110
-    $YQFI = 144
-    $XVAU = 18
-    $XVAL = 24
-    $XVAF = 18
-    $YHAU = 18
-    $YHAL = 18
-    $YHAF = 18
-    $XTUA = 258
-    $XTLA = 235
-    $YTJD = -104
+    $XOUC1 = 90
+    $XOLC1 = 85
+    $XOFI1 = 88
+    $XTUC1 = 400
+    $XTUR1 = 561
+    $XTUD1 = 410
+    $XTLC1 = 243
+    $XTLR1 = 337
+    $XTLD1 = 248
+    $XTFI1 = 329
+    $YOUC1 = 66
+    $YOUC2 = 16
+    $YOLC1 = 58
+    $YOLC2 = 14
+    $YOFI1 = 56
+    $YTUC1 = 750
+    $YTLC1 = 536
+    $YTLC2 = 471
+    $YTLC3 = 510
+    $YTLC4 = 511
+    $YTAS1 = 767
+    $YTAS2 = 756
+    $YTAS3 = 757
+    $YTDE1 = -240
+    $YTDE2 = -230
+    $YTFI1 = 771
+    $YTFI2 = 773
+    $YTFI3 = 774
+    $YTFI4 = 776
+    $YTFI5 = 768
+    $YTFI6 = 780
+    $XSHU1 = 104
+    $XSHU2 = 89
+    $XSHU3 = 114
+    $XSHL1 = 74
+    $XSHL2 = 99
+    $XSHL3 = 50
+    $XSHF1 = 104
+    $XSHF2 = 129
+    $YSHU1 = 50
+    $YSHL1 = 40
+    $YSHF1 = 12
+    $YSHF2 = 47
+    $YSHF3 = 24
+    $XSVU1 = 55
+    $XSVL1 = 54
+    $XSVF1 = 61
+    $YSVU1 = 143
+    $YSVU2 = 165
+    $YSVL1 = 70
+    $YSVL2 = 78
+    $YSVL3 = 84
+    $YSVL4 = 88
+    $YSVF1 = 117
+    $XUCS1 = 110
+    $XUCR1 = 32
+    $XUCR2 = 40
+    $XUCR3 = 24
+    $XUCD1 = 2
+    $XUCD2 = 0
+    $XLCR1 = 27
+    $XLCD1 = 0
+    $XLCD2 = -5
+    $XLCD3 = 5
+    $XLCD4 = -8
+    $XFIR1 = 37
+    $XFIR2 = 30
+    $XDOT1 = 144
+    $YTOS1 = 10
+    $YTOS2 = 14
+    $XOUA1 = 40
+    $XOUA2 = 91
+    $XOLA1 = 50
+    $XOLA2 = 91
+    $YOUA1 = 5
+    $YOUA2 = 53
+    $YOLA1 = 5
+    $YOLA2 = 53
+    $WDSP1 = 320
+    $WDSP2 = 256
+    $WDSP3 = 250
+    $XQLC1 = 82
+    $XQUC1 = 136
+    $XQFI1 = 80
+    $YQUC1 = 186
+    $YQUC2 = 140
+    $YQUC3 = 141
+    $YQLC1 = 110
+    $YQLC2 = 90
+    $YQFI1 = 144
+    $YQFI2 = 214
+    $YQFI3 = 173
+    $XVAU1 = 18
+    $XVAU2 = 20
+    $XVAU3 = 26
+    $XVAU4 = 22
+    $XVAL1 = 24
+    $XVAL2 = 17
+    $XVAF1 = 18
+    $XVAF2 = 16
+    $XVAF3 = 30
+    $XVAF4 = 24
+    $XVAF5 = 28
+    $YHAU1 = 18
+    $YHAL1 = 18
+    $YHAL2 = 14
+    $YHAF1 = 18
+    $YHAF2 = 14
+    $XTUA1 = 258
+    $XTLA1 = 235
+    $XTLA2 = 324
+    $XTLA3 = 202
+    $YTJD1 = -104
+    $YTJD2 = -7
+    $YTJD3 = -120
 
 avar2 matrix
-    outputs                          XOUC  XOLC  XOFI  XTUC  XTUR  XTUD  XTLC  XTLR  XTLD  XTFI  YOUC  YOLC  YOFI  YTUC  YTLC  YTAS  YTDE  YTFI  XSHU  XSHL  XSHF  YSHU  YSHL  YSHF  XSVU  XSVL  XSVF  YSVU  YSVL  YSVF  XUCS  XUCR  XUCD  XLCS  XLCR  XLCD  XFIR  XDOT  YTOS  XOUA  XOLA  YOUA  YOLA  WDSP  XQLC  XQUC  XQFI  YQUC  YQLC  YQFI  XVAU  XVAL  XVAF  YHAU  YHAL  YHAF  XTUA  XTLA  YTJD  GRAD  XTTW  YTTL  BARS
-    [opsz=144]                       84    78    80    348   470   $     224   308   254   320   16    14    14    $     471   756   -230  773   82    61    109   12    10    $     14    14    14    153   84    91    113   $     -23   89    24    -14   28    116   $     58    $     13    13    267   72    106   75    194   116   214   54    36    30    $     $     $     251   206   -7    -     -     -     -   
-    [opsz=144, wdth=125]             86    80    79    540   702   600   414   502   418   490   16    14    20    $     470   756   -230  773   102   86    169   12    12    $     24    20    14    153   84    86    157   41    3     136   37    -4    $     116   $     60    62    10    11    267   118   160   110   $     116   218   54    44    30    $     $     $     311   295   -7    -     -     -     -   
-    [opsz=144, wdth=50]              78    71    72    168   214   242   106   140   153   148   19    14    16    $     468   756   -230  773   58    37    84    10    10    10    14    15    10    $     79    76    65    24    -4    50    17    -9    24    95    $     52    $     7     $     100   36    42    40    193   121   214   49    32    30    $     $     $     233   166   -7    -     -     -     -   
-    [opsz=144, wght=100]             34    34    30    418   571   433   288   402   290   418   13    9     7     $     471   748   -230  768   92    71    142   9     6     $     6     11    7     152   112   112   126   35    -26   104   26    -28   32    64    $     $     32    $     6     256   90    128   97    $     $     168   52    23    24    $     14    10    240   240   -5    -     -     -     -   
-    [opsz=144, wght=1000]            244   234   237   198   251   306   151   175   214   225   34    36    26    $     496   756   -230  778   68    61    $     28    30    27    32    38    12    131   78    71    78    25    0     68    18    -9    20    218   13    128   130   25    22    198   42    66    42    238   138   268   56    53    28    $     $     $     271   264   -3    -     -     -     -   
-    [opsz=144, wght=1000, wdth=125]  246   237   236   390   483   504   341   369   391   294   35    35    32    $     496   756   -230  778   88    86    164   28    32    27    36    44    12    120   106   66    122   33    15    114   31    -40   30    218   13    134   133   33    26    225   $     140   74    180   128   240   48    99    28    $     $     $     302   322   -5    -     -     -     -   
-    [opsz=144, wght=1000, wdth=50]   239   228   229   72    66    170   46    49    104   44    30    35    28    $     494   756   -230  768   32    24    78    26    26    24    26    34    22    180   112   116   35    17    -2    28    11    -4    15    196   9     124   127   19    19    156   14    22    12    307   190   334   56    53    20    $     14    $     247   220   -12   -     -     -     -   
-    [opsz=144, wght=100, wdth=125]   32    31    28    614   810   632   486   596   470   571   16    8     8     $     471   748   -230  768   114   98    168   9     8     $     9     8     7     170   102   105   172   43    -10   153   39    -12   41    64    $     $     40    $     $     278   136   174   123   181   $     174   42    30    24    $     14    14    290   291   -12   -     -     -     -   
-    [opsz=144, wght=100, wdth=50]    28    28    22    238   310   256   172   212   188   184   14    8     7     $     468   750   -230  773   68    46    82    7     6     7     6     6     4     162   96    98    78    27    -14   64    19    -12   25    58    $     $     28    $     $     122   50    64    52    $     115   168   32    $     24    $     14    16    191   191   -6    -     -     -     -   
-    [opsz=8]                         112   106   110   $     $     388   $     340   236   355   91    88    88    $     $     $     $     775   $     $     139   75    68    72    80    76    80    149   78    140   145   40    -15   112   32    -5    $     162   $     101   101   71    71    $     $     $     90    130   82    132   $     17    $     $     $     $     246   $     -159  -     -     -     -   
-    [opsz=8, wdth=125]               114   109   108   591   793   578   433   534   401   490   91    88    92    $     $     $     $     775   124   99    199   75    70    72    90    82    80    149   78    135   189   48    11    159   45    5     46    162   $     102   102   68    68    $     128   191   120   124   82    137   $     $     $     $     $     $     312   324   -184  -     -     -     -   
-    [opsz=8, wdth=50]                107   100   102   220   305   236   128   171   140   185   89    72    78    $     533   $     $     770   74    50    $     73    68    70    80    77    71    146   84    125   97    36    $     68    28    $     34    140   $     96    84    65    61    152   46    74    42    160   102   214   $     12    $     $     $     $     224   202   -159  -     -     -     -   
-    [opsz=8, wght=100]               62    64    60    470   668   452   306   434   301   450   56    60    54    $     $     757   $     780   114   84    142   49    48    49    47    49    43    150   96    158   158   42    -18   127   34    -18   38    109   $     50    $     38    36    256   106   158   110   140   95    160   26    $     20    $     14    14    235   $     -150  -     -     -     -   
-    [opsz=8, wght=1000]              272   264   266   250   342   281   170   206   197   266   106   104   100   $     561   $     $     780   89    $     134   90    88    87    98    100   78    127   68    120   $     $     5     90    26    $     30    264   14    132   132   80    80    250   52    84    66    144   $     186   20    14    46    $     $     $     274   282   -175  -     -     -     -   
-    [opsz=8, wght=1000, wdth=125]    274   266   266   441   574   499   360   410   386   308   106   109   100   $     560   $     $     780   109   99    194   90    90    87    108   122   118   132   78    80    154   40    -4    144   37    -5    40    264   14    211   201   72    76    310   98    138   72    138   105   184   20    21    21    $     $     $     381   371   -200  -     -     -     -   
-    [opsz=8, wght=1000, wdth=50]     268   257   258   74    86    129   56    48    116   64    104   108   104   $     558   $     $     774   56    50    89    88    88    88    98    146   75    127   74    72    64    24    0     60    19    -3    22    242   14    128   127   74    70    240   24    25    22    224   $     218   20    10    16    $     $     $     269   269   -175  -     -     -     -   
-    [opsz=8, wght=100, wdth=125]     64    67    60    661   900   649   496   622   485   545   54    $     $     $     $     757   $     776   134   109   197   49    50    49    47    45    43    148   100   142   202   50    0     174   47    -8    49    120   $     76    80    32    32    256   140   218   118   142   101   161   26    26    25    $     14    14    387   323   -176  -     -     -     -   
-    [opsz=8, wght=100, wdth=50]      57    58    56    290   408   326   188   266   206   250   54    60    57    $     532   757   $     770   89    60    112   47    48    46    42    41    40    140   81    102   $     34    $     88    $     -8    33    104   $     62    59    30    26    160   70    96    64    140   100   161   22    18    16    $     14    14    206   192   -149  -     -     -     -   
-    [wdth=125]                       92    88    87    591   793   601   433   531   412   518   $     $     62    $     510   $     $     $     124   99    189   $     42    47    65    60    $     165   $     112   189   48    11    159   45    5     46    $     $     92    92    50    50    $     128   191   122   136   90    149   $     $     $     $     $     $     324   324   -128  -     -     -     -   
-    [wdth=50]                        85    78    80    220   305   248   124   168   147   213   64    57    58    $     508   $     $     $     79    50    $     48    $     44    $     56    58    155   66    102   97    $     4     73    25    $     31    122   $     86    74    47    43    152   46    74    60    140   95    $     $     12    $     $     $     $     240   202   $     -     -     -     -   
-    [wght=100]                       40    42    38    470   668   477   306   431   312   430   31    30    28    $     510   757   $     774   114   84    128   24    20    24    27    28    24    163   88    138   158   42    -18   127   34    -18   39    91    $     42    42    17    18    256   105   158   100   152   102   173   26    $     15    $     14    14    235   $     -95   -     -     -     -   
-    [wght=1000]                      250   242   245   250   342   304   170   204   208   268   81    79    68    $     $     $     $     776   89    $     124   65    60    62    73    78    60    $     60    97    $     $     5     90    $     $     30    246   14    122   122   62    62    250   52    84    67    155   112   198   20    14    16    $     $     $     282   282   -120  -     -     -     -   
-    [wght=1000, wdth=125]            252   244   244   441   574   494   360   398   388   364   81    78    74    $     $     $     $     776   109   99    184   65    62    62    83    85    60    $     60    92    154   40    31    138   39    10    40    246   14    124   124   59    59    250   98    138   88    150   112   204   20    21    16    $     $     $     352   371   -144  -     -     -     -   
-    [wght=1000, wdth=50]             246   236   237   75    86    118   80    68    112   70    79    78    70    $     534   777   $     776   32    25    99    63    60    60    78    100   82    $     $     70    39    24    -7    36    18    5     23    224   14    118   134   56    52    150   28    22    26    234   148   198   20    9     16    $     $     22    264   249   -120  -     -     -     -   
-    [wght=100, wdth=125]             42    44    36    661   900   678   498   625   498   600   31    34    33    $     510   757   $     774   134   110   208   24    22    24    32    29    24    163   88    132   202   50    $     179   47    2     50    91    $     54    54    24    24    256   146   213   132   146   98    173   22    40    28    $     14    14    301   324   -120  -     -     -     -   
-    [wght=100, wdth=50]              35    36    35    290   412   342   188   260   218   286   29    29    30    $     508   757   $     774   89    60    102   22    20    22    27    29    21    156   88    124   $     34    $     80    $     -8    33    70    $     44    36    12    18    105   69    96    57    151   108   173   22    18    26    $     14    14    217   202   -95   -     -     -     -   
-    [wght=400]                       $     $     $     $     $     $     $     $     $     $     $     $     $     $     511   $     $     $     $     $     129   $     $     47    $     $     $     165   $     $     145   40    -15   112   32    -5    $     $     $     91    91    53    53    $     $     $     $     141   90    $     $     17    $     $     $     $     $     $     $     -     -     -     -   
-    [XTSP=-100]                      $     $     $     $     $     $     $     $     $     $     $     $     $     $     511   $     $     $     $     $     129   $     $     47    $     $     $     165   $     $     32    0     -62   14    -13   -68   0     $     11    91    91    53    53    $     $     $     $     141   90    $     $     17    $     $     $     $     $     $     $     0     5     57    0   
-    [XTSP=100]                       $     $     $     $     $     $     $     $     $     $     $     $     $     $     511   $     $     $     $     $     129   $     $     47    $     $     $     165   $     $     205   100   57    182   98    62    97    $     11    91    91    53    53    $     $     $     $     141   90    $     $     17    $     $     $     $     $     $     $     0     5     57    0   
+    outputs                          XOUC    XOLC    XOFI    XTUC    XTUR    XTUD    XTLC    XTLR    XTLD    XTFI    YOUC    YOLC    YOFI    YTUC  YTLC    YTAS    YTDE    YTFI    XSHU    XSHL    XSHF    YSHU    YSHL    YSHF    XSVU    XSVL    XSVF    YSVU    YSVL    YSVF    XUCS    XUCR    XUCD    XLCS    XLCR    XLCD    XFIR    XDOT    YTOS    XOUA    XOLA    YOUA    YOLA    WDSP    XQLC    XQUC    XQFI    YQUC    YQLC    YQFI    XVAU    XVAL    XVAF    YHAU  YHAL    YHAF    XTUA    XTLA    YTJD    GRAD  XTTW  YTTL  BARS
+    [opsz=144]                       $YSVL3  $YSVL2  $XQFI1  348     470     $       224     308     254     $WDSP1  $YOUC2  $YOLC2  $YOLC2  $     $YTLC2  $YTAS2  $YTDE2  $YTFI2  $XQLC1  $XSVF1  109     $YSHF1  $YTOS1  $YSHF1  $YOLC2  $YOLC2  $YOLC2  153     $YSVL3  $XOUA2  113     $XUCR1  -23     $XSHU2  $YSHF3  -14     $XVAF5  116     $YTOS1  $YOLC1  $XSHL3  13      13      267     72      106     75      194     116     $YQFI2  $XSVL1  36      $XFIR2  $     $       $       251     206     $YTJD2  -     -     -     -   
+    [opsz=144, wdth=125]             86      $XQFI1  79      540     702     600     414     502     418     490     $YOUC2  $YOLC2  $XVAU2  $     470     $YTAS2  $YTDE2  $YTFI2  102     86      169     $YSHF1  $YSHF1  $YSHF1  $YSHF3  $XVAU2  $YOLC2  153     $YSVL3  86      157     41      3       $XQUC1  $XFIR1  -4      $       116     $YTOS1  60      62      $YTOS1  11      267     118     160     $XUCS1  $YQUC1  116     218     $XSVL1  44      $XFIR2  $     $       $       311     295     $YTJD2  -     -     -     -   
+    [opsz=144, wdth=50]              $YSVL2  71      72      168     $YQFI2  242     106     $YQUC2  153     148     19      $YOLC2  $YOUC2  $     468     $YTAS2  $YTDE2  $YTFI2  $YOLC1  $XFIR1  $YSVL3  $YTOS1  $YTOS1  $YTOS1  $YOLC2  15      $YTOS1  $YSVU1  79      76      65      $YSHF3  -4      $XSHL3  $XVAL2  -9      $YSHF3  95      $YTOS1  52      $XSHL3  7       $XLCD3  100     36      42      $YSHL1  193     121     $YQFI2  49      $XUCR1  $XFIR2  $     $       $       233     166     $YTJD2  -     -     -     -   
+    [opsz=144, wght=100]             34      34      $XFIR2  418     571     433     288     402     290     418     13      9       7       $     $YTLC2  748     $YTDE2  $YTFI5  92      71      142     9       6       $YSHF1  6       11      7       152     112     112     126     35      -26     $XSHU1  $XVAU3  -28     $XUCR1  64      $YTOS1  $YSHL1  $XUCR1  $XLCD3  6       $WDSP2  $XOUC1  128     97      $YQUC1  $XUCS1  168     52      23      $YSHF3  $     $YOLC2  $YTOS1  240     240     $XLCD2  -     -     -     -   
+    [opsz=144, wght=1000]            244     234     237     198     251     306     151     175     $YQFI2  225     34      36      $XVAU3  $     496     $YTAS2  $YTDE2  778     68      $XSVF1  $XSHU1  $XVAF5  $XFIR2  $XLCR1  $XUCR1  38      $YSHF1  131     $YSVL2  71      $YSVL2  25      $XUCD2  68      $XVAU1  -9      $XVAU2  218     13      128     130     25      $XVAU4  198     42      $YOUC1  42      238     138     268     $YOFI1  $YOUA2  $XVAF5  $     $       $       271     264     -3      -     -     -     -   
+    [opsz=144, wght=1000, wdth=125]  246     237     236     390     483     504     341     369     391     294     35      35      $XUCR1  $     496     $YTAS2  $YTDE2  778     $XOFI1  86      164     $XVAF5  $XUCR1  $XLCR1  36      44      $YSHF1  120     106     $YOUC1  122     33      15      $XSHU3  31      -40     $XFIR2  218     13      134     133     33      $XVAU3  225     $       $YQUC2  $XSHL1  180     128     240     48      $XSHL2  $XVAF5  $     $       $       302     322     $XLCD2  -     -     -     -   
+    [opsz=144, wght=1000, wdth=50]   239     228     229     72      $YOUC1  170     46      49      $XSHU1  44      $XFIR2  35      $XVAF5  $     494     $YTAS2  $YTDE2  $YTFI5  $XUCR1  $YSHF3  $YSVL2  $XVAU3  $XVAU3  $YSHF3  $XVAU3  34      $XVAU4  180     112     116     35      $XVAL2  -2      $XVAF5  11      -4      15      196     9       124     127     19      19      156     $YOLC2  $XVAU4  $YSHF1  307     190     334     $YOFI1  $YOUA2  $XVAU2  $     $YOLC2  $       247     220     -12     -     -     -     -   
+    [opsz=144, wght=100, wdth=125]   $XUCR1  31      $XVAF5  614     810     632     486     596     470     571     $YOUC2  8       8       $     $YTLC2  748     $YTDE2  $YTFI5  $XSHU3  98      168     9       8       $YSHF1  9       8       7       170     102     105     172     43      -10     153     39      -12     41      64      $YTOS1  $YSHL1  $YSHL1  $XLCD3  $XLCD3  278     $XQUC1  174     123     181     $XUCS1  174     42      $XFIR2  $YSHF3  $     $YOLC2  $YOLC2  290     291     -12     -     -     -     -   
+    [opsz=144, wght=100, wdth=50]    $XVAF5  $XVAF5  $XVAU4  238     310     $WDSP2  172     212     188     184     $YOLC2  8       7       $     468     $YTUC1  $YTDE2  $YTFI2  68      46      $XQLC1  7       6       7       6       6       4       162     96      98      $YSVL2  $XLCR1  -14     64      19      -12     25      $YOLC1  $YTOS1  $YSHL1  $XVAF5  $XLCD3  $XLCD3  122     $XSHL3  64      52      $YQUC1  115     168     $XUCR1  $YSHF3  $YSHF3  $     $YOLC2  $YOUC2  191     191     -6      -     -     -     -   
+    [opsz=8]                         112     106     $XUCS1  $       $       388     $       340     236     355     $XOUA2  $XOFI1  $XOFI1  $     $YTLC1  $       $       775     $       $       139     75      68      72      $XQFI1  76      $XQFI1  149     $YSVL2  $YQUC2  $       $       $       $       $       $       $       162     $YTOS1  101     101     71      71      $       $       $       $XOUC1  130     $XQLC1  132     $       $       $       $     $       $       246     $       -159    -     -     -     -   
+    [opsz=8, wdth=125]               $XSHU3  109     108     591     793     578     433     534     401     490     $XOUA2  $XOFI1  92      $     $YTLC1  $       $       775     124     $XSHL2  199     75      $YSVL1  72      $XOUC1  $XQLC1  $XQFI1  149     $YSVL2  135     189     48      11      159     45      $XLCD3  46      162     $YTOS1  102     102     68      68      $       128     191     120     124     $XQLC1  137     $       $YSHF3  $       $     $       $       312     $XTLA2  -184    -     -     -     -   
+    [opsz=8, wdth=50]                107     100     102     220     305     236     128     171     $YQUC2  185     $XSHU2  72      $YSVL2  $     533     $       $       770     $XSHL1  $XSHL3  $XSHU1  73      68      $YSVL1  $XQFI1  77      71      146     $YSVL3  125     97      36      $XUCD1  68      $XVAF5  $XUCD2  34      $YQUC2  $YTOS1  96      $YSVL3  65      $XSVF1  152     46      $XSHL1  42      160     102     $YQFI2  $       $YSHF1  $       $     $       $       224     $XTLA3  -159    -     -     -     -   
+    [opsz=8, wght=100]               62      64      60      470     668     452     306     434     301     450     $YOFI1  60      $XSVL1  $     $YTLC1  $YTAS3  $       $YTFI6  $XSHU3  $YSVL3  142     49      48      49      $YSHF2  49      43      150     96      158     158     42      -18     127     34      -18     38      109     $YTOS1  $XSHL3  $XSHL3  38      36      $WDSP2  106     158     $XUCS1  $YQUC2  95      160     $XVAU3  $YSHF3  $XVAU2  $     $YOLC2  $YOLC2  $XTLA1  $       -150    -     -     -     -   
+    [opsz=8, wght=1000]              272     264     266     $WDSP3  342     281     170     206     197     266     106     $XSHU1  100     $     $XTUR1  $       $       $YTFI6  $XSHU2  $       134     $XOUC1  $XOFI1  87      98      100     $YSVL2  127     68      120     $XUCS1  $XUCR1  $XLCD3  $XOUC1  $XVAU3  $XUCD2  $XFIR2  264     $YOLC2  132     132     $XQFI1  $XQFI1  $WDSP3  52      $YSVL3  $YOUC1  $XDOT1  $XUCS1  $YQUC1  $XVAU2  $YOLC2  46      $     $       $       274     282     -175    -     -     -     -   
+    [opsz=8, wght=1000, wdth=125]    274     266     266     441     574     499     360     $XTUD1  386     308     106     109     100     $     560     $       $       $YTFI6  109     $XSHL2  194     $XOUC1  $XOUC1  87      108     122     118     132     $YSVL2  $XQFI1  154     $       -4      $XDOT1  $XFIR1  $       $YSHL1  264     $YOLC2  211     201     72      76      310     98      138     72      138     105     184     $XVAU2  21      21      $     $       $       381     371     -200    -     -     -     -   
+    [opsz=8, wght=1000, wdth=50]     268     257     $XTUA1  $XSHL1  86      $XSHF2  $YOFI1  48      116     64      $XSHU1  108     $XSHU1  $     558     $       $       $YTFI3  $YOFI1  $XSHL3  $XSHU2  $XOFI1  $XOFI1  $XOFI1  98      146     75      127     $XSHL1  72      64      $YSHF3  $XUCD2  60      19      -3      $XVAU4  242     $YOLC2  128     127     $XSHL1  $YSVL1  240     $YSHF3  25      $XVAU4  224     $XUCS1  218     $XVAU2  $YTOS1  $YOUC2  $     $       $       269     269     -175    -     -     -     -   
+    [opsz=8, wght=100, wdth=125]     64      67      60      661     900     649     496     622     485     545     $XSVL1  $       $       $     $YTLC1  $YTAS3  $       $YTFI4  134     109     197     49      $XSHL3  49      $YSHF2  45      43      148     100     142     $XTLA3  $XSHL3  $XUCD2  174     $YSHF2  $XLCD4  49      120     $YTOS1  76      $XQFI1  $XUCR1  $XUCR1  $WDSP2  $YQUC2  218     118     142     101     161     $XVAU3  $XVAU3  25      $     $YOLC2  $YOLC2  387     323     -176    -     -     -     -   
+    [opsz=8, wght=100, wdth=50]      57      $YOLC1  $YOFI1  290     408     326     188     266     206     $WDSP3  $XSVL1  60      57      $     532     $YTAS3  $       770     $XSHU2  60      112     $YSHF2  48      46      42      41      $YSHL1  $YQUC2  81      102     $XUCS1  34      $XUCD1  $XOFI1  $XLCR1  $XLCD4  33      $XSHU1  $YTOS1  62      59      $XFIR2  $XVAU3  160     $YSVL1  96      64      $YQUC2  100     161     $XVAU4  $XVAU1  $YOUC2  $     $YOLC2  $YOLC2  206     192     -149    -     -     -     -   
+    [wdth=125]                       92      $XOFI1  87      591     793     601     433     531     412     518     $       $       62      $     $YTLC3  $       $       $       124     $XSHL2  189     $       42      $       65      60      $       $       $       112     189     48      11      159     45      $XLCD3  46      $       $YTOS1  92      92      $XSHL3  $XSHL3  $       128     191     122     $XQUC1  $       149     $       $YSHF3  $       $     $       $       $XTLA2  $XTLA2  -128    -     -     -     -   
+    [wdth=50]                        $XOLC1  $YSVL2  $XQFI1  220     305     $XTLD1  124     168     147     213     64      57      $YOLC1  $     508     $       $       $       79      $XSHL3  $XSHU1  48      $       44      $       $YOFI1  $YOLC1  155     $YOUC1  102     97      $XUCR1  4       73      25      $XUCD2  31      122     $YTOS1  86      $XSHL1  $YSHF2  43      152     46      $XSHL1  60      $YQUC2  95      $       $       $YSHF1  $       $     $       $       240     $XTLA3  $       -     -     -     -   
+    [wght=100]                       $YSHL1  42      38      470     668     477     306     431     312     430     31      $XFIR2  $XVAF5  $     $YTLC3  $YTAS3  $       $YTFI3  $XSHU3  $YSVL3  128     $YSHF3  $XVAU2  $YSHF3  $XLCR1  $XVAF5  $YSHF3  163     $XOFI1  138     158     42      -18     127     34      -18     39      $XOUA2  $YTOS1  42      42      $XVAL2  $XVAU1  $WDSP2  105     158     100     152     102     $YQFI3  $XVAU3  $YSHF3  15      $     $YOLC2  $YOLC2  $XTLA1  $       -95     -     -     -     -   
+    [wght=1000]                      $WDSP3  242     245     $WDSP3  342     304     170     204     208     268     81      79      68      $     $YTLC1  $       $       $YTFI4  $XSHU2  $       124     65      60      62      73      $YSVL2  60      $YSVU1  60      97      $XUCS1  $XUCR1  $XLCD3  $XOUC1  $XLCR1  $XUCD2  $XFIR2  246     $YOLC2  122     122     62      62      $WDSP3  52      $YSVL3  67      155     112     198     $XVAU2  $YOLC2  $YOUC2  $     $       $       282     282     $YTJD3  -     -     -     -   
+    [wght=1000, wdth=125]            252     244     244     441     574     494     360     398     388     364     81      $YSVL2  $XSHL1  $     $YTLC1  $       $       $YTFI4  109     $XSHL2  184     65      62      62      83      $XOLC1  60      $YSVU1  60      92      154     $       31      138     39      $YTOS1  $YSHL1  246     $YOLC2  124     124     59      59      $WDSP3  98      138     $XOFI1  150     112     204     $XVAU2  21      $YOUC2  $     $       $       352     371     -144    -     -     -     -   
+    [wght=1000, wdth=50]             246     236     237     75      86      118     $XQFI1  68      112     $YSVL1  79      $YSVL2  $YSVL1  $     534     777     $       $YTFI4  $XUCR1  25      $XSHL2  63      60      60      $YSVL2  100     $XQLC1  $YSVU1  $       $YSVL1  39      $YSHF3  $YTJD2  36      $XVAU1  $XLCD3  23      224     $YOLC2  118     134     $YOFI1  52      150     $XVAF5  $XVAU4  $XVAU3  234     148     198     $XVAU2  9       $YOUC2  $     $       $XVAU4  264     249     $YTJD3  -     -     -     -   
+    [wght=100, wdth=125]             42      44      36      661     900     678     498     625     498     600     31      34      33      $     $YTLC3  $YTAS3  $       $YTFI3  134     $XUCS1  208     $YSHF3  $XVAU4  $YSHF3  $XUCR1  29      $YSHF3  163     $XOFI1  132     $XTLA3  $XSHL3  $XUCD1  179     $YSHF2  $XUCD1  $XSHL3  $XOUA2  $YTOS1  $XSVL1  $XSVL1  $YSHF3  $YSHF3  $WDSP2  146     213     132     146     98      $YQFI3  $XVAU4  $YSHL1  $XVAF5  $     $YOLC2  $YOLC2  301     $XTLA2  $YTJD3  -     -     -     -   
+    [wght=100, wdth=50]              35      36      35      290     412     342     188     260     218     286     29      29      $XFIR2  $     508     $YTAS3  $       $YTFI3  $XSHU2  60      102     $XVAU4  $XVAU2  $XVAU4  $XLCR1  29      21      156     $XOFI1  124     $XUCS1  34      $XUCD1  $XQFI1  $XLCR1  $XLCD4  33      $YSVL1  $YTOS1  44      36      $YSHF1  $XVAU1  105     69      96      57      151     108     $YQFI3  $XVAU4  $XVAU1  $XVAU3  $     $YOLC2  $YOLC2  217     $XTLA3  -95     -     -     -     -   
+    [wght=400]                       $       $       $       $       $       $       $       $       $       $       $       $       $       $     $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $YTOS1  $       $       $       $       $       $       $       $       $       $       $       $       $       $       $     $       $       $       $       $       -     -     -     -   
+    [XTSP=-100]                      $       $       $       $       $       $       $       $       $       $       $       $       $       $     $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $XUCR1  $XUCD2  -62     $YOLC2  -13     -68     $XUCD2  $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $     $       $       $       $       $       $     $     $     $   
+    [XTSP=100]                       $       $       $       $       $       $       $       $       $       $       $       $       $       $     $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       205     100     57      182     98      62      97      $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $       $     $       $       $       $       $       $     $     $     $   
 
-instances auto
+instances off

@@ -71,8 +71,7 @@ class DesignSpaceToDSS:
                 dss_mapping = self._convert_avar2_mapping(mapping, ds_doc)
                 dss_doc.avar2_mappings.append(dss_mapping)
 
-            # Then analyze CONVERTED mappings to generate variables for repeated values
-            # (uses axis tags, which enables the $AXIS shorthand)
+            # Generate variables for repeated values (named $axis1 to avoid confusion with axis.default)
             dss_doc.avar2_vars = self._extract_avar2_variables_from_dss(dss_doc.avar2_mappings)
 
         # Convert sources
@@ -466,17 +465,18 @@ class DesignSpaceToDSS:
         """Extract repeated values from CONVERTED DSS avar2 mappings to create variables
 
         If a value appears 3+ times across all output locations,
-        create a variable for it named after the axis TAG.
+        create a variable for it named $axis1, $axis2, etc. (counter to avoid confusion with axis.default).
 
         Example:
-            If wght=600 appears in 4 mappings, create $wght = 600
-            This allows using the shorthand wght=$ in output
+            If wght=600 appears 4 times, create $wght1 = 600
+            If wght=800 appears 3 times, create $wght2 = 800
+            Writer will output $wght1, $wght2 where these values appear
 
         Args:
             dss_mappings: List of DSSAvar2Mapping objects (already converted)
 
         Returns:
-            Dict of variable_name (axis tag) -> value (without $ prefix)
+            Dict of variable_name (axis_tag + counter) -> value (without $ prefix)
         """
         # Count value occurrences per axis
         axis_value_counts = {}  # {axis_tag: {value: count}}
@@ -491,18 +491,22 @@ class DesignSpaceToDSS:
 
         # Create variables for values that appear 3+ times
         variables = {}
-        for axis_tag, value_counts in axis_value_counts.items():
-            # Find the value with the most occurrences
-            max_count = 0
-            max_value = None
-            for value, count in value_counts.items():
-                if count > max_count:
-                    max_count = count
-                    max_value = value
+        axis_counters = {}  # Track counter per axis
 
-            if max_count >= 3 and max_value is not None:
-                # Use axis tag as variable name (allows $AXIS shorthand)
-                variables[axis_tag] = max_value
+        for axis_tag, value_counts in axis_value_counts.items():
+            # Sort by count descending to get most common values first
+            sorted_values = sorted(value_counts.items(), key=lambda x: -x[1])
+
+            for value, count in sorted_values:
+                if count >= 3:
+                    # Increment counter for this axis
+                    if axis_tag not in axis_counters:
+                        axis_counters[axis_tag] = 0
+                    axis_counters[axis_tag] += 1
+
+                    # Use axis tag + counter as variable name
+                    var_name = f"{axis_tag}{axis_counters[axis_tag]}"
+                    variables[var_name] = value
 
         return variables
 

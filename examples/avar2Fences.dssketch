@@ -1,4 +1,4 @@
-family Fences
+family Unknown
 
 axes
     wght 1:400:1000 "Weight"
@@ -6,13 +6,14 @@ axes
     opsz 6:16:144 "Optical size"
 
 avar2 vars
-    $wght = 600
+    $wght1 = 600
 
-avar2
-    [wght=1000, wdth=50] > wght=$, wdth=50
-    [wght=1000, wdth=90] > wght=$, wdth=90
-    [wght=600, wdth=50] > wght=$, wdth=50
-    [wght=600, wdth=90] > wght=$, wdth=90
-    [wght=1000, wdth=90.02] > wght=1000, wdth=90.02
+avar2 matrix
+    outputs                  wght    wdth 
+    [wght=1000, wdth=50]     $wght1  50   
+    [wght=1000, wdth=90]     $wght1  90   
+    [wght=600, wdth=50]      $wght1  50   
+    [wght=600, wdth=90]      $wght1  90   
+    [wght=1000, wdth=90.02]  1000    90.02
 
-instances auto
+instances off

@@ -718,6 +718,31 @@ class DSSWriter:
 
         return lines
 
+    def _get_axis_default(self, axis_name: str, dss_doc: DSSDocument) -> float | None:
+        """Get the default value for an axis by name or tag.
+
+        Searches both regular and hidden axes.
+
+        Returns:
+            The axis default value, or None if axis not found.
+        """
+        all_axes = dss_doc.axes + dss_doc.hidden_axes
+        for axis in all_axes:
+            if axis.name == axis_name or axis.tag == axis_name:
+                return axis.default
+        return None
+
+    def _find_variable_for_value(self, value: float, dss_doc: DSSDocument) -> str | None:
+        """Find a variable name that matches the given value.
+
+        Returns:
+            Variable name (without $) if found, None otherwise.
+        """
+        for var_name, var_value in dss_doc.avar2_vars.items():
+            if var_value == value:
+                return var_name
+        return None
+
     def _format_avar2_mapping(self, mapping, dss_doc: DSSDocument) -> List[str]:
         """Format avar2 mapping for output
 
@@ -743,12 +768,18 @@ class DSSWriter:
         # Format output assignments
         output_parts = []
         for axis_name, value in mapping.output.items():
-            # Check if we can use variable shorthand
-            if axis_name in dss_doc.avar2_vars and dss_doc.avar2_vars[axis_name] == value:
+            # Check if value equals axis default - use $ shorthand
+            axis_default = self._get_axis_default(axis_name, dss_doc)
+            if axis_default is not None and value == axis_default:
                 # Use shorthand: AXIS=$
                 output_parts.append(f"{axis_name}=$")
             else:
-                output_parts.append(f"{axis_name}={self._format_number(value)}")
+                # Check if value matches a variable
+                var_name = self._find_variable_for_value(value, dss_doc)
+                if var_name:
+                    output_parts.append(f"{axis_name}=${var_name}")
+                else:
+                    output_parts.append(f"{axis_name}={self._format_number(value)}")
 
         output_str = ", ".join(output_parts)
 
@@ -839,11 +870,17 @@ class DSSWriter:
             for axis_name in output_axes:
                 if axis_name in mapping.output:
                     value = mapping.output[axis_name]
-                    # Check for variable shorthand
-                    if axis_name in dss_doc.avar2_vars and dss_doc.avar2_vars[axis_name] == value:
+                    # Check if value equals axis default - use $ shorthand
+                    axis_default = self._get_axis_default(axis_name, dss_doc)
+                    if axis_default is not None and value == axis_default:
                         value_parts.append("$")
                     else:
-                        value_parts.append(self._format_number(value))
+                        # Check if value matches a variable
+                        var_name = self._find_variable_for_value(value, dss_doc)
+                        if var_name:
+                            value_parts.append(f"${var_name}")
+                        else:
+                            value_parts.append(self._format_number(value))
                 else:
                     # Missing value - use dash or empty
                     value_parts.append("-")
@@ -885,10 +922,16 @@ class DSSWriter:
             for mapping in dss_doc.avar2_mappings:
                 if axis_name in mapping.output:
                     value = mapping.output[axis_name]
-                    if axis_name in dss_doc.avar2_vars and dss_doc.avar2_vars[axis_name] == value:
+                    axis_default = self._get_axis_default(axis_name, dss_doc)
+                    if axis_default is not None and value == axis_default:
                         val_str = "$"
                     else:
-                        val_str = self._format_number(value)
+                        # Check if value matches a variable
+                        var_name = self._find_variable_for_value(value, dss_doc)
+                        if var_name:
+                            val_str = f"${var_name}"
+                        else:
+                            val_str = self._format_number(value)
                     max_len = max(max_len, len(val_str))
             widths[i + 1] = max_len
 

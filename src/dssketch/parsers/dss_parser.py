@@ -1472,14 +1472,15 @@ class DSSParser:
             axis_name = axis_part.strip()
             value_str = value_part.strip()
 
-            # Handle variable references
+            # Handle special values
             if value_str == "$":
-                # Shorthand: AXIS=$ means $AXIS
-                if axis_name in self.document.avar2_vars:
-                    value = self.document.avar2_vars[axis_name]
+                # $ means "use axis default value"
+                axis_default = self._get_axis_default(axis_name)
+                if axis_default is not None:
+                    value = axis_default
                 else:
                     self.validator.errors.append(
-                        f"avar2: undefined variable ${axis_name} (shorthand $ for {axis_name})"
+                        f"avar2: cannot use $ for unknown axis '{axis_name}'"
                     )
                     continue
             elif value_str.startswith("$"):
@@ -1501,6 +1502,20 @@ class DSSParser:
             result[axis_name] = value
 
         return result
+
+    def _get_axis_default(self, axis_name: str) -> float | None:
+        """Get the default value for an axis by name or tag.
+
+        Searches both regular and hidden axes.
+
+        Returns:
+            The axis default value, or None if axis not found.
+        """
+        all_axes = self.document.axes + self.document.hidden_axes
+        for axis in all_axes:
+            if axis.name == axis_name or axis.tag == axis_name:
+                return axis.default
+        return None
 
     def _resolve_avar2_value(self, value_str: str, axis_name: str) -> float:
         """Resolve avar2 value - could be numeric, label, or variable
@@ -1619,14 +1634,15 @@ class DSSParser:
             if value_str == "-":
                 continue  # Skip this axis - not included in output
 
-            # Handle variable references
+            # Handle special values
             if value_str == "$":
-                # Shorthand for $AXIS
-                if axis_name in self.document.avar2_vars:
-                    outputs[axis_name] = self.document.avar2_vars[axis_name]
+                # $ means "use axis default value"
+                axis_default = self._get_axis_default(axis_name)
+                if axis_default is not None:
+                    outputs[axis_name] = axis_default
                 else:
                     self.validator.errors.append(
-                        f"avar2 matrix: undefined variable ${axis_name}"
+                        f"avar2 matrix: cannot use $ for unknown axis '{axis_name}'"
                     )
                     continue
             elif value_str.startswith("$"):

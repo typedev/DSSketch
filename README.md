@@ -1017,7 +1017,7 @@ avar2 vars
 
 avar2
     [wght=400] > XOUC=$XOUC, YTUC=$YTUC, YTLC=$YTLC
-    [wght=700] > XOUC=120, YTUC=$, YTLC=$  # $ means "use default"
+    [wght=700] > XOUC=120, YTUC=$, YTLC=$  # $ = use axis default
 ```
 
 #### avar2 Matrix Format (Default)
@@ -1037,8 +1037,8 @@ avar2 matrix
 **Matrix format features:**
 - Column headers show output axis names
 - Each row shows input conditions and output values
-- `$` means "use default value for this axis"
-- `-` means "no value for this axis in this mapping"
+- `$` = use axis default value (e.g., `XOUC=$` means use XOUC's default from axis definition)
+- `-` = no output for this axis in this mapping
 - Automatic column alignment for readability
 
 #### CLI Options for avar2 Format

@@ -398,7 +398,7 @@ avar2 vars  # reusable variable definitions
 avar2  # linear format
     [wght=100] > wght=300
     [wght=400] > wght=400, XOUC=$XOUC
-    [opsz=144] > XOUC=84, XOLC=78, YTUC=$  # $ = use default value
+    [opsz=144] > XOUC=84, XOLC=78, YTUC=$  # $ = use axis default
 
 avar2 matrix  # tabular format (default for output)
     outputs              XOUC  XOLC  YTUC
@@ -1150,8 +1150,8 @@ def _validate_content(self, document: DSSDocument):
        [opsz=144]       84    78    $
        [wght=100]       40    42    -
    ```
-   - `$` = use default value (from `avar2 vars` or axis default)
-   - `-` = no value for this axis in this mapping
+   - `$` = use axis default value (e.g., `XOUC=$` means use XOUC's default from axis definition)
+   - `-` = no output for this axis in this mapping
 
 3. **Variables** (`avar2 vars`):
    ```
