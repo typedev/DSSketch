@@ -389,7 +389,7 @@ instances auto  # instances follow axes section order
 instances off  # completely disable instance generation (useful for avar2 fonts)
 
 # avar2 support (OpenType 1.9 - inter-axis dependencies)
-hidden_axes  # parametric axes not exposed to users
+axes hidden  # parametric axes not exposed to users
     XOUC 0:100:200
     XOLC 0:100:200
     YTUC 400:500:600
@@ -1165,7 +1165,7 @@ def _validate_content(self, document: DSSDocument):
 
 4. **Hidden Axes** - Parametric axes not exposed to users:
    ```
-   hidden_axes
+   axes hidden
        XOUC 0:100:200
        YTUC 400:500:600
    ```

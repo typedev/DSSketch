@@ -997,7 +997,7 @@ axes
     opsz 6:16:144 "Optical size"
 
 # Hidden axes (parametric, not exposed to users)
-hidden_axes
+axes hidden
     XOUC 0:100:200
     XOLC 0:100:200
     YTUC 400:500:600
