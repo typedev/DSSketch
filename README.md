@@ -1041,15 +1041,21 @@ avar2 matrix
 - `-` = no output for this axis in this mapping
 - Automatic column alignment for readability
 
-#### CLI Options for avar2 Format
+#### CLI Options for avar2
 
 ```bash
-# Use matrix format (default)
-dssketch font.designspace --matrix
+# Format options
+dssketch font.designspace --matrix    # matrix format (default)
+dssketch font.designspace --linear    # linear format
 
-# Use linear format (one mapping per line)
-dssketch font.designspace --linear
+# Variable generation options
+dssketch font.designspace             # auto-generate vars (threshold=3, default)
+dssketch font.designspace --novars    # disable variable generation
+dssketch font.designspace --vars 2    # threshold=2 (more variables)
+dssketch font.designspace --vars 5    # threshold=5 (fewer variables)
 ```
+
+**Variable generation**: Values appearing N+ times become variables (`$axis1`, `$axis2`, etc.)
 
 **Linear format example:**
 ```dssketch

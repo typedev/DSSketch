@@ -1189,6 +1189,8 @@ Instance names: `wght400 opsz16` format (tag + value).
 **CLI Options:**
 - `--matrix` - Use matrix format (default)
 - `--linear` - Use linear format
+- `--novars` - Disable automatic variable generation
+- `--vars N` - Set variable generation threshold (default: 3)
 
 ### Implementation Notes for instances off (2025-12)
 
@@ -1322,7 +1324,8 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - **CLI options**:
   - `--matrix` - Use matrix format for avar2 output (default)
   - `--linear` - Use linear format for avar2 output
-  - `--no-validation` - Skip UFO validation
+  - `--novars` - Disable automatic variable generation
+  - `--vars N` - Set variable generation threshold (default: 3)
   - `-o, --output` - Specify output file path
 - **Purpose**: User-facing CLI for DSSketch conversions
 
