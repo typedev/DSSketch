@@ -41,6 +41,23 @@ def main():
         help="Use linear format for avar2 output",
     )
 
+    # avar2 variable generation options (mutually exclusive)
+    vars_group = parser.add_mutually_exclusive_group()
+    vars_group.add_argument(
+        "--novars",
+        action="store_true",
+        help="Disable automatic variable generation for avar2",
+    )
+    vars_group.add_argument(
+        "--vars",
+        type=int,
+        nargs="?",
+        const=3,
+        default=3,
+        metavar="N",
+        help="Generate variables for values appearing N+ times (default: 3)",
+    )
+
     args = parser.parse_args()
 
     input_path = Path(args.input)
@@ -103,7 +120,11 @@ def main():
         elif output_format == "dssketch":
             # Convert .designspace to .dssketch
             DSSketchLogger.info("Starting DesignSpace to DSSketch conversion")
-            converter = DesignSpaceToDSS()
+
+            # Determine variable threshold (0 = disabled)
+            vars_threshold = 0 if args.novars else args.vars
+
+            converter = DesignSpaceToDSS(vars_threshold=vars_threshold)
             dss_doc = converter.convert_file(str(input_path))
 
             # Load DesignSpace document for glyph validation

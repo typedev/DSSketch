@@ -22,7 +22,14 @@ from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSS
 class DesignSpaceToDSS:
     """Convert DesignSpace to DSS format"""
 
-    def __init__(self):
+    def __init__(self, vars_threshold: int = 3):
+        """Initialize converter.
+
+        Args:
+            vars_threshold: Minimum frequency for auto-generating variables.
+                           0 = disabled, 3 = default (values appearing 3+ times)
+        """
+        self.vars_threshold = vars_threshold
         self.font_resources = {}
         self.load_external_data()
 
@@ -72,7 +79,10 @@ class DesignSpaceToDSS:
                 dss_doc.avar2_mappings.append(dss_mapping)
 
             # Generate variables for repeated values (named $axis1 to avoid confusion with axis.default)
-            dss_doc.avar2_vars = self._extract_avar2_variables_from_dss(dss_doc.avar2_mappings)
+            if self.vars_threshold > 0:
+                dss_doc.avar2_vars = self._extract_avar2_variables_from_dss(
+                    dss_doc.avar2_mappings, self.vars_threshold
+                )
 
         # Convert sources
         for source in ds_doc.sources:
@@ -461,19 +471,20 @@ class DesignSpaceToDSS:
 
         return hidden_axes
 
-    def _extract_avar2_variables_from_dss(self, dss_mappings) -> dict:
+    def _extract_avar2_variables_from_dss(self, dss_mappings, threshold: int = 3) -> dict:
         """Extract repeated values from CONVERTED DSS avar2 mappings to create variables
 
-        If a value appears 3+ times across all output locations,
+        If a value appears threshold+ times across all output locations,
         create a variable for it named $axis1, $axis2, etc. (counter to avoid confusion with axis.default).
 
-        Example:
+        Example (threshold=3):
             If wght=600 appears 4 times, create $wght1 = 600
             If wght=800 appears 3 times, create $wght2 = 800
             Writer will output $wght1, $wght2 where these values appear
 
         Args:
             dss_mappings: List of DSSAvar2Mapping objects (already converted)
+            threshold: Minimum frequency for creating a variable (default: 3)
 
         Returns:
             Dict of variable_name (axis_tag + counter) -> value (without $ prefix)
@@ -489,7 +500,7 @@ class DesignSpaceToDSS:
                     axis_value_counts[axis_tag][value] = 0
                 axis_value_counts[axis_tag][value] += 1
 
-        # Create variables for values that appear 3+ times
+        # Create variables for values that appear threshold+ times
         variables = {}
         axis_counters = {}  # Track counter per axis
 
@@ -498,7 +509,7 @@ class DesignSpaceToDSS:
             sorted_values = sorted(value_counts.items(), key=lambda x: -x[1])
 
             for value, count in sorted_values:
-                if count >= 3:
+                if count >= threshold:
                     # Increment counter for this axis
                     if axis_tag not in axis_counters:
                         axis_counters[axis_tag] = 0
