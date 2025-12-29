@@ -98,10 +98,13 @@ import dssketch
 from fontTools.designspaceLib import DesignSpaceDocument
 
 # Convert DesignSpace object to DSSketch file
-dssketch.convert_to_dss(designspace: DesignSpaceDocument, dss_path: str, optimize: bool = True) -> str
+dssketch.convert_to_dss(designspace, dss_path, optimize=True, vars_threshold=3, avar2_format="matrix") -> str
 
 # Convert DSSketch file to DesignSpace object
 dssketch.convert_to_designspace(dss_path: str) -> DesignSpaceDocument
+
+# Convert DesignSpace to DSSketch string
+dssketch.convert_designspace_to_dss_string(designspace, optimize=True, vars_threshold=3, avar2_format="matrix") -> str
 
 # Convert DSSketch string to DesignSpace object
 dssketch.convert_dss_string_to_designspace(dss_content: str, base_path: str = None) -> DesignSpaceDocument
@@ -1311,10 +1314,11 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - Exports core classes: `DSSParser`, `DSSWriter`, converters
 
 **`api.py`** - High-level API for DSSketch integration
-- `convert_to_dss(designspace, dss_path, optimize)` - Convert DesignSpace object to DSSketch file
+- `convert_to_dss(designspace, dss_path, optimize=True, vars_threshold=3, avar2_format="matrix")` - Convert DesignSpace object to DSSketch file
 - `convert_to_designspace(dss_path)` - Convert DSSketch file to DesignSpace object
 - `convert_dss_string_to_designspace(dss_content, base_path)` - Convert DSSketch string to DesignSpace
-- `convert_designspace_to_dss_string(designspace, optimize)` - Convert DesignSpace to DSSketch string
+- `convert_designspace_to_dss_string(designspace, optimize=True, vars_threshold=3, avar2_format="matrix")` - Convert DesignSpace to DSSketch string
+- **Parameters**: `vars_threshold` (0=disabled, 3=default), `avar2_format` ("matrix" or "linear")
 - **Purpose**: Provides simple, user-friendly API for integrating DSSketch into other projects
 
 **`cli.py`** - Command-line interface implementation

@@ -357,8 +357,16 @@ ds = DesignSpaceDocument()
 ds.read("MyFont.designspace")
 dssketch.convert_to_dss(ds, "MyFont.dssketch")
 
+# With options: vars_threshold (0=disabled, 3=default), avar2_format ("matrix"/"linear")
+dssketch.convert_to_dss(ds, "MyFont.dssketch", vars_threshold=0)  # no variables
+dssketch.convert_to_dss(ds, "MyFont.dssketch", avar2_format="linear")  # linear format
+
 # Convert DSSketch file to DesignSpace object
 ds = dssketch.convert_to_designspace("MyFont.dssketch")
+
+# Convert DesignSpace to DSSketch string
+dss_string = dssketch.convert_designspace_to_dss_string(ds)
+dss_string = dssketch.convert_designspace_to_dss_string(ds, vars_threshold=2)  # more variables
 
 # Work with DSSketch strings (for programmatic generation)
 dss_content = """
