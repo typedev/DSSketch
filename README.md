@@ -986,12 +986,42 @@ This produces a DesignSpace file with zero instances, which is useful for:
 
 DSSketch provides comprehensive support for avar2 (axis variations version 2), enabling non-linear axis mappings and inter-axis dependencies. This is essential for sophisticated variable fonts like parametric fonts.
 
+#### User Space vs Design Space in avar2
+
+**Critical concept**: avar2 mappings have a clean separation between spaces:
+
+- **Input** (`[axis=value]`): Always **USER space** — the CSS values that applications request
+- **Output** (`axis=value`): Always **DESIGN space** — the internal font coordinates
+
+**Labels always mean user space:**
+
+```dssketch
+axes
+    wght 100:400:900
+        Regular > 435     # Axis mapping: user=400 → design=435 (default)
+    wdth 75:100:125
+        Condensed > 75
+        Normal > 100
+
+avar2
+    # Input uses USER space: Regular=400, Condensed=80 (CSS standard)
+    # Output uses DESIGN space: wght=385
+    [wght=Regular, wdth=Condensed] > wght=385
+```
+
+**Interpretation:**
+- When user requests `font-weight: 400` (Regular) at `font-stretch: 80%` (Condensed)
+- The font will use design coordinate 385 instead of the default 435
+- This allows the font to optically compensate for the condensed width
+
+**The axis mapping `Regular > 435` defines the DEFAULT design value.** avar2 can OVERRIDE it for specific axis combinations.
+
 #### Basic avar2 Syntax
 
 **Mapping structure: `[input] > output`**
 
-- **Input**: `[axis=value]` — the coordinate where user requests a value
-- **Output**: `axis=value` — what the font internally uses instead
+- **Input**: `[axis=value]` — USER space coordinate (what CSS/apps request)
+- **Output**: `axis=value` — DESIGN space value (internal font coordinate)
 
 **Example 1: Non-linear weight curve** (from `examples/avar2.dssketch`)
 
@@ -1044,6 +1074,37 @@ avar2 matrix
 ```
 
 User controls `ZROT`, font internally adjusts hidden axes `AAAA` and `BBBB`.
+
+**Example 4: Cross-axis dependency with labels**
+
+```dssketch
+axes
+    wght 100:400:900
+        Light > 300
+        Regular > 435      # user=400 → design=435 (default)
+        Bold > 700
+    wdth 75:100:125
+        Condensed > 75
+        Normal > 100
+        Wide > 125
+
+sources [wght, wdth]
+    Regular-Normal [435, 100] @base
+    Regular-Condensed [385, 75]    # Note: different design value at Condensed!
+    Bold-Condensed [650, 75]
+
+avar2
+    # Labels resolve to USER space: Regular=400, Condensed=80 (CSS standard)
+    # Output is DESIGN space
+    [wght=Regular, wdth=Condensed] > wght=385
+    [wght=Bold, wdth=Condensed] > wght=650
+```
+
+**What this means:**
+- `Regular > 435` defines the DEFAULT design value for Regular weight
+- At Condensed width, Regular needs a lighter design value (385) for optical balance
+- The label `Regular` always means user=400 everywhere in DSSketch
+- The converter automatically translates user→design for DesignSpace XML
 
 **Sources for avar2 fonts** — use `AXIS=value` format (from `examples/avar2-RobotoDelta-Roman.dssketch`):
 

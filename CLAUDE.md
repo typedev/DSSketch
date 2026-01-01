@@ -1136,22 +1136,55 @@ def _validate_content(self, document: DSSDocument):
 - Writer: `src/dssketch/writers/dss_writer.py` - `_format_avar2_as_matrix()`, `_format_avar2_as_linear()`
 - Models: `src/dssketch/core/models.py` - `DSSAvar2Mapping`, `DSSDocument.avar2_mappings`
 - Instances: `src/dssketch/core/instances.py` - `_extract_avar2_points_for_axis()`
+- Converter: `src/dssketch/converters/dss_to_designspace.py` - `_user_to_design_value()` for user→design conversion
+
+**avar2 Semantic Model (IMPORTANT):**
+
+Labels in avar2 use **user space** for input and **design space** for output:
+
+```
+avar2 INPUT:  USER space    (Regular=400, Condensed=80)
+avar2 OUTPUT: DESIGN space  (wght=385, XOUC=50)
+```
+
+**Example:**
+```dssketch
+axes
+    wght 100:400:900
+        Regular > 435      # user=400 → design=435 (DEFAULT)
+        Bold > 700
+
+avar2
+    [wght=Regular, wdth=Condensed] > wght=385
+    #     ↑                              ↑
+    #  user=400                      design=385
+```
+
+**How it works:**
+1. Parser resolves `Regular` to user_value=400 (via `_resolve_avar2_value()`)
+2. Converter transforms user=400 → design=435 for DesignSpace XML (via `_user_to_design_value()`)
+3. Output values are already in design space, used as-is
+
+**This creates clean semantics:**
+- Axis mapping `Regular > 435` = default design value
+- avar2 overrides for specific axis combinations
+- Labels ALWAYS mean user space everywhere in DSSketch
 
 **Key Features:**
 
 1. **Linear Format** - Traditional one-mapping-per-line:
    ```
    avar2
-       [wght=100] > wght=300, XOUC=80
-       [opsz=144] > XOUC=84, XOLC=78
+       [wght=Regular] > wght=300, XOUC=80    # Regular = user 400
+       [opsz=Display] > XOUC=84, XOLC=78     # Display = user 144
    ```
 
 2. **Matrix Format** (default) - Tabular for complex fonts:
    ```
    avar2 matrix
-       outputs           XOUC  XOLC  YTUC
-       [opsz=144]       84    78    $
-       [wght=100]       40    42    -
+       outputs                         XOUC  XOLC  YTUC
+       [wght=Regular, wdth=Condensed]  84    78    $
+       [wght=Bold, wdth=Condensed]     40    42    -
    ```
    - `$` = use axis default value (e.g., `XOUC=$` means use XOUC's default from axis definition)
    - `-` = no output for this axis in this mapping
