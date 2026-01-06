@@ -38,7 +38,7 @@ class DesignSpaceToDSS:
         data_dir = Path(__file__).parent.parent / "data"
 
         try:
-            with open(data_dir / "font-resources-translations.json") as f:
+            with open(data_dir / "font-resources-translations.json", encoding="utf-8") as f:
                 self.font_resources = json.load(f)
         except FileNotFoundError:
             pass
