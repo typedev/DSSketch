@@ -77,8 +77,8 @@ class UFOValidator:
                 report.invalid_ufos.append(str(ufo_path))
 
             # Check if filename ends with .ufo
-            if not source.filename.endswith(".ufo"):
-                report.warnings.append(f"Source filename should end with .ufo: {source.filename}")
+            if not source.filename.endswith((".ufo", ".ufoz")):
+                report.warnings.append(f"Source filename should end with .ufo(z): {source.filename}")
 
         return report
 

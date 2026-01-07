@@ -412,11 +412,13 @@ class DSSWriter:
             coords.append(self._format_number(value))
 
         # Use filename if it contains path, otherwise use name
-        if "/" in source.filename:
-            # Remove .ufo extension for display
-            display_name = source.filename.replace(".ufo", "")
+        if source.filename.endswith(".ufoz"):
+            display_name = source.filename
         else:
-            display_name = source.name
+            if "/" in source.filename:
+                display_name = source.filename.replace(".ufo", "")
+            else:
+                display_name = source.name
 
         # Add quotes if display_name contains spaces
         display_name = self._quote_if_spaces(display_name)
@@ -465,10 +467,13 @@ class DSSWriter:
                 non_default_coords.append(f"{axis_ref}={formatted_value}")
 
         # Use filename if it contains path, otherwise use name
-        if "/" in source.filename:
-            display_name = source.filename.replace(".ufo", "")
+        if source.filename.endswith(".ufoz"):
+            display_name = source.filename
         else:
-            display_name = source.name
+            if "/" in source.filename:
+                display_name = source.filename.replace(".ufo", "")
+            else:
+                display_name = source.name
 
         # Add quotes if display_name contains spaces
         display_name = self._quote_if_spaces(display_name)
