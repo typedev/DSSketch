@@ -815,11 +815,9 @@ class DSSParser:
             location[axis.name] = axis.default
 
         # Determine filename
-        if "/" in name:
-            filename = name if name.endswith(".ufo") else f"{name}.ufo"
+        filename = name if name.endswith((".ufo",".ufoz")) else f"{name}.ufo"
+        if "/" in name: # Remove duplicate code
             name = Path(name).stem
-        else:
-            filename = name if name.endswith(".ufo") else f"{name}.ufo"
 
         source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
         self.document.sources.append(source)
@@ -871,11 +869,9 @@ class DSSParser:
                 )
 
         # Determine filename
-        if "/" in name:
-            filename = name if name.endswith(".ufo") else f"{name}.ufo"
+        filename = name if name.endswith((".ufo",".ufoz")) else f"{name}.ufo"
+        if "/" in name: # Remove duplicate code
             name = Path(name).stem
-        else:
-            filename = name if name.endswith(".ufo") else f"{name}.ufo"
 
         source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
         self.document.sources.append(source)
@@ -969,13 +965,9 @@ class DSSParser:
                     location[axis.name] = coords[i]
 
         # Determine filename and name
-        if "/" in name:
-            # Path is included in the name
-            filename = name if name.endswith(".ufo") else f"{name}.ufo"
+        filename = name if name.endswith((".ufo",".ufoz")) else f"{name}.ufo"
+        if "/" in name: # Remove duplicate code
             name = Path(name).stem
-        else:
-            # Simple name without path
-            filename = name if name.endswith(".ufo") else f"{name}.ufo"
 
         source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
         self.document.sources.append(source)
