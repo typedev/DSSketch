@@ -274,6 +274,34 @@ sources [wght, wdth]   # Coordinates follow this order: [weight, width]
     Black-Normal [900, 560]
 ```
 
+#### UFO Layer Support
+Store multiple masters as layers within a single UFO file:
+```dssketch
+sources [wght]
+    # Default layer (foreground) - base master
+    Font-Master.ufo [400] @base
+
+    # Intermediate masters stored as layers in same UFO
+    Font-Master.ufo [500] @layer="wght500"
+    Font-Master.ufo [600] @layer="wght600"
+    Font-Master.ufo [700] @layer="bold-layer"
+
+    # Separate UFO for extreme weight
+    Font-Black.ufo [900]
+```
+
+**Benefits:**
+- **Reduces file count**: Multiple masters in one UFO
+- **Organized structure**: Related masters kept together
+- **Full bidirectional support**: DesignSpace `layerName` ↔ DSSketch `@layer`
+
+**Syntax formats:**
+- `@layer="layer name"` - with double quotes (supports spaces)
+- `@layer='layer name'` - with single quotes
+- `@layer=layername` - without quotes (no spaces)
+
+Can be combined with `@base`: `Font.ufo [400] @base @layer="default"`
+
 #### Custom Axis
 ```dssketch
 # Control instance generation order
@@ -504,6 +532,47 @@ rules
     # Negative coordinates (supported in design space)
     ultra* > .thin (weight >= -100)
     back* > .forward (CONTRAST <= -25)
+
+instances auto
+```
+
+### Font with UFO Layers
+```dssketch
+# Using layers to store intermediate masters in single UFO files
+# Reduces file count while maintaining full design flexibility
+
+family FontWithLayers
+
+axes
+    wght 100:400:900
+        Thin > 100
+        Regular > 400 @elidable
+        Bold > 700
+        Black > 900
+    wdth 75:100:125
+        Condensed > 75
+        Normal > 100 @elidable
+        Wide > 125
+
+sources [wght, wdth]
+    # Main master files (default layer)
+    Font-Regular.ufo [400, 100] @base
+    Font-Thin.ufo [100, 100]
+    Font-Black.ufo [900, 100]
+
+    # Width extremes
+    Font-Condensed.ufo [400, 75]
+    Font-Wide.ufo [400, 125]
+
+    # Intermediate weight masters as layers in Font-Regular.ufo
+    Font-Regular.ufo [300, 100] @layer="wght300"
+    Font-Regular.ufo [500, 100] @layer="wght500"
+    Font-Regular.ufo [600, 100] @layer="wght600"
+    Font-Regular.ufo [700, 100] @layer="wght700"
+
+    # Condensed intermediates as layers
+    Font-Condensed.ufo [300, 75] @layer="wght300-condensed"
+    Font-Condensed.ufo [700, 75] @layer="wght700-condensed"
 
 instances auto
 ```
@@ -1365,6 +1434,8 @@ python -m pytest tests/test_parser_validation.py::TestParserValidation::test_key
 The `examples/` directory contains:
 - `examples/MegaFont-3x5x7x3-Variable.designspace` → Complex multi-axis font
 - `examples/SuperFont-6x2.dssketch` → Equivalent DSSketch format (93% smaller)
+- `examples/FontWithLayers.dssketch` → UFO layer support demo
+- Various avar2 examples (`avar2*.dssketch`) → OpenType 1.9 axis variations
 - Various test files showing edge cases and features
 
 ---

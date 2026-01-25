@@ -421,6 +421,10 @@ class DSSToDesignSpace:
             source.copyGroups = True
             source.copyFeatures = True
 
+        # Set UFO layer name if specified
+        if dss_source.layer:
+            source.layerName = dss_source.layer
+
         return source
 
     def _read_ufo_info(self, filename: str) -> Optional[dict]:

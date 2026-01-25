@@ -48,6 +48,7 @@ class DSSSource:
     copy_lib: bool = False
     copy_groups: bool = False
     copy_features: bool = False
+    layer: Optional[str] = None  # UFO layer name (None = default layer)
 
 
 @dataclass

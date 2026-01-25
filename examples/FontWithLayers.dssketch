@@ -1,0 +1,41 @@
+# Example: UFO Layers Support
+# Demonstrates using multiple masters stored as layers within a single UFO file
+# This is a common technique for complex variable fonts with many intermediate masters
+
+family FontWithLayers
+
+axes
+    wght 100:400:900
+        Thin > 100
+        Regular > 400 @elidable
+        Bold > 700
+        Black > 900
+    wdth 75:100:125
+        Condensed > 75
+        Normal > 100 @elidable
+        Wide > 125
+
+# One UFO file can provide multiple masters via layers
+# This reduces file count while maintaining design flexibility
+sources [wght, wdth]
+    # Main master files (default layer / foreground)
+    Font-Regular.ufo [400, 100] @base
+    Font-Thin.ufo [100, 100]
+    Font-Black.ufo [900, 100]
+
+    # Width extremes
+    Font-Condensed.ufo [400, 75]
+    Font-Wide.ufo [400, 125]
+
+    # Intermediate weight masters stored as layers in Font-Regular.ufo
+    # This keeps related masters together in one UFO
+    Font-Regular.ufo [300, 100] @layer="wght300"
+    Font-Regular.ufo [500, 100] @layer="wght500"
+    Font-Regular.ufo [600, 100] @layer="wght600"
+    Font-Regular.ufo [700, 100] @layer="wght700"
+
+    # Condensed intermediates as layers
+    Font-Condensed.ufo [300, 75] @layer="wght300-condensed"
+    Font-Condensed.ufo [700, 75] @layer="wght700-condensed"
+
+instances auto

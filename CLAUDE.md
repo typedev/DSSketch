@@ -358,6 +358,11 @@ sources [wght, ital]  # explicit axis order for coordinates
     # upright/Thin [Thin, Upright]  # Label-based
     # italic/Black [900, 1]  # Numeric
 
+    # UFO layer support - same file with different layers:
+    Font-Master.ufo [400, 0] @base
+    Font-Master.ufo [500, 0] @layer="wght500"  # intermediate master as layer
+    Font-Master.ufo [700, 0] @layer="bold-layer"
+
 rules
     # Label-based conditions (more readable!)
     dollar > dollar.heavy (weight >= Bold) "heavy dollar"
@@ -658,6 +663,27 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - Allows users to reorder axes in axes section without breaking source coordinates
 - Backward compatible: `sources` without brackets continues to work with axes order
 - Example: axes can be `ital`, `wght` but coordinates follow `sources [wght, ital]` order
+
+**UFO Layer Support:**
+- Sources can specify a UFO layer using the `@layer` flag
+- Allows multiple sources from the same UFO file with different layers
+- Useful for storing intermediate masters as layers within a single UFO
+- Syntax formats supported:
+  - `@layer="layer_name"` - with double quotes
+  - `@layer='layer_name'` - with single quotes
+  - `@layer=layer_name` - without quotes (if no spaces)
+- Can be combined with `@base`: `Font.ufo [400] @base @layer="default"`
+- Bidirectional conversion: DesignSpace `layerName` ↔ DSSketch `@layer`
+
+**Example with layers:**
+```dssketch
+sources [wght]
+    Font-Master.ufo [400] @base           # default layer (foreground)
+    Font-Master.ufo [500] @layer="wght500"  # intermediate as layer
+    Font-Master.ufo [600] @layer="wght600"
+    Font-Master.ufo [700] @layer="bold-layer"
+    Font-Black.ufo [900]                   # separate UFO file
+```
 
 **Automatic Instance Generation (`instances auto`):**
 - Uses sophisticated `instances.py` module for generating all meaningful instance combinations

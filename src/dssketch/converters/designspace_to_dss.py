@@ -269,6 +269,7 @@ class DesignSpaceToDSS:
             copy_info=source.copyInfo,
             copy_groups=source.copyGroups,
             copy_features=source.copyFeatures,
+            layer=source.layerName,  # UFO layer name (None = default layer)
         )
 
     def _is_default_source(self, source: SourceDescriptor, ds_doc: DesignSpaceDocument) -> bool:

@@ -785,25 +785,45 @@ class DSSParser:
         1. Positional: Source [val, val, val]
         2. Named: Source axis=val, axis=val
         3. Default-only: Source @base (all coordinates = axis defaults)
+
+        With optional layer specification:
+        - @layer="layer_name" or @layer "layer_name"
         """
         # Strip leading whitespace for pattern matching
         line = line.strip()
-        # Extract flags
+
+        # Extract @base flag
         is_base = "@base" in line
         line = line.replace("@base", "").strip()
+
+        # Extract @layer flag: @layer="name", @layer 'name', or @layer=name (without quotes)
+        layer = None
+        # First try with quotes: @layer="name" or @layer 'name'
+        layer_match = re.search(r'@layer\s*[=]?\s*["\']([^"\']+)["\']', line)
+        if layer_match:
+            layer = layer_match.group(1)
+            line = line[:layer_match.start()] + line[layer_match.end():]
+            line = line.strip()
+        else:
+            # Try without quotes: @layer=name (value until whitespace or end)
+            layer_match = re.search(r'@layer\s*=\s*(\S+)', line)
+            if layer_match:
+                layer = layer_match.group(1)
+                line = line[:layer_match.start()] + line[layer_match.end():]
+                line = line.strip()
 
         # Detect format and parse accordingly
         if "[" in line and "]" in line:
             # Positional format: Source [val, val, val]
-            self._parse_source_positional(line, is_base)
+            self._parse_source_positional(line, is_base, layer)
         elif "=" in line:
             # Named format: Source axis=val, axis=val
-            self._parse_source_named(line, is_base)
+            self._parse_source_named(line, is_base, layer)
         else:
             # Default-only format: just source name, all coords = defaults
-            self._parse_source_defaults_only(line, is_base)
+            self._parse_source_defaults_only(line, is_base, layer)
 
-    def _parse_source_defaults_only(self, line: str, is_base: bool):
+    def _parse_source_defaults_only(self, line: str, is_base: bool, layer: str = None):
         """Parse source with all default coordinates"""
         name = self._extract_quoted_or_plain_value(line.strip())
 
@@ -819,10 +839,10 @@ class DSSParser:
         if "/" in name: # Remove duplicate code
             name = Path(name).stem
 
-        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, layer=layer)
         self.document.sources.append(source)
 
-    def _parse_source_named(self, line: str, is_base: bool):
+    def _parse_source_named(self, line: str, is_base: bool, layer: str = None):
         """Parse source with named coordinates: Source axis=val, axis=val"""
         import re
 
@@ -873,7 +893,7 @@ class DSSParser:
         if "/" in name: # Remove duplicate code
             name = Path(name).stem
 
-        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, layer=layer)
         self.document.sources.append(source)
 
     def _find_axis_by_name_or_tag(self, axis_ref: str):
@@ -903,7 +923,7 @@ class DSSParser:
 
         raise ValueError(f"Unknown label '{value_str}' for axis '{axis.name}'")
 
-    def _parse_source_positional(self, line: str, is_base: bool):
+    def _parse_source_positional(self, line: str, is_base: bool, layer: str = None):
         """Parse source with positional coordinates: Source [val, val, val]"""
         # Format: "Light [0, 0]" or "My Font Light.ufo" [0, 0]
         # Also supports: "Regular [Regular, Upright]" (label-based)
@@ -969,7 +989,7 @@ class DSSParser:
         if "/" in name: # Remove duplicate code
             name = Path(name).stem
 
-        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base)
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, layer=layer)
         self.document.sources.append(source)
 
     def _parse_instance_line(self, line: str):
