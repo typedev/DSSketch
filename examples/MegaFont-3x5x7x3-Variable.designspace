@@ -707,7 +707,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Compressed Regular Reverse" filename="instances/MegaFont-CompressedRegularReverse.ufo" postscriptfontname="MegaFont-CompressedRegularReverse">
+    <instance familyname="MegaFont" stylename="Compressed Reverse" filename="instances/MegaFont-CompressedReverse.ufo" postscriptfontname="MegaFont-CompressedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -715,7 +715,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Compressed Regular" filename="instances/MegaFont-CompressedRegular.ufo" postscriptfontname="MegaFont-CompressedRegular">
+    <instance familyname="MegaFont" stylename="Compressed" filename="instances/MegaFont-Compressed.ufo" postscriptfontname="MegaFont-Compressed">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -723,7 +723,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Compressed Regular Slant" filename="instances/MegaFont-CompressedRegularSlant.ufo" postscriptfontname="MegaFont-CompressedRegularSlant">
+    <instance familyname="MegaFont" stylename="Compressed Slant" filename="instances/MegaFont-CompressedSlant.ufo" postscriptfontname="MegaFont-CompressedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -875,7 +875,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Condensed Regular Reverse" filename="instances/MegaFont-CondensedRegularReverse.ufo" postscriptfontname="MegaFont-CondensedRegularReverse">
+    <instance familyname="MegaFont" stylename="Condensed Reverse" filename="instances/MegaFont-CondensedReverse.ufo" postscriptfontname="MegaFont-CondensedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="380"/>
@@ -883,7 +883,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Condensed Regular" filename="instances/MegaFont-CondensedRegular.ufo" postscriptfontname="MegaFont-CondensedRegular">
+    <instance familyname="MegaFont" stylename="Condensed" filename="instances/MegaFont-Condensed.ufo" postscriptfontname="MegaFont-Condensed">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="380"/>
@@ -891,7 +891,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Condensed Regular Slant" filename="instances/MegaFont-CondensedRegularSlant.ufo" postscriptfontname="MegaFont-CondensedRegularSlant">
+    <instance familyname="MegaFont" stylename="Condensed Slant" filename="instances/MegaFont-CondensedSlant.ufo" postscriptfontname="MegaFont-CondensedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="380"/>
@@ -1043,7 +1043,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Regular Reverse" filename="instances/MegaFont-RegularReverse.ufo" postscriptfontname="MegaFont-RegularReverse">
+    <instance familyname="MegaFont" stylename="Reverse" filename="instances/MegaFont-Reverse.ufo" postscriptfontname="MegaFont-Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -1059,7 +1059,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Regular Slant" filename="instances/MegaFont-RegularSlant.ufo" postscriptfontname="MegaFont-RegularSlant">
+    <instance familyname="MegaFont" stylename="Slant" filename="instances/MegaFont-Slant.ufo" postscriptfontname="MegaFont-Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -1211,7 +1211,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Wide Regular Reverse" filename="instances/MegaFont-WideRegularReverse.ufo" postscriptfontname="MegaFont-WideRegularReverse">
+    <instance familyname="MegaFont" stylename="Wide Reverse" filename="instances/MegaFont-WideReverse.ufo" postscriptfontname="MegaFont-WideReverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="700"/>
@@ -1219,7 +1219,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Wide Regular" filename="instances/MegaFont-WideRegular.ufo" postscriptfontname="MegaFont-WideRegular">
+    <instance familyname="MegaFont" stylename="Wide" filename="instances/MegaFont-Wide.ufo" postscriptfontname="MegaFont-Wide">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="700"/>
@@ -1227,7 +1227,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Wide Regular Slant" filename="instances/MegaFont-WideRegularSlant.ufo" postscriptfontname="MegaFont-WideRegularSlant">
+    <instance familyname="MegaFont" stylename="Wide Slant" filename="instances/MegaFont-WideSlant.ufo" postscriptfontname="MegaFont-WideSlant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="700"/>
@@ -1379,7 +1379,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Extended Regular Reverse" filename="instances/MegaFont-ExtendedRegularReverse.ufo" postscriptfontname="MegaFont-ExtendedRegularReverse">
+    <instance familyname="MegaFont" stylename="Extended Reverse" filename="instances/MegaFont-ExtendedReverse.ufo" postscriptfontname="MegaFont-ExtendedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -1387,7 +1387,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Extended Regular" filename="instances/MegaFont-ExtendedRegular.ufo" postscriptfontname="MegaFont-ExtendedRegular">
+    <instance familyname="MegaFont" stylename="Extended" filename="instances/MegaFont-Extended.ufo" postscriptfontname="MegaFont-Extended">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -1395,7 +1395,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="Extended Regular Slant" filename="instances/MegaFont-ExtendedRegularSlant.ufo" postscriptfontname="MegaFont-ExtendedRegularSlant">
+    <instance familyname="MegaFont" stylename="Extended Slant" filename="instances/MegaFont-ExtendedSlant.ufo" postscriptfontname="MegaFont-ExtendedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -1547,7 +1547,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Compressed Regular Reverse" filename="instances/MegaFont-LowContrastCompressedRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastCompressedRegularReverse">
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Reverse" filename="instances/MegaFont-LowContrastCompressedReverse.ufo" postscriptfontname="MegaFont-LowContrastCompressedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="0"/>
@@ -1555,7 +1555,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Compressed Regular" filename="instances/MegaFont-LowContrastCompressedRegular.ufo" postscriptfontname="MegaFont-LowContrastCompressedRegular">
+    <instance familyname="MegaFont" stylename="LowContrast Compressed" filename="instances/MegaFont-LowContrastCompressed.ufo" postscriptfontname="MegaFont-LowContrastCompressed">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="0"/>
@@ -1563,7 +1563,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Compressed Regular Slant" filename="instances/MegaFont-LowContrastCompressedRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastCompressedRegularSlant">
+    <instance familyname="MegaFont" stylename="LowContrast Compressed Slant" filename="instances/MegaFont-LowContrastCompressedSlant.ufo" postscriptfontname="MegaFont-LowContrastCompressedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="0"/>
@@ -1715,7 +1715,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Condensed Regular Reverse" filename="instances/MegaFont-LowContrastCondensedRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedRegularReverse">
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Reverse" filename="instances/MegaFont-LowContrastCondensedReverse.ufo" postscriptfontname="MegaFont-LowContrastCondensedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="380"/>
@@ -1723,7 +1723,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Condensed Regular" filename="instances/MegaFont-LowContrastCondensedRegular.ufo" postscriptfontname="MegaFont-LowContrastCondensedRegular">
+    <instance familyname="MegaFont" stylename="LowContrast Condensed" filename="instances/MegaFont-LowContrastCondensed.ufo" postscriptfontname="MegaFont-LowContrastCondensed">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="380"/>
@@ -1731,7 +1731,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Condensed Regular Slant" filename="instances/MegaFont-LowContrastCondensedRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedRegularSlant">
+    <instance familyname="MegaFont" stylename="LowContrast Condensed Slant" filename="instances/MegaFont-LowContrastCondensedSlant.ufo" postscriptfontname="MegaFont-LowContrastCondensedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="380"/>
@@ -1883,7 +1883,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Regular Reverse" filename="instances/MegaFont-LowContrastRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastRegularReverse">
+    <instance familyname="MegaFont" stylename="LowContrast Reverse" filename="instances/MegaFont-LowContrastReverse.ufo" postscriptfontname="MegaFont-LowContrastReverse">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="560"/>
@@ -1891,7 +1891,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Regular" filename="instances/MegaFont-LowContrastRegular.ufo" postscriptfontname="MegaFont-LowContrastRegular">
+    <instance familyname="MegaFont" stylename="LowContrast" filename="instances/MegaFont-LowContrast.ufo" postscriptfontname="MegaFont-LowContrast">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="560"/>
@@ -1899,7 +1899,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Regular Slant" filename="instances/MegaFont-LowContrastRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastRegularSlant">
+    <instance familyname="MegaFont" stylename="LowContrast Slant" filename="instances/MegaFont-LowContrastSlant.ufo" postscriptfontname="MegaFont-LowContrastSlant">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="560"/>
@@ -2051,7 +2051,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Wide Regular Reverse" filename="instances/MegaFont-LowContrastWideRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastWideRegularReverse">
+    <instance familyname="MegaFont" stylename="LowContrast Wide Reverse" filename="instances/MegaFont-LowContrastWideReverse.ufo" postscriptfontname="MegaFont-LowContrastWideReverse">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="700"/>
@@ -2059,7 +2059,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Wide Regular" filename="instances/MegaFont-LowContrastWideRegular.ufo" postscriptfontname="MegaFont-LowContrastWideRegular">
+    <instance familyname="MegaFont" stylename="LowContrast Wide" filename="instances/MegaFont-LowContrastWide.ufo" postscriptfontname="MegaFont-LowContrastWide">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="700"/>
@@ -2067,7 +2067,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Wide Regular Slant" filename="instances/MegaFont-LowContrastWideRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastWideRegularSlant">
+    <instance familyname="MegaFont" stylename="LowContrast Wide Slant" filename="instances/MegaFont-LowContrastWideSlant.ufo" postscriptfontname="MegaFont-LowContrastWideSlant">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="700"/>
@@ -2219,7 +2219,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Extended Regular Reverse" filename="instances/MegaFont-LowContrastExtendedRegularReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedRegularReverse">
+    <instance familyname="MegaFont" stylename="LowContrast Extended Reverse" filename="instances/MegaFont-LowContrastExtendedReverse.ufo" postscriptfontname="MegaFont-LowContrastExtendedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="1000"/>
@@ -2227,7 +2227,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Extended Regular" filename="instances/MegaFont-LowContrastExtendedRegular.ufo" postscriptfontname="MegaFont-LowContrastExtendedRegular">
+    <instance familyname="MegaFont" stylename="LowContrast Extended" filename="instances/MegaFont-LowContrastExtended.ufo" postscriptfontname="MegaFont-LowContrastExtended">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="1000"/>
@@ -2235,7 +2235,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="LowContrast Extended Regular Slant" filename="instances/MegaFont-LowContrastExtendedRegularSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedRegularSlant">
+    <instance familyname="MegaFont" stylename="LowContrast Extended Slant" filename="instances/MegaFont-LowContrastExtendedSlant.ufo" postscriptfontname="MegaFont-LowContrastExtendedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="1000"/>
@@ -2387,7 +2387,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Compressed Regular Reverse" filename="instances/MegaFont-HighContrastCompressedRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedRegularReverse">
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Reverse" filename="instances/MegaFont-HighContrastCompressedReverse.ufo" postscriptfontname="MegaFont-HighContrastCompressedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -2395,7 +2395,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Compressed Regular" filename="instances/MegaFont-HighContrastCompressedRegular.ufo" postscriptfontname="MegaFont-HighContrastCompressedRegular">
+    <instance familyname="MegaFont" stylename="HighContrast Compressed" filename="instances/MegaFont-HighContrastCompressed.ufo" postscriptfontname="MegaFont-HighContrastCompressed">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -2403,7 +2403,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Compressed Regular Slant" filename="instances/MegaFont-HighContrastCompressedRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedRegularSlant">
+    <instance familyname="MegaFont" stylename="HighContrast Compressed Slant" filename="instances/MegaFont-HighContrastCompressedSlant.ufo" postscriptfontname="MegaFont-HighContrastCompressedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -2555,7 +2555,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Condensed Regular Reverse" filename="instances/MegaFont-HighContrastCondensedRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedRegularReverse">
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Reverse" filename="instances/MegaFont-HighContrastCondensedReverse.ufo" postscriptfontname="MegaFont-HighContrastCondensedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="380"/>
@@ -2563,7 +2563,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Condensed Regular" filename="instances/MegaFont-HighContrastCondensedRegular.ufo" postscriptfontname="MegaFont-HighContrastCondensedRegular">
+    <instance familyname="MegaFont" stylename="HighContrast Condensed" filename="instances/MegaFont-HighContrastCondensed.ufo" postscriptfontname="MegaFont-HighContrastCondensed">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="380"/>
@@ -2571,7 +2571,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Condensed Regular Slant" filename="instances/MegaFont-HighContrastCondensedRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedRegularSlant">
+    <instance familyname="MegaFont" stylename="HighContrast Condensed Slant" filename="instances/MegaFont-HighContrastCondensedSlant.ufo" postscriptfontname="MegaFont-HighContrastCondensedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="380"/>
@@ -2723,7 +2723,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Regular Reverse" filename="instances/MegaFont-HighContrastRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastRegularReverse">
+    <instance familyname="MegaFont" stylename="HighContrast Reverse" filename="instances/MegaFont-HighContrastReverse.ufo" postscriptfontname="MegaFont-HighContrastReverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -2731,7 +2731,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Regular" filename="instances/MegaFont-HighContrastRegular.ufo" postscriptfontname="MegaFont-HighContrastRegular">
+    <instance familyname="MegaFont" stylename="HighContrast" filename="instances/MegaFont-HighContrast.ufo" postscriptfontname="MegaFont-HighContrast">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -2739,7 +2739,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Regular Slant" filename="instances/MegaFont-HighContrastRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastRegularSlant">
+    <instance familyname="MegaFont" stylename="HighContrast Slant" filename="instances/MegaFont-HighContrastSlant.ufo" postscriptfontname="MegaFont-HighContrastSlant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -2891,7 +2891,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Wide Regular Reverse" filename="instances/MegaFont-HighContrastWideRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastWideRegularReverse">
+    <instance familyname="MegaFont" stylename="HighContrast Wide Reverse" filename="instances/MegaFont-HighContrastWideReverse.ufo" postscriptfontname="MegaFont-HighContrastWideReverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="700"/>
@@ -2899,7 +2899,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Wide Regular" filename="instances/MegaFont-HighContrastWideRegular.ufo" postscriptfontname="MegaFont-HighContrastWideRegular">
+    <instance familyname="MegaFont" stylename="HighContrast Wide" filename="instances/MegaFont-HighContrastWide.ufo" postscriptfontname="MegaFont-HighContrastWide">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="700"/>
@@ -2907,7 +2907,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Wide Regular Slant" filename="instances/MegaFont-HighContrastWideRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastWideRegularSlant">
+    <instance familyname="MegaFont" stylename="HighContrast Wide Slant" filename="instances/MegaFont-HighContrastWideSlant.ufo" postscriptfontname="MegaFont-HighContrastWideSlant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="700"/>
@@ -3059,7 +3059,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Extended Regular Reverse" filename="instances/MegaFont-HighContrastExtendedRegularReverse.ufo" postscriptfontname="MegaFont-HighContrastExtendedRegularReverse">
+    <instance familyname="MegaFont" stylename="HighContrast Extended Reverse" filename="instances/MegaFont-HighContrastExtendedReverse.ufo" postscriptfontname="MegaFont-HighContrastExtendedReverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -3067,7 +3067,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Extended Regular" filename="instances/MegaFont-HighContrastExtendedRegular.ufo" postscriptfontname="MegaFont-HighContrastExtendedRegular">
+    <instance familyname="MegaFont" stylename="HighContrast Extended" filename="instances/MegaFont-HighContrastExtended.ufo" postscriptfontname="MegaFont-HighContrastExtended">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -3075,7 +3075,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </instance>
-    <instance familyname="MegaFont" stylename="HighContrast Extended Regular Slant" filename="instances/MegaFont-HighContrastExtendedRegularSlant.ufo" postscriptfontname="MegaFont-HighContrastExtendedRegularSlant">
+    <instance familyname="MegaFont" stylename="HighContrast Extended Slant" filename="instances/MegaFont-HighContrastExtendedSlant.ufo" postscriptfontname="MegaFont-HighContrastExtendedSlant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>

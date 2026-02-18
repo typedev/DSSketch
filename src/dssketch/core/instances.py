@@ -10,7 +10,14 @@ if TYPE_CHECKING:
 
 from ..utils.logging import DSSketchLogger
 
-ELIDABLE_MAJOR_AXIS = "weight"
+# Resolve human-readable axis names to tags
+NAME_TO_TAG = {
+    "weight": "wght",
+    "width": "wdth",
+    "italic": "ital",
+    "slant": "slnt",
+    "optical": "opsz",
+}
 DEFAULT_AXIS_ORDER = [
     "Optical",
     "optical",
@@ -53,7 +60,6 @@ Main Functions:
 - createInstance: Creates a single instance descriptor
 
 Constants:
-ELIDABLE_MAJOR_AXIS = 'weight' - Axis that shouldn't be elidable by default
 DEFAULT_AXIS_ORDER = ['optical', 'contrast', 'width', 'weight', 'italic', 'slant'] - Standard axis ordering
 DEFAULT_INSTANCE_FOLDER = 'instances' - Default folder for instance files
 """
@@ -324,7 +330,7 @@ def createInstances(
     copyDS(dssource, ds, copyInstances=False)
 
     axisOrder = sortAxisOrder(ds, dss_doc)
-    elidableStyleNames = getElidabledNames(ds, axisOrder, ignoreAxis=["weight"])
+    elidableStyleNames = getElidabledNames(ds, axisOrder)
 
     defaultSource = ds.findDefault()
     if not defaultSource and ds.sources:
@@ -377,11 +383,16 @@ def createInstances(
         styleNameInstance = " ".join([name for name, _ in itemlist])
 
         # Apply elidable name cleanup BEFORE checking skip rules
+        # Only elide from compound names — never remove the last remaining word
         if elidableStyleNames:
-            for removeStyleName in elidableStyleNames:
-                if removeStyleName in styleNameInstance:
-                    styleNameInstance = styleNameInstance.replace(removeStyleName, "").strip()
-                    # break
+            words = styleNameInstance.split()
+            if len(words) > 1:
+                for removeStyleName in elidableStyleNames:
+                    if removeStyleName in styleNameInstance:
+                        cleaned = styleNameInstance.replace(removeStyleName, "").strip()
+                        cleaned = " ".join(cleaned.split())
+                        if cleaned:  # Don't elide if result would be empty
+                            styleNameInstance = cleaned
         styleNameInstance = " ".join(styleNameInstance.split())
         if "Regular Italic" in styleNameInstance:  # just replace -Regular Italic- to -Italic-
             # TODO need check Slants, Obliques, etc.
@@ -397,21 +408,17 @@ def createInstances(
         mapUserValues = [uservalue for _, uservalue in itemlist]
         for i, uservalue in enumerate(mapUserValues):
             axisName = axisOrder[i]
-            # Use the reverseMap we already built (handles fallback cases correctly)
-            axisReverseMap = locations[axisName]
-            if uservalue in axisReverseMap:
-                # reverseMap: design_value -> user_value, but for no-map axes user=design
-                # For fallback mapping, both key and value are the same
-                locationsInstance[axisName] = uservalue
-            else:
-                # Fallback to axisDescriptor.map for standard cases
-                axisDescriptor = ds.getAxis(axisName)
-                mapAxis = dict(axisDescriptor.map)
-                if mapAxis and uservalue in mapAxis:
-                    locationsInstance[axisName] = mapAxis[uservalue]
+            axisDescriptor = ds.getAxis(axisName)
+            if axisDescriptor and axisDescriptor.map:
+                # Use forward map (user → design) for instance locations
+                forwardMap = dict(axisDescriptor.map)
+                if uservalue in forwardMap:
+                    locationsInstance[axisName] = forwardMap[uservalue]
                 else:
-                    # user value = design value (no mapping)
                     locationsInstance[axisName] = uservalue
+            else:
+                # No map: user value = design value (discrete axes, etc.)
+                locationsInstance[axisName] = uservalue
         report.append({"styleName": styleNameInstance, "location": locationsInstance})
 
         ds.addInstance(
@@ -480,35 +487,63 @@ def sortAxisOrder(ds: DesignSpaceDocument, dss_doc: "DSSDocument" = None):
     return orderAxis
 
 
+def _resolve_axis_tag(name_or_tag: str) -> str:
+    """Resolve axis name/tag to canonical tag (e.g., 'weight'/'Weight' → 'wght')"""
+    lower = name_or_tag.lower()
+    return NAME_TO_TAG.get(lower, lower)
+
+
 def getElidabledNames(ds: DesignSpaceDocument, axisOrder: list = [], ignoreAxis: list = []):
     """
     Generates variations of elidable style names for the designspace.
 
+    The @elidable flag works for ALL axes including weight. Single-word protection
+    in createInstances() prevents removing the last remaining word from style names
+    (e.g., standalone "Regular" is preserved, but "Compressed Regular" → "Compressed").
+
+    Weight axis elidable label is placed LAST in the removal list so it survives
+    when all labels are elidable (font naming convention: weight is the primary axis).
+
     Args:
         ds (DesignSpaceDocument): Source designspace document
         axisOrder (list): Order of axes for processing
-        ignoreAxis (list): Axes to ignore when generating elidable names (default: ['weight'])
+        ignoreAxis (list): Axis names/tags to skip (default: empty — all axes participate).
+            Accepts any form: 'wght', 'weight', 'Weight', etc.
 
     Returns:
         list: List of elidable style name combinations
     """
     elidabledAxis = {}
-    ignoreAxis = ignoreAxis or [ELIDABLE_MAJOR_AXIS]
+    ignoreTags = {_resolve_axis_tag(a) for a in ignoreAxis}
     for axisDescriptor in ds.axes:
-        if axisDescriptor.name not in ignoreAxis:
+        axis_tag = _resolve_axis_tag(axisDescriptor.tag if hasattr(axisDescriptor, 'tag') else axisDescriptor.name)
+        if axis_tag not in ignoreTags:
             for axisLabel in axisDescriptor.axisLabels:
                 if axisLabel.elidable:
                     elidabledAxis[axisDescriptor.name] = axisLabel.name
 
+    # Full compound elidable name (all elidable labels joined)
     elidabledNamesList = [
         " ".join(
             elidabledAxis[axisName] for axisName in axisOrder if axisName in elidabledAxis
         ).strip()
     ]
 
+    # Individual elidable names: weight axis LAST (survives when all are elidable)
+    weight_elidable = None
     for axisName in axisOrder:
         if axisName in elidabledAxis and elidabledAxis[axisName] not in elidabledNamesList:
-            elidabledNamesList.append(elidabledAxis[axisName])
+            axis_tag = _resolve_axis_tag(
+                next((a.tag for a in ds.axes if a.name == axisName), axisName)
+            )
+            if axis_tag == "wght":
+                weight_elidable = elidabledAxis[axisName]
+            else:
+                elidabledNamesList.append(elidabledAxis[axisName])
+
+    # Weight elidable goes last — last to be tried for removal, first to survive
+    if weight_elidable and weight_elidable not in elidabledNamesList:
+        elidabledNamesList.append(weight_elidable)
 
     return elidabledNamesList
 

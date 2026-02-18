@@ -23,8 +23,7 @@ instances auto
         # Test different elidable scenarios
         # After elidable cleanup, these should be:
 
-        # "Normal Regular Upright" → "Regular" (Normal and Upright are elidable)
-        # But Regular on weight is ignored by default, so → "Regular"
+        # "Normal Regular Upright" → "Regular" (Normal, Upright elidable; weight survives as primary)
         Regular
 
         # "Normal Light Upright" → "Light" (Normal and Upright elidable)

@@ -13,6 +13,9 @@ All notable changes to DSSketch will be documented in this file.
 - `DiscreteAxisHandler.is_discrete()` no longer requires axis name in hardcoded list — any `0:0:1` axis is discrete
 - Parser correctly assigns positional values (0, 1, 2...) to custom discrete axis labels instead of silently returning fallback 100.0
 - Writer outputs `discrete` keyword and simplified label format for all discrete axes, not just `ital`
+- **`@elidable` now works on weight axis**: "Compressed Regular" → "Compressed", while standalone "Regular" is preserved. Weight label is removed last so it survives as primary name when all labels are elidable (e.g., all-defaults instance stays "Regular", not "Neutral")
+- **Instance locations use design-space coordinates**: Fixed forward map (user→design) instead of broken reverseMap lookup
+- Updated example files with corrected skip rules and elidable behavior
 
 ## [1.1.9] - 2026-01-07
 

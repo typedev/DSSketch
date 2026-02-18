@@ -18,16 +18,17 @@ sources [CONTRAST, wdth, wght]
 instances auto
     skip
         # Test combined elidable cleanup
-        # Multiple elidable: NoContrast @elidable, Normal @elidable, Regular @elidable (ignored on weight)
+        # All three elidable: NoContrast @elidable, Normal @elidable, Regular @elidable
+        # Weight elidable ("Regular") is removed last, so it survives when all are elidable
 
-        # "NoContrast Normal Regular" → "Regular" (NoContrast, Normal elidable)
+        # "NoContrast Normal Regular" → "Regular" (weight label survives as primary)
         Regular
 
         # "NoContrast Normal Bold" → "Bold" (NoContrast, Normal elidable)
         Bold
 
-        # "HighContrast Normal Regular" → "HighContrast Regular" (Normal elidable)
-        HighContrast Regular
+        # "HighContrast Normal Regular" → "HighContrast" (Normal, Regular elidable)
+        HighContrast
 
-        # "NoContrast Extended Regular" → "Extended Regular" (NoContrast elidable)
-        Extended Regular
+        # "NoContrast Extended Regular" → "Extended" (NoContrast, Regular elidable)
+        Extended

@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="CNTR" name="CONTRAST" minimum="0" maximum="100" default="0">
+      <labelname xml:lang="en">CONTRAST</labelname>
+      <map input="0" output="0"/>
+      <map input="100" output="100"/>
+      <labels ordering="0">
+        <label uservalue="0" name="NoContrast" elidable="true"/>
+        <label uservalue="100" name="HighContrast"/>
+      </labels>
+    </axis>
+    <axis tag="wdth" name="width" minimum="100" maximum="150" default="100">
+      <labelname xml:lang="en">Width</labelname>
+      <map input="100" output="100"/>
+      <map input="150" output="150"/>
+      <labels ordering="1">
+        <label uservalue="100" name="Normal" elidable="true"/>
+        <label uservalue="150" name="Extended"/>
+      </labels>
+    </axis>
+    <axis tag="wght" name="weight" minimum="400" maximum="700" default="400">
+      <labelname xml:lang="en">Weight</labelname>
+      <map input="400" output="400"/>
+      <map input="700" output="700"/>
+      <labels ordering="2">
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="700" name="Bold"/>
+      </labels>
+    </axis>
+  </axes>
+  <sources>
+    <source filename="NoContrast-Normal-Regular.ufo" name="source.1" familyname="TestFont" stylename="NoContrast-Normal-Regular">
+      <lib copy="1"/>
+      <groups copy="1"/>
+      <features copy="1"/>
+      <info copy="1"/>
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="100"/>
+        <dimension name="weight" xvalue="400"/>
+      </location>
+    </source>
+    <source filename="HighContrast-Extended-Bold.ufo" name="source.2" familyname="TestFont" stylename="HighContrast-Extended-Bold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="700"/>
+      </location>
+    </source>
+  </sources>
+  <instances>
+    <instance familyname="TestFont" stylename="Extended Bold" filename="instances/TestFont-ExtendedBold.ufo" postscriptfontname="TestFont-ExtendedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="0"/>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="700"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="HighContrast Bold" filename="instances/TestFont-HighContrastBold.ufo" postscriptfontname="TestFont-HighContrastBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="100"/>
+        <dimension name="weight" xvalue="700"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="HighContrast Extended" filename="instances/TestFont-HighContrastExtended.ufo" postscriptfontname="TestFont-HighContrastExtended">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="400"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="HighContrast Extended Bold" filename="instances/TestFont-HighContrastExtendedBold.ufo" postscriptfontname="TestFont-HighContrastExtendedBold">
+      <location>
+        <dimension name="CONTRAST" xvalue="100"/>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="700"/>
+      </location>
+    </instance>
+  </instances>
+</designspace>

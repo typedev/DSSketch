@@ -1,0 +1,161 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="wdth" name="width" minimum="80" maximum="150" default="100">
+      <labelname xml:lang="en">Width</labelname>
+      <map input="80" output="75"/>
+      <map input="100" output="100"/>
+      <map input="150" output="150"/>
+      <labels ordering="0">
+        <label uservalue="80" name="Condensed"/>
+        <label uservalue="100" name="Normal" elidable="true"/>
+        <label uservalue="150" name="Extended"/>
+      </labels>
+    </axis>
+    <axis tag="wght" name="weight" minimum="300" maximum="700" default="400">
+      <labelname xml:lang="en">Weight</labelname>
+      <map input="300" output="300"/>
+      <map input="400" output="400"/>
+      <map input="700" output="700"/>
+      <labels ordering="1">
+        <label uservalue="300" name="Light"/>
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="700" name="Bold"/>
+      </labels>
+    </axis>
+    <axis tag="ital" name="italic" values="0 1" default="0">
+      <labelname xml:lang="en">Italic</labelname>
+      <labels ordering="2">
+        <label uservalue="0" name="Upright" elidable="true"/>
+        <label uservalue="1" name="Italic"/>
+      </labels>
+    </axis>
+  </axes>
+  <sources>
+    <source filename="Condensed-Light-Upright.ufo" name="source.1" familyname="TestFont" stylename="Condensed-Light-Upright">
+      <location>
+        <dimension name="width" xvalue="75"/>
+        <dimension name="weight" xvalue="300"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="Normal-Regular-Upright.ufo" name="source.2" familyname="TestFont" stylename="Normal-Regular-Upright">
+      <lib copy="1"/>
+      <groups copy="1"/>
+      <features copy="1"/>
+      <info copy="1"/>
+      <location>
+        <dimension name="width" xvalue="100"/>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="Extended-Bold-Italic.ufo" name="source.3" familyname="TestFont" stylename="Extended-Bold-Italic">
+      <location>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+  </sources>
+  <instances>
+    <instance familyname="TestFont" stylename="Condensed Light" filename="instances/TestFont-CondensedLight.ufo" postscriptfontname="TestFont-CondensedLight">
+      <location>
+        <dimension name="width" xvalue="75"/>
+        <dimension name="weight" xvalue="300"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Condensed Light Italic" filename="instances/TestFont-CondensedLightItalic.ufo" postscriptfontname="TestFont-CondensedLightItalic">
+      <location>
+        <dimension name="width" xvalue="75"/>
+        <dimension name="weight" xvalue="300"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Condensed" filename="instances/TestFont-Condensed.ufo" postscriptfontname="TestFont-Condensed">
+      <location>
+        <dimension name="width" xvalue="75"/>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Condensed Italic" filename="instances/TestFont-CondensedItalic.ufo" postscriptfontname="TestFont-CondensedItalic">
+      <location>
+        <dimension name="width" xvalue="75"/>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Condensed Bold Italic" filename="instances/TestFont-CondensedBoldItalic.ufo" postscriptfontname="TestFont-CondensedBoldItalic">
+      <location>
+        <dimension name="width" xvalue="75"/>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Light Italic" filename="instances/TestFont-LightItalic.ufo" postscriptfontname="TestFont-LightItalic">
+      <location>
+        <dimension name="width" xvalue="100"/>
+        <dimension name="weight" xvalue="300"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Bold" filename="instances/TestFont-Bold.ufo" postscriptfontname="TestFont-Bold">
+      <location>
+        <dimension name="width" xvalue="100"/>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Bold Italic" filename="instances/TestFont-BoldItalic.ufo" postscriptfontname="TestFont-BoldItalic">
+      <location>
+        <dimension name="width" xvalue="100"/>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Extended Light" filename="instances/TestFont-ExtendedLight.ufo" postscriptfontname="TestFont-ExtendedLight">
+      <location>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="300"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Extended Light Italic" filename="instances/TestFont-ExtendedLightItalic.ufo" postscriptfontname="TestFont-ExtendedLightItalic">
+      <location>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="300"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Extended" filename="instances/TestFont-Extended.ufo" postscriptfontname="TestFont-Extended">
+      <location>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Extended Italic" filename="instances/TestFont-ExtendedItalic.ufo" postscriptfontname="TestFont-ExtendedItalic">
+      <location>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Extended Bold" filename="instances/TestFont-ExtendedBold.ufo" postscriptfontname="TestFont-ExtendedBold">
+      <location>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </instance>
+    <instance familyname="TestFont" stylename="Extended Bold Italic" filename="instances/TestFont-ExtendedBoldItalic.ufo" postscriptfontname="TestFont-ExtendedBoldItalic">
+      <location>
+        <dimension name="width" xvalue="150"/>
+        <dimension name="weight" xvalue="700"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </instance>
+  </instances>
+</designspace>
