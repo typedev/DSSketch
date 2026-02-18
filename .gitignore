@@ -65,3 +65,5 @@ backup-before-cleanup.bundle
 .ruff_cache/
 *.log
 examples/logs/*
+.claude/
+.pytest_cache/
