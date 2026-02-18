@@ -29,8 +29,6 @@ class DiscreteAxisHandler:
             and axis.default == 0
             and hasattr(axis, "maximum")
             and axis.maximum == 1
-            and hasattr(axis, "name")
-            and axis.name.lower() in DiscreteAxisHandler.DISCRETE_AXES
         )
 
     @staticmethod

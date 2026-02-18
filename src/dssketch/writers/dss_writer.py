@@ -214,7 +214,6 @@ class DSSWriter:
             axis.minimum == 0
             and axis.default == 0
             and axis.maximum == 1
-            and axis.name.lower() in ["italic", "ital"]
         )
 
         if is_discrete:

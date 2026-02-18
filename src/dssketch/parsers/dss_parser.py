@@ -595,12 +595,16 @@ class DSSParser:
                         break
 
             if user is None:
-                # Fallback: try standard mappings
-                try:
+                # Fallback: try standard mappings (check has_mapping first,
+                # get_user_value_for_name returns a default instead of raising)
+                if Standards.has_mapping(label, self.current_axis.name):
                     user = Standards.get_user_value_for_name(label, self.current_axis.name)
                     design = user
-                except Exception:
-                    raise ValueError(f"Unknown discrete axis label: {label}")
+                else:
+                    # For custom discrete axes, assign positional values (0, 1, 2...)
+                    positional_value = float(len(self.current_axis.mappings))
+                    user = positional_value
+                    design = positional_value
 
         # Validate mapping label for potential typos
         is_valid_label, suggested_label = DSSValidator.validate_mapping_label(
