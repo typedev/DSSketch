@@ -690,7 +690,7 @@ sources [wght]
 - **Combinatorial algorithm**: Uses `itertools.product()` to create cartesian product of all axis label combinations
 - **Example calculation**: 3 weights × 2 widths × 2 italics = 12 total instances
 - Creates instances from all axis mapping combinations automatically
-- Handles elidable style names (removes redundant parts like "Regular" from "Regular Italic" → "Italic")
+- Handles elidable style names (removes redundant non-weight labels; weight label like "Regular" is always preserved for font compiler compatibility)
 - **Respects axes order from DSS document**: instances follow the sequence defined in axes section
 - **Order determines naming**: First axis appears first in names (e.g., `wdth, wght` → "Condensed Light" vs `wght, wdth` → "Light Condensed")
 - **Instance Skip Support**: Optionally exclude specific combinations via `skip` subsection
@@ -722,9 +722,9 @@ sources [wght]
 1. `sortAxisOrder()` - Extract axes order from DSS document or use DEFAULT_AXIS_ORDER fallback
 2. `getInstancesMapping()` - Extract axis label mappings for each axis
 3. `itertools.product()` - Generate all combinations of labels (cartesian product)
-4. `getElidabledNames()` - Determine which style names are elidable
+4. `getElidabledNames()` - Determine which style names are elidable (weight axis excluded)
 5. For each combination:
-   a. Name cleanup - Remove elidable labels from instance names
+   a. Name cleanup - Remove elidable non-weight labels from instance names
    b. Special case handling - "Regular Italic" → "Italic"
    c. **Skip check** - If final name in skip list, skip this instance (logged at INFO level)
    d. `createInstance()` - Create InstanceDescriptor with location, familyName, styleName, PostScript name
@@ -742,13 +742,13 @@ axes
 
 # Combinations: [Thin, Regular, Black] × [Upright, Italic]
 # Raw: 3 × 2 = 6 instances
-# After elidable cleanup:
-# - "Upright Thin" → "Thin"
-# - "Upright Regular" → "Regular"
-# - "Upright Black" → "Black"
-# - "Italic Thin" → "Italic Thin"
-# - "Italic Regular" → "Italic"
-# - "Italic Black" → "Italic Black"
+# After elidable cleanup (weight label always preserved):
+# - "Upright Thin" → "Thin"           (Upright removed)
+# - "Upright Regular" → "Regular"     (Upright removed, weight preserved)
+# - "Upright Black" → "Black"         (Upright removed)
+# - "Italic Thin" → "Italic Thin"     (no elidable match)
+# - "Italic Regular" → "Italic"       (special case: "Regular Italic" → "Italic")
+# - "Italic Black" → "Italic Black"   (no elidable match)
 ```
 
 **Skip Validation (Two Levels):**
@@ -828,7 +828,7 @@ DSSketch validates skip rules at two levels to ensure correctness:
 **Key Functions:**
 - `createInstances(dssource, defaultFolder, skipFilter, filter)` - Main function for generating all combinations
 - `sortAxisOrder(ds)` - Orders axes according to `DEFAULT_AXIS_ORDER` standard
-- `getElidabledNames(ds, axisOrder, ignoreAxis)` - Finds elidable labels for style name cleanup
+- `getElidabledNames(ds, axisOrder, ignoreAxis)` - Finds elidable labels for style name cleanup (weight excluded by default)
 - `getInstancesMapping(ds, axisName)` - Extracts axis value mappings from DesignSpace
 - `createInstance(location, familyName, styleName, defaultFolder)` - Creates single instance descriptor
 
@@ -837,7 +837,7 @@ DSSketch validates skip rules at two levels to ensure correctness:
 2. **Sort axes using DSS document order** or fallback to DEFAULT_AXIS_ORDER
 3. Extract all axis label combinations using `itertools.product()`
 4. Apply skip filters for unwanted combinations
-5. Generate elidable names to clean up style names (e.g., "Regular Italic" → "Italic")
+5. Generate elidable names to clean up style names (weight axis excluded — font compilers need weight in styleName)
 6. Create instance descriptors with proper locations and names
 7. Return enhanced DesignSpace with all generated instances
 
@@ -847,7 +847,7 @@ DSSketch validates skip rules at two levels to ensure correctness:
 
 **Constants:**
 - `DEFAULT_AXIS_ORDER` - Fallback axis ordering (Optical → Contrast → Width → Weight → Italic → Slant)
-- `ELIDABLE_MAJOR_AXIS = "weight"` - Primary axis that should not be elidable
+- Weight axis is excluded from elidable via `ignoreAxis=["weight"]` at call site
 - `DEFAULT_INSTANCE_FOLDER = "instances"` - Default output folder for generated instances
 
 **Examples:**
