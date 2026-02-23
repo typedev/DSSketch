@@ -5,7 +5,7 @@ This package provides bidirectional conversion between compact .dssketch format
 and verbose .designspace XML files for variable font design.
 """
 
-__version__ = "1.1.15"
+__version__ = "1.1.16"
 
 # Import all components from modular structure
 # Import high-level API functions
