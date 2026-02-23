@@ -330,7 +330,7 @@ def createInstances(
     copyDS(dssource, ds, copyInstances=False)
 
     axisOrder = sortAxisOrder(ds, dss_doc)
-    elidableStyleNames = getElidabledNames(ds, axisOrder)
+    elidableStyleNames = getElidabledNames(ds, axisOrder, ignoreAxis=["weight"])
 
     defaultSource = ds.findDefault()
     if not defaultSource and ds.sources:
@@ -497,17 +497,19 @@ def getElidabledNames(ds: DesignSpaceDocument, axisOrder: list = [], ignoreAxis:
     """
     Generates variations of elidable style names for the designspace.
 
-    The @elidable flag works for ALL axes including weight. Single-word protection
-    in createInstances() prevents removing the last remaining word from style names
-    (e.g., standalone "Regular" is preserved, but "Compressed Regular" → "Compressed").
+    Weight axis is excluded from elidable removal by default (ignoreAxis=["weight"]).
+    Font compilers expect a weight name in styleName — removing it causes the compiler
+    to misinterpret other style labels (e.g., "Compressed") as weight names.
 
-    Weight axis elidable label is placed LAST in the removal list so it survives
-    when all labels are elidable (font naming convention: weight is the primary axis).
+    Only non-weight axes participate in elidable cleanup:
+    - "Compressed Regular" stays "Compressed Regular" (weight label preserved)
+    - "Normal Regular" → "Regular" (width label removed, weight preserved)
+    - "Regular Italic" → "Italic" (special case handled separately)
 
     Args:
         ds (DesignSpaceDocument): Source designspace document
         axisOrder (list): Order of axes for processing
-        ignoreAxis (list): Axis names/tags to skip (default: empty — all axes participate).
+        ignoreAxis (list): Axis names/tags to skip (default: ["weight"] at call site).
             Accepts any form: 'wght', 'weight', 'Weight', etc.
 
     Returns:
