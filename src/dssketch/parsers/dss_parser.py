@@ -800,6 +800,10 @@ class DSSParser:
         is_base = "@base" in line
         line = line.replace("@base", "").strip()
 
+        # Extract @sparse flag (sparse master - correction layer)
+        is_sparse = "@sparse" in line
+        line = line.replace("@sparse", "").strip()
+
         # Extract @layer flag: @layer="name", @layer 'name', or @layer=name (without quotes)
         layer = None
         # First try with quotes: @layer="name" or @layer 'name'
@@ -819,15 +823,15 @@ class DSSParser:
         # Detect format and parse accordingly
         if "[" in line and "]" in line:
             # Positional format: Source [val, val, val]
-            self._parse_source_positional(line, is_base, layer)
+            self._parse_source_positional(line, is_base, layer, is_sparse)
         elif "=" in line:
             # Named format: Source axis=val, axis=val
-            self._parse_source_named(line, is_base, layer)
+            self._parse_source_named(line, is_base, layer, is_sparse)
         else:
             # Default-only format: just source name, all coords = defaults
-            self._parse_source_defaults_only(line, is_base, layer)
+            self._parse_source_defaults_only(line, is_base, layer, is_sparse)
 
-    def _parse_source_defaults_only(self, line: str, is_base: bool, layer: str = None):
+    def _parse_source_defaults_only(self, line: str, is_base: bool, layer: str = None, is_sparse: bool = False):
         """Parse source with all default coordinates"""
         name = self._extract_quoted_or_plain_value(line.strip())
 
@@ -843,10 +847,10 @@ class DSSParser:
         if "/" in name: # Remove duplicate code
             name = Path(name).stem
 
-        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, layer=layer)
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, is_sparse=is_sparse, layer=layer)
         self.document.sources.append(source)
 
-    def _parse_source_named(self, line: str, is_base: bool, layer: str = None):
+    def _parse_source_named(self, line: str, is_base: bool, layer: str = None, is_sparse: bool = False):
         """Parse source with named coordinates: Source axis=val, axis=val"""
         import re
 
@@ -897,7 +901,7 @@ class DSSParser:
         if "/" in name: # Remove duplicate code
             name = Path(name).stem
 
-        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, layer=layer)
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, is_sparse=is_sparse, layer=layer)
         self.document.sources.append(source)
 
     def _find_axis_by_name_or_tag(self, axis_ref: str):
@@ -927,7 +931,7 @@ class DSSParser:
 
         raise ValueError(f"Unknown label '{value_str}' for axis '{axis.name}'")
 
-    def _parse_source_positional(self, line: str, is_base: bool, layer: str = None):
+    def _parse_source_positional(self, line: str, is_base: bool, layer: str = None, is_sparse: bool = False):
         """Parse source with positional coordinates: Source [val, val, val]"""
         # Format: "Light [0, 0]" or "My Font Light.ufo" [0, 0]
         # Also supports: "Regular [Regular, Upright]" (label-based)
@@ -993,7 +997,7 @@ class DSSParser:
         if "/" in name: # Remove duplicate code
             name = Path(name).stem
 
-        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, layer=layer)
+        source = DSSSource(name=name, filename=filename, location=location, is_base=is_base, is_sparse=is_sparse, layer=layer)
         self.document.sources.append(source)
 
     def _parse_instance_line(self, line: str):

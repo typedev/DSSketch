@@ -44,6 +44,7 @@ class DSSSource:
     filename: str
     location: Dict[str, float]  # axis_name -> design_value
     is_base: bool = False
+    is_sparse: bool = False  # Sparse master (correction layer with reduced glyph coverage)
     copy_info: bool = False
     copy_lib: bool = False
     copy_groups: bool = False

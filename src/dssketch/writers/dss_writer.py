@@ -432,6 +432,9 @@ class DSSWriter:
             layer_value = self._quote_if_spaces(source.layer)
             line += f" @layer={layer_value}"
 
+        if source.is_sparse:
+            line += " @sparse"
+
         return line
 
     def _format_source_named(self, source: DSSSource, dss_doc) -> str:
@@ -495,6 +498,9 @@ class DSSWriter:
             # Quote layer name if it contains spaces or special characters
             layer_value = self._quote_if_spaces(source.layer)
             line += f" @layer={layer_value}"
+
+        if source.is_sparse:
+            line += " @sparse"
 
         return line
 

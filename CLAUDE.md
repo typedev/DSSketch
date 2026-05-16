@@ -363,6 +363,9 @@ sources [wght, ital]  # explicit axis order for coordinates
     Font-Master.ufo [500, 0] @layer="wght500"  # intermediate master as layer
     Font-Master.ufo [700, 0] @layer="bold-layer"
 
+    # Sparse master support - correction layers with reduced glyph coverage:
+    Font-PosterBold-sparse [700, 0] @sparse    # marked as sparse master
+
 rules
     # Label-based conditions (more readable!)
     dollar > dollar.heavy (weight >= Bold) "heavy dollar"
@@ -684,6 +687,33 @@ sources [wght]
     Font-Master.ufo [700] @layer="bold-layer"
     Font-Black.ufo [900]                   # separate UFO file
 ```
+
+**Sparse Master Support:**
+- Sources can be marked as sparse masters with the `@sparse` flag
+- **Purpose**: Sparse masters are correction layers with reduced glyph coverage, used to fix interpolation in specific regions of the design space without contributing a full glyph set
+- **DesignSpace convention**: Marked by `name="sparse.*"` prefix in the `<source>` element
+- **DSSketch syntax**: `@sparse` flag, placed alongside `@base` / `@layer`
+- **Detection on DS → DSS**: Either `name="sparse.*"` prefix OR filename ending with `-sparse.ufo`
+- **Generation on DSS → DS**: Sparse sources get `name="sparse.N"` (N is source index), non-sparse get `name="source.N"` — the `sparse.` prefix is the semantic carrier preserved across roundtrips
+- **Instance generation**: Sparse masters participate in `instances auto` like regular sources (no special filtering)
+- Can combine with other flags: `@base @sparse`, `@sparse @layer="..."`
+
+**Example with sparse masters:**
+```dssketch
+sources [wght, wdth]
+    Font-Regular [Regular, Normal] @base
+    Font-Bold [Bold, Normal]
+    Font-PosterBold-sparse [Bold, Wide] @sparse    # correction layer
+    Font-DisplayMedium-sparse [Medium, Normal] @sparse
+```
+
+**Code locations:**
+- Model field: `DSSSource.is_sparse` in `core/models.py`
+- Parser: `_parse_source_line()` extracts `@sparse` (analogous to `@base`)
+- Writer: `_format_source()` / `_format_source_named()` output ` @sparse`
+- DS → DSS detection: `_convert_source()` in `converters/designspace_to_dss.py`
+- DSS → DS name generation: `_convert_source()` in `converters/dss_to_designspace.py`
+- Tests: `tests/test_sparse_master.py` (12 tests)
 
 **Automatic Instance Generation (`instances auto`):**
 - Uses sophisticated `instances.py` module for generating all meaningful instance combinations

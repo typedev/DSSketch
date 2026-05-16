@@ -246,6 +246,12 @@ class DesignSpaceToDSS:
         # Base source has coordinates matching default values in design space
         is_base = self._is_default_source(source, ds_doc)
 
+        # Detect sparse master: either by name="sparse.*" prefix (DesignSpace convention)
+        # or by filename "-sparse.ufo" suffix (filename convention)
+        name_attr = (source.name or "").lower()
+        fname_lower = (source.filename or "").lower()
+        is_sparse = name_attr.startswith("sparse.") or fname_lower.endswith("-sparse.ufo")
+
         # Build complete location with ALL coordinates from source
         # Include both visible and hidden axis coordinates
         # In DesignSpace, missing coordinate means default value
@@ -265,6 +271,7 @@ class DesignSpaceToDSS:
             filename=filename or f"{name}.ufo",
             location=complete_location,
             is_base=is_base,
+            is_sparse=is_sparse,
             copy_lib=source.copyLib,
             copy_info=source.copyInfo,
             copy_groups=source.copyGroups,

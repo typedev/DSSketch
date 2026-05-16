@@ -387,8 +387,11 @@ class DSSToDesignSpace:
         else:
             source.filename = dss_source.filename
 
-        # Assign automatic name
-        source.name = f"source.{source_index}"
+        # Assign automatic name (sparse masters get "sparse." prefix for round-trip preservation)
+        if dss_source.is_sparse:
+            source.name = f"sparse.{source_index}"
+        else:
+            source.name = f"source.{source_index}"
 
         # Always use familyName from DSS document (prioritize DSS over UFO)
         source.familyName = dss_doc.family

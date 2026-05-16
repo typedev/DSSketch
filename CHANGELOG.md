@@ -8,6 +8,7 @@ All notable changes to DSSketch will be documented in this file.
 - **Custom discrete axis support**: Any axis with `0:0:1` range now works as discrete (e.g., `LOOP discrete`, `FILL discrete`), not just `ital` and `slnt`
 - **UFO layer support**: Sources can specify UFO layers via `@layer="layer_name"` flag, enabling multiple masters from a single UFO file
 - **Multiple `@base` sources for discrete axes**: Each discrete axis value can have its own base source, validated automatically
+- **Sparse master support**: Sources can be marked as sparse (correction layers with reduced glyph coverage) via `@sparse` flag. Bidirectional: DesignSpace `name="sparse.*"` ↔ DSSketch `@sparse`. Detection on DS→DSS also recognizes `*-sparse.ufo` filename suffix as fallback.
 
 ### Fixed
 - `DiscreteAxisHandler.is_discrete()` no longer requires axis name in hardcoded list — any `0:0:1` axis is discrete
