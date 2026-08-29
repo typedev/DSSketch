@@ -110,7 +110,7 @@ instances auto
         Compressed Thin Reverse
         Condensed Thin Reverse
         Extended Thin Reverse
-        Extended
+        Extended Regular
 
         # Skip low contrast with compressed thin (readability issues)
         LowContrast Compressed Thin

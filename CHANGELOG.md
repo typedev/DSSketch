@@ -4,6 +4,13 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **Stale `skip` rules in two examples**: `MegaFont-WithSkip.dssketch` and `TestFont-MultiElidable.dssketch` listed skip rules written against pre-1.1.17 instance names (`Extended`, `HighContrast`), so they silently stopped matching after "Weight axis excluded from elidable removal" changed the generated names. Updated to `Extended Regular` / `HighContrast Regular`, along with the comments in `TestFont-MultiElidable.dssketch` that still described the old elidable behaviour. The unused-skip-rule validation had been reporting this all along. `TestFont-SkipValidation.dssketch` keeps its unused rules — they are deliberate fixtures for that warning
+- **Regenerated the seven instance-bearing examples** from their `.dssketch` sources, so `examples/*.designspace` no longer carry pre-1.1.17 instance names (`Compressed` where the generator now produces `Compressed Regular`). Instance counts are unchanged — 315, 300, 12, 14, 4, 9, 7 — because the stale skip rules were the actual cause. The eight examples that declare no instances (`avar1`, `avar2*`, `AmstelvarA2`, `RobotoDelta`) were deliberately left untouched: they are input fixtures from the fontTools test data, and regenerating them would downgrade `format="5.2"` to `5.1`, add redundant `<labelname>` elements and expand master locations
+
+### Documentation
+- `notes/roundtrip-fidelity-issues.md`: five open findings from a DS → DSSketch → DS audit of the example corpus, each with root cause, a verified candidate fix, and the design question it turns on. Records that DSSketch sits above DesignSpace rather than mirroring it — `instances auto` and `skip` are instructions to a generator, so `skip` cannot survive a round-trip through DesignSpace and must not be reconstructed from it. No code changes
+
 ## [1.1.18] - 2026-08-29
 
 ### Added

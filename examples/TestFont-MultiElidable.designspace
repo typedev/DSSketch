@@ -64,7 +64,7 @@
         <dimension name="weight" xvalue="700"/>
       </location>
     </instance>
-    <instance familyname="TestFont" stylename="HighContrast Extended" filename="instances/TestFont-HighContrastExtended.ufo" postscriptfontname="TestFont-HighContrastExtended">
+    <instance familyname="TestFont" stylename="HighContrast Extended Regular" filename="instances/TestFont-HighContrastExtendedRegular.ufo" postscriptfontname="TestFont-HighContrastExtendedRegular">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="150"/>

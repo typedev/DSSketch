@@ -18,17 +18,18 @@ sources [CONTRAST, wdth, wght]
 instances auto
     skip
         # Test combined elidable cleanup
-        # All three elidable: NoContrast @elidable, Normal @elidable, Regular @elidable
-        # Weight elidable ("Regular") is removed last, so it survives when all are elidable
+        # All three are marked @elidable: NoContrast, Normal, Regular
+        # The weight axis is excluded from elidable removal, so a weight label
+        # such as "Regular" is always kept — font compilers expect it in styleName
 
-        # "NoContrast Normal Regular" → "Regular" (weight label survives as primary)
+        # "NoContrast Normal Regular" → "Regular" (NoContrast, Normal elided)
         Regular
 
-        # "NoContrast Normal Bold" → "Bold" (NoContrast, Normal elidable)
+        # "NoContrast Normal Bold" → "Bold" (NoContrast, Normal elided)
         Bold
 
-        # "HighContrast Normal Regular" → "HighContrast" (Normal, Regular elidable)
-        HighContrast
+        # "HighContrast Normal Regular" → "HighContrast Regular" (Normal elided)
+        HighContrast Regular
 
-        # "NoContrast Extended Regular" → "Extended" (NoContrast, Regular elidable)
-        Extended
+        # "NoContrast Extended Regular" → "Extended Regular" (NoContrast elided)
+        Extended Regular

@@ -73,7 +73,7 @@
         <dimension name="italic" xvalue="1"/>
       </location>
     </instance>
-    <instance familyname="TestFont" stylename="Condensed" filename="instances/TestFont-Condensed.ufo" postscriptfontname="TestFont-Condensed">
+    <instance familyname="TestFont" stylename="Condensed Regular" filename="instances/TestFont-CondensedRegular.ufo" postscriptfontname="TestFont-CondensedRegular">
       <location>
         <dimension name="width" xvalue="75"/>
         <dimension name="weight" xvalue="400"/>
@@ -129,7 +129,7 @@
         <dimension name="italic" xvalue="1"/>
       </location>
     </instance>
-    <instance familyname="TestFont" stylename="Extended" filename="instances/TestFont-Extended.ufo" postscriptfontname="TestFont-Extended">
+    <instance familyname="TestFont" stylename="Extended Regular" filename="instances/TestFont-ExtendedRegular.ufo" postscriptfontname="TestFont-ExtendedRegular">
       <location>
         <dimension name="width" xvalue="150"/>
         <dimension name="weight" xvalue="400"/>
