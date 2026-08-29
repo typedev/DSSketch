@@ -9,6 +9,7 @@ All notable changes to DSSketch will be documented in this file.
 - **UFO layer support**: Sources can specify UFO layers via `@layer="layer_name"` flag, enabling multiple masters from a single UFO file
 - **Multiple `@base` sources for discrete axes**: Each discrete axis value can have its own base source, validated automatically
 - **Sparse master support**: Sources can be marked as sparse (correction layers with reduced glyph coverage) via `@sparse` flag. Bidirectional: DesignSpace `name="sparse.*"` ↔ DSSketch `@sparse`. Detection on DS→DSS also recognizes `*-sparse.ufo` filename suffix as fallback.
+- **Unnamed avar map points**: an axis map entry that carries no STAT label is now expressible as `100 > 100` (bare user value, no style name). This supports axes that extend past their named styles — e.g. an axis declared `100:400:1000` whose named styles only span Thin(200)…Black(900). Such a point shapes the user→design curve but names no instance.
 
 ### Fixed
 - `DiscreteAxisHandler.is_discrete()` no longer requires axis name in hardcoded list — any `0:0:1` axis is discrete
@@ -17,6 +18,11 @@ All notable changes to DSSketch will be documented in this file.
 - **Weight axis excluded from elidable removal**: Font compilers expect a weight name in styleName — removing it (e.g., "Compressed Regular" → "Compressed") caused misinterpretation. Weight labels like "Regular" are now always preserved in instance names
 - **Instance locations use design-space coordinates**: Fixed forward map (user→design) instead of broken reverseMap lookup
 - Updated example files with corrected skip rules and elidable behavior
+- **DS→DSS no longer drops unlabeled map points**: `_convert_axis()` branched `if axis.axisLabels: ... elif axis.map: ...`, so on an axis that had both, every `<map>` entry without a matching `<label>` was silently discarded — corrupting the avar curve at both ends. It now takes the union of map keys and label keys
+- **Masters are no longer required to sit on a mapped point**: a master lives in design space and may be placed between named styles (e.g. a Bold master at design 625 while the Bold label maps to 575). This was a hard error; it is now a warning
+- **Masters are no longer required to sit on the extreme *named* point**: masters are commonly drawn outside the named range so that every instance interpolates inside the master envelope rather than landing on a raw master. This was a hard error; it is now a warning
+- Writer emitted a stray double space for a mapping with no label (`100  > 100`); it now writes `100 > 100`
+- Silenced two noise sources for intentionally unnamed points: the "typically uses label" consistency warning now skips empty labels, and instance generation logs a missing label at DEBUG rather than WARNING
 
 ### Changed
 - `uv.lock` no longer conflicts on every merge: added `.gitattributes` marking it `merge=binary linguist-generated=true`, and pinned `[tool.uv] required-version = ">=0.12.5"` so all machines re-serialize the lock identically. The lockfile stays tracked for reproducible dev environments (`uv sync`); it is not part of the built sdist/wheel, whose dependencies come from `[project.dependencies]`

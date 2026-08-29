@@ -188,8 +188,11 @@ def getInstancesMapping(
                 axisLabelsList[labelName] = uservalue
                 break
         if not labelName:
-            DSSketchLogger.warning(
-                f"Label for {axisvalue} not found in the designspace. User value: {uservalue}"
+            # An avar map point without a STAT label is legal: the axis extends past
+            # its named styles. Such a point shapes the curve but names no instance.
+            DSSketchLogger.debug(
+                f"Map point {uservalue} -> {axisvalue} has no label; "
+                f"it will not produce an instance"
             )
 
         reverseMap[axisvalue] = uservalue

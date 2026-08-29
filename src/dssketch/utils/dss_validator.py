@@ -755,15 +755,16 @@ class DSSValidator:
                     )
 
                     if closest_mapping:
-                        self.errors.append(
+                        self.warnings.append(
                             f"Source '{source.name}' coordinate {source_coord} on axis '{axis.name}' "
-                            f"has no matching mapping. Closest mapping '{closest_mapping.label}' "
-                            f"is at {closest_mapping.design_value}"
+                            f"does not sit on a mapped point. Closest mapping '{closest_mapping.label}' "
+                            f"is at {closest_mapping.design_value}. This is legal - masters live in "
+                            f"design space and may be placed between named styles."
                         )
                     else:
-                        self.errors.append(
+                        self.warnings.append(
                             f"Source '{source.name}' coordinate {source_coord} on axis '{axis.name}' "
-                            f"has no corresponding mapping"
+                            f"does not sit on a mapped point"
                         )
     
     def _validate_extremes_coverage(self, document: DSSDocument):
@@ -802,17 +803,17 @@ class DSSValidator:
             # Only check for sources if mapping has a label (for instance generation)
             # Pure numeric axis maps (empty labels) don't require sources at extremes
             if not min_source_exists and min_mapping and min_mapping.label:
-                self.errors.append(
-                    f"Missing source for minimum mapping '{min_mapping.label}' "
-                    f"at coordinate {min_design} on axis '{axis.name}'. "
-                    f"Variable fonts require sources at extreme coordinates for proper interpolation."
+                self.warnings.append(
+                    f"No source at minimum mapping '{min_mapping.label}' "
+                    f"({min_design}) on axis '{axis.name}'. Check that the masters still "
+                    f"span the whole design space - otherwise this end will extrapolate."
                 )
 
             if not max_source_exists and max_mapping and max_mapping.label:
-                self.errors.append(
-                    f"Missing source for maximum mapping '{max_mapping.label}' "
-                    f"at coordinate {max_design} on axis '{axis.name}'. "
-                    f"Variable fonts require sources at extreme coordinates for proper interpolation."
+                self.warnings.append(
+                    f"No source at maximum mapping '{max_mapping.label}' "
+                    f"({max_design}) on axis '{axis.name}'. Check that the masters still "
+                    f"span the whole design space - otherwise this end will extrapolate."
                 )
 
     def _validate_axis_label_consistency(self, document: DSSDocument):
@@ -892,6 +893,11 @@ class DSSValidator:
         user_value = mapping.user_value
 
         if user_value is None:
+            return
+
+        # An unnamed avar map point carries no style name on purpose, so there is
+        # no label to compare against the standard ones.
+        if not label:
             return
 
         # Check if label exists in standard mappings

@@ -196,32 +196,26 @@ class DesignSpaceToDSS:
                     user_val, design_val = mapping
                 mappings_dict[user_val] = design_val
 
-        # Collect labels and create mappings
+        # Collect labels, keyed by user value
+        labels_dict = {}
         if axis.axisLabels:
             for label in axis.axisLabels:
-                user_val = label.userValue
-                design_val = mappings_dict.get(user_val, user_val)
+                labels_dict[label.userValue] = label
 
-                mapping = DSSAxisMapping(
-                    user_value=user_val,
-                    design_value=design_val,
-                    label=label.name,
-                    elidable=getattr(label, "elidable", False),
-                )
-                dss_axis.mappings.append(mapping)
-        elif mappings_dict:
-            # No labels but has axis map - create mappings from map directly
-            # This preserves non-linear axis mappings like opsz
-            for user_val, design_val in mappings_dict.items():
-                # Only add non-identity mappings (where user != design)
-                # or all mappings if there's a non-linear relationship
-                mapping = DSSAxisMapping(
-                    user_value=user_val,
-                    design_value=design_val,
-                    label="",  # No label for pure numeric mappings
-                    elidable=False,
-                )
-                dss_axis.mappings.append(mapping)
+        # The avar map and the STAT labels are two independent lists and need not
+        # cover the same user values. A map point may carry no label (an axis that
+        # extends past its named styles), and a label may sit on a user value that
+        # has no explicit map entry (then user == design). Take the union of both
+        # so neither list is lost.
+        for user_val in sorted(set(mappings_dict) | set(labels_dict)):
+            label = labels_dict.get(user_val)
+            mapping = DSSAxisMapping(
+                user_value=user_val,
+                design_value=mappings_dict.get(user_val, user_val),
+                label=label.name if label else "",
+                elidable=getattr(label, "elidable", False) if label else False,
+            )
+            dss_axis.mappings.append(mapping)
 
         # Sort mappings by user value
         dss_axis.mappings.sort(key=lambda m: m.user_value)

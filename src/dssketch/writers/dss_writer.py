@@ -327,7 +327,14 @@ class DSSWriter:
                             else ""
                         )
                         design_val_str = self._format_number(mapping.design_value)
-                        label_line = f"        {user_val_str} {mapping.label} > {design_val_str}"
+                        if mapping.label:
+                            label_line = (
+                                f"        {user_val_str} {mapping.label} > {design_val_str}"
+                            )
+                        else:
+                            # Unnamed avar map point: a user value that carries no style
+                            # name (e.g. an axis extending past its named styles).
+                            label_line = f"        {user_val_str} > {design_val_str}"
 
                     if mapping.elidable:
                         label_line += " @elidable"

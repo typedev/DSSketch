@@ -1017,6 +1017,66 @@ def _resolve_axis_range_value(self, value_str: str, axis_name: str) -> float:
   - `0 NonContrast > 0` → user=0, label="NonContrast", design=0
   - `150 Wide > 700` → user=150 (overrides standard 100), design=700
 
+**4. Unnamed Map Point Format** (`100 > 100`):
+- **Detection**: Line contains `>`, left side is a bare number with nothing after it
+- **Parsing**: `user = float(left_parts[0])`, `label = ""`, `design = float(parts[1])`
+- **Meaning**: An avar map point that carries **no style name**. It shapes the
+  user→design curve but names no instance and produces no STAT label
+- **No label is invented**: the parser does *not* fall back to
+  `Standards.get_name_for_user_value()` for these
+- **Examples**:
+  - `100 > 100` → user=100, label="", design=100
+  - `1000 > 1000` → user=1000, label="", design=1000
+
+**Why this matters — map and labels are independent lists:**
+
+In DesignSpace an axis holds two lists that need not cover the same user values:
+
+| DesignSpace | DSSketch | purpose |
+|---|---|---|
+| `<map input output>` | every mapping line | the avar curve (user → design) |
+| `<labels><label uservalue name>` | mapping lines *with* a label | named styles (STAT), seeds `instances auto` |
+
+A real-world pattern:
+
+```dssketch
+axes
+    wght 100:400:1000 "weight"
+        100 > 100          # axis reaches 100, but no style is named there
+        200 Thin > 175
+        Light > 288
+        Regular > 400 @elidable
+        Medium > 500
+        Bold > 575
+        Heavy > 825
+        Black > 983
+        1000 > 1000        # likewise at the top end
+
+sources [wght]
+    Font-Thin [100]        # master sits on the UNNAMED extreme
+    Font-Regular [400] @base
+    Font-Bold [625]        # master between named styles - perfectly legal
+    Font-Black [1000]
+```
+
+Here 9 map points produce only 7 named instances (Thin…Black), and the masters
+are deliberately drawn *outside* the named range so every instance interpolates
+inside the master envelope rather than landing on a raw master.
+
+**Consequences for the code (do not re-break these):**
+- `DesignSpaceToDSS._convert_axis()` takes the **union** of map keys and label
+  keys. It must never iterate labels alone — that silently drops unnamed map
+  points and corrupts the avar curve.
+- `DSSToDesignSpace._convert_axis()` emits a `<map>` entry for **every** mapping
+  and an `<label>` only when `mapping.label` is non-empty.
+- `getInstancesMapping()` in `core/instances.py` keys instances off labels, so
+  unnamed points correctly generate nothing.
+- Masters are **not** required to sit on a mapped point, nor on the extreme
+  *named* point. Both conditions are warnings, never errors — see
+  `_validate_source_coordinate_consistency()` and `_validate_extremes_coverage()`.
+- `_validate_mapping_label_consistency()` returns early for `label == ""`.
+- Tests: `tests/test_unnamed_map_points.py` (10 tests)
+
 **Key Implementation Code (dss_parser.py:503-527):**
 ```python
 if ">" in line:
