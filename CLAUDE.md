@@ -736,6 +736,32 @@ sources [wght, wdth]
 - **Example**: `wght 100:400:900` without labels → instances at wght100, wght400, wght900
 - Useful for quick prototyping without defining full axis mappings
 
+**`instances auto` Fit Report (DS → DSSketch):**
+- **Purpose**: `instances auto` is written on the assumption that the generator
+  reproduces the instances a DesignSpace declares. The converter now checks it.
+- **Code**: `DesignSpaceToDSS._report_instances_auto_fit()` in
+  `converters/designspace_to_dss.py`, called from `convert()` when the source
+  document has instances. Reuses `createInstances()` — no roundtrip needed.
+- **Matched by design-space position, never by style name.** Names diverge for
+  reasons that are not losses (elidable rules); a position either survives or it
+  does not. Dimensions sitting at their axis default are dropped before
+  comparing, so an omitted dimension and an explicit default compare equal.
+- **Three outcomes:**
+  - declared position the generator never reaches → WARNING (real loss)
+  - same position, different style name → WARNING (naming drift)
+  - positions the generator adds → INFO (the DS was filtered; that is what a
+    `skip` block expresses)
+- **Purely diagnostic.** It never alters the document, and in particular never
+  synthesises a `skip` block. `skip` is an instruction to the generator; a
+  DesignSpace records only the result of applying it, so the intent behind an
+  absent instance cannot be recovered from the file. See
+  `notes/roundtrip-fidelity-issues.md`.
+- **Silent unless logging is set up** — `DSSketchLogger` is a no-op until
+  `setup_logger()` runs, which the CLI does and the plain API does not.
+- **Failure is contained**: the report is wrapped so a diagnostic can never
+  break a conversion.
+- **Tests**: `tests/test_instances_auto_fit.py` (8 tests)
+
 **Instance Skip Functionality (`instances auto skip`):**
 - **Purpose**: Exclude specific instance combinations from automatic generation
 - **Syntax**: Indented list under `skip` keyword within `instances auto` section

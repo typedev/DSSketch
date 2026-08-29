@@ -318,7 +318,12 @@ Measured on `SuperFont-6x2`: 12 instances → written as an explicit list → pa
 back as **0**, with `instances_auto` and `instances_off` both false. That path is
 not reachable from the CLI, so nothing in normal use hits it today.
 
-### Proposed analyser
+### The analyser — implemented 2026-08-29
+
+> Built as `DesignSpaceToDSS._report_instances_auto_fit()`; tests in
+> `tests/test_instances_auto_fit.py`. The open question below (the unreadable
+> explicit-instance branch) is untouched.
+
 
 `createInstances()` accepts a `DesignSpaceDocument` plus the `DSSDocument` being
 built, so DS → DSSketch can generate what `instances auto` *would* produce and

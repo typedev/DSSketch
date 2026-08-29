@@ -17,6 +17,8 @@ from fontTools.designspaceLib import (
 )
 
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
+from ..core.instances import createInstances
+from ..utils.logging import DSSketchLogger
 
 
 class DesignSpaceToDSS:
@@ -94,6 +96,7 @@ class DesignSpaceToDSS:
             for instance in ds_doc.instances:
                 dss_instance = self._convert_instance(instance, ds_doc)
                 dss_doc.instances.append(dss_instance)
+            self._report_instances_auto_fit(ds_doc, dss_doc)
         else:
             # No instances in original - set instances_off to preserve this
             dss_doc.instances_off = True
@@ -454,6 +457,93 @@ class DesignSpaceToDSS:
                     output_axes.add(axis_name)
 
         return output_axes
+
+    def _report_instances_auto_fit(
+        self, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument
+    ) -> None:
+        """Report how well `instances auto` reproduces the declared instances.
+
+        The sketch normally says `instances auto` rather than listing instances,
+        on the assumption that the generator rebuilds them from the axis labels.
+        This checks that assumption against the DesignSpace we just read and
+        reports where it does not hold.
+
+        Instances are matched by **design-space position**, not by style name.
+        Names diverge for reasons that are not losses - elidable rules change
+        them - whereas a position either survives or it does not. Comparing by
+        name produces large numbers of phantom losses.
+
+        Purely diagnostic: it never alters the document. In particular it does
+        not synthesise a `skip` block. `skip` is an instruction to the
+        generator and a DesignSpace records only the result of applying it, so
+        the intent behind an absent instance cannot be recovered from the file.
+        Extra instances are reported so a human can write that block.
+        """
+        try:
+            generated, _ = createInstances(ds_doc, dss_doc)
+        except Exception as exc:  # diagnostics must never break a conversion
+            DSSketchLogger.debug(f"Could not verify `instances auto`: {exc}")
+            return
+
+        defaults = {axis.name: axis.default for axis in ds_doc.axes}
+
+        def position(instance) -> tuple:
+            # An omitted dimension means the axis default, so drop defaults to
+            # make "absent" and "explicitly at default" compare equal.
+            return tuple(
+                sorted(
+                    (name, value)
+                    for name, value in instance.location.items()
+                    if defaults.get(name) != value
+                )
+            )
+
+        declared = {position(i): i.styleName for i in ds_doc.instances}
+        produced = {position(i): i.styleName for i in generated.instances}
+
+        missing = [declared[p] for p in declared if p not in produced]
+        renamed = [
+            (declared[p], produced[p])
+            for p in declared
+            if p in produced and declared[p] != produced[p]
+        ]
+        extra = [produced[p] for p in produced if p not in declared]
+
+        if missing:
+            DSSketchLogger.warning(
+                f"`instances auto` does not reach {len(missing)} of the "
+                f"{len(declared)} instances declared in the DesignSpace. "
+                f"The sketch will not describe this design space completely: "
+                f"{self._sample(missing)}"
+            )
+
+        if renamed:
+            DSSketchLogger.warning(
+                f"{len(renamed)} instance(s) keep their position but are named "
+                f"differently by the generator - the DesignSpace may predate a "
+                f"change in the elidable rules: "
+                + ", ".join(f"'{was}' -> '{now}'" for was, now in renamed[:3])
+                + (f" (+{len(renamed) - 3} more)" if len(renamed) > 3 else "")
+            )
+
+        if extra:
+            DSSketchLogger.info(
+                f"`instances auto` generates {len(extra)} instance(s) beyond the "
+                f"{len(declared)} in the DesignSpace. If that is intentional, add "
+                f"them to an `instances auto` / `skip` block: {self._sample(extra)}"
+            )
+
+        if not (missing or renamed or extra):
+            DSSketchLogger.debug(
+                f"`instances auto` reproduces all {len(declared)} declared instances"
+            )
+
+    @staticmethod
+    def _sample(names: list, limit: int = 5) -> str:
+        """Render a few names for a log line, noting how many were left out."""
+        shown = ", ".join(f"'{n}'" for n in sorted(names)[:limit])
+        remaining = len(names) - limit
+        return shown + (f" (+{remaining} more)" if remaining > 0 else "")
 
     def _determine_hidden_axes(self, ds_doc: DesignSpaceDocument) -> set:
         """Determine which axes should be hidden based on avar2 usage.
