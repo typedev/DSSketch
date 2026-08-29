@@ -41,6 +41,13 @@ dssketch = "dssketch.cli:main"
 dss = "dssketch.cli:main"
 dssketch-data = "dssketch.data_cli:main"
 
+[tool.uv]
+# Pin the minimum uv version so that every machine re-serializes uv.lock the same
+# way. Older uv versions write environment markers differently, which rewrites
+# hundreds of lines without changing a single resolved version, and makes uv.lock
+# conflict on every merge.
+required-version = ">=0.12.5"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",

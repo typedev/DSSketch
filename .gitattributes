@@ -1,0 +1,9 @@
+# uv.lock is a generated file. Different uv versions re-serialize the same
+# resolution differently (mostly environment-marker simplification), which turns
+# every merge into a whole-file conflict that git cannot resolve line by line.
+#
+# merge=binary tells git not to attempt a textual merge: on conflict it keeps our
+# version intact and flags it, so the resolution is simply to regenerate:
+#     git checkout --ours uv.lock && uv lock
+# linguist-generated collapses it by default in GitHub diffs and PR reviews.
+uv.lock merge=binary linguist-generated=true

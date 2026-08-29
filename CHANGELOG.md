@@ -18,6 +18,9 @@ All notable changes to DSSketch will be documented in this file.
 - **Instance locations use design-space coordinates**: Fixed forward map (user→design) instead of broken reverseMap lookup
 - Updated example files with corrected skip rules and elidable behavior
 
+### Changed
+- `uv.lock` no longer conflicts on every merge: added `.gitattributes` marking it `merge=binary linguist-generated=true`, and pinned `[tool.uv] required-version = ">=0.12.5"` so all machines re-serialize the lock identically. The lockfile stays tracked for reproducible dev environments (`uv sync`); it is not part of the built sdist/wheel, whose dependencies come from `[project.dependencies]`
+
 ### Documentation
 - README: document installing DSSketch as a system-wide CLI in editable mode via `uv tool install -e .` (or `pipx install --editable`), and explain how it differs from `uv pip install -e .`, which only exposes the command inside the active virtualenv
 
