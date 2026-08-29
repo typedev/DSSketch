@@ -19,6 +19,18 @@ from .converters.designspace_to_dss import DesignSpaceToDSS
 from .converters.dss_to_designspace import DSSToDesignSpace
 from .core.mappings import Standards, UnifiedMappings
 from .core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
+from .core.report import (
+    CATEGORY_INSTANCES,
+    INSTANCE_EXTRA,
+    INSTANCE_RENAMED,
+    INSTANCE_UNREACHABLE,
+    SEVERITY_ERROR,
+    SEVERITY_INFO,
+    SEVERITY_WARNING,
+    ConversionIssue,
+    ConversionReport,
+    InstanceRef,
+)
 from .core.validation import UFOValidator, ValidationReport
 from .parsers.dss_parser import DSSParser
 from .writers.dss_writer import DSSWriter
@@ -39,6 +51,17 @@ __all__ = [
     # Validation
     "UFOValidator",
     "ValidationReport",
+    # Structured conversion diagnostics
+    "ConversionReport",
+    "ConversionIssue",
+    "InstanceRef",
+    "CATEGORY_INSTANCES",
+    "SEVERITY_ERROR",
+    "SEVERITY_WARNING",
+    "SEVERITY_INFO",
+    "INSTANCE_UNREACHABLE",
+    "INSTANCE_RENAMED",
+    "INSTANCE_EXTRA",
     # Parser and Writer
     "DSSParser",
     "DSSWriter",

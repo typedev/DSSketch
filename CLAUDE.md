@@ -760,7 +760,23 @@ sources [wght, wdth]
   `setup_logger()` runs, which the CLI does and the plain API does not.
 - **Failure is contained**: the report is wrapped so a diagnostic can never
   break a conversion.
-- **Tests**: `tests/test_instances_auto_fit.py` (8 tests)
+- **Structured report**: findings are recorded in `DesignSpaceToDSS.report`
+  (a `ConversionReport` from `core/report.py`), not only logged. Reach it from
+  the API with `return_report=True`:
+  ```python
+  sketch, report = dssketch.convert_designspace_to_dss_string(ds, return_report=True)
+  for issue in report.warnings:
+      print(issue.id, issue.description)          # "2.0", "..."
+      for ref in issue.instances:
+          print(ref.style_name, ref.location)     # design-space position
+  ```
+  Each `ConversionIssue` has `category`, `code`, `severity`, `description`,
+  `details`, `suggested_fix`, `instances` (`InstanceRef`) and `raw_data`, plus
+  `id` (`"2.0"`), `category_name`, `severity_name` and `to_dict()`. Structure
+  follows the DesignSpace validator in Font Rover.
+  **Codes are append-only** — callers switch on `(category, code)`, so never
+  renumber one.
+- **Tests**: `tests/test_instances_auto_fit.py` (17 tests)
 
 **Instance Skip Functionality (`instances auto skip`):**
 - **Purpose**: Exclude specific instance combinations from automatic generation

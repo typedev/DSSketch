@@ -17,6 +17,7 @@ it must never synthesise a `skip` block — `skip` is an instruction to the
 generator, and a DesignSpace records only the result of applying it.
 """
 
+import json
 import logging
 
 import pytest
@@ -28,6 +29,15 @@ from fontTools.designspaceLib import (
     SourceDescriptor,
 )
 
+import dssketch
+from dssketch.core.report import (
+    CATEGORY_INSTANCES,
+    INSTANCE_EXTRA,
+    INSTANCE_RENAMED,
+    INSTANCE_UNREACHABLE,
+    SEVERITY_INFO,
+    SEVERITY_WARNING,
+)
 from dssketch.converters.designspace_to_dss import DesignSpaceToDSS
 from dssketch.utils.logging import DSSketchLogger
 
@@ -147,3 +157,90 @@ class TestReportIsDiagnosticOnly:
         dss, log = convert(doc, caplog)
         assert dss.instances_off is True
         assert "beyond the" not in log
+
+
+class TestStructuredReport:
+    """The report has to be usable by a caller, not just readable in a log."""
+
+    def test_unreachable_instance_is_reported_as_a_warning(self):
+        doc = build_designspace([("Regular", 400), ("SemiBold", 550)])
+        converter = DesignSpaceToDSS()
+        converter.convert(doc)
+
+        issue = converter.report.find(CATEGORY_INSTANCES, INSTANCE_UNREACHABLE)
+        assert issue is not None
+        assert issue.id == "2.0"
+        assert issue.severity == SEVERITY_WARNING
+        assert issue.category_name == "Instances"
+        assert [ref.style_name for ref in issue.instances] == ["SemiBold"]
+        assert issue.instances[0].location == {"weight": 550.0}
+        assert issue.suggested_fix
+
+    def test_renamed_instance_carries_both_names(self):
+        doc = build_designspace([("Book", 400), ("Bold", 700)])
+        converter = DesignSpaceToDSS()
+        converter.convert(doc)
+
+        issue = converter.report.find(CATEGORY_INSTANCES, INSTANCE_RENAMED)
+        assert issue.severity == SEVERITY_WARNING
+        assert issue.instances[0].style_name == "Book"
+        assert issue.instances[0].other_style_name == "Regular"
+
+    def test_extra_instances_are_info_not_warning(self):
+        """A filtered DesignSpace is expected, not a defect."""
+        doc = build_designspace([("Regular", 400)])
+        converter = DesignSpaceToDSS()
+        converter.convert(doc)
+
+        issue = converter.report.find(CATEGORY_INSTANCES, INSTANCE_EXTRA)
+        assert issue.severity == SEVERITY_INFO
+        assert [ref.style_name for ref in issue.instances] == ["Bold"]
+        assert converter.report.warnings == []
+        assert converter.report.has_warnings is False
+
+    def test_clean_conversion_produces_an_empty_report(self):
+        doc = build_designspace([("Regular", 400), ("Bold", 700)])
+        converter = DesignSpaceToDSS()
+        converter.convert(doc)
+        assert len(converter.report) == 0
+        assert bool(converter.report) is False
+
+    def test_report_is_reset_between_conversions(self):
+        converter = DesignSpaceToDSS()
+        converter.convert(build_designspace([("Regular", 400)]))
+        assert len(converter.report) == 1
+        converter.convert(build_designspace([("Regular", 400), ("Bold", 700)]))
+        assert len(converter.report) == 0
+
+    def test_report_serialises(self):
+        doc = build_designspace([("Regular", 400)])
+        converter = DesignSpaceToDSS()
+        converter.convert(doc)
+        data = converter.report.to_dict()
+        assert data["info_count"] == 1
+        assert data["error_count"] == data["warning_count"] == 0
+        assert data["issues"][0]["id"] == "2.2"
+        assert data["issues"][0]["instances"][0]["style_name"] == "Bold"
+        json.dumps(data)  # must be JSON-serialisable for any caller
+
+
+class TestApiSurface:
+    def test_string_api_returns_a_bare_string_by_default(self):
+        doc = build_designspace([("Regular", 400)])
+        assert isinstance(dssketch.convert_designspace_to_dss_string(doc), str)
+
+    def test_string_api_returns_the_report_when_asked(self):
+        doc = build_designspace([("Regular", 400)])
+        sketch, report = dssketch.convert_designspace_to_dss_string(
+            doc, return_report=True
+        )
+        assert isinstance(sketch, str)
+        assert report.find(CATEGORY_INSTANCES, INSTANCE_EXTRA) is not None
+
+    def test_file_api_returns_the_report_when_asked(self, tmp_path):
+        doc = build_designspace([("Regular", 400)])
+        out = tmp_path / "t.dssketch"
+        path, report = dssketch.convert_to_dss(doc, str(out), return_report=True)
+        assert path == str(out)
+        assert out.read_text().startswith("family")
+        assert len(report) == 1

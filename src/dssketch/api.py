@@ -23,7 +23,8 @@ def convert_to_dss(
     optimize: bool = True,
     vars_threshold: int = 3,
     avar2_format: str = "matrix",
-) -> str:
+    return_report: bool = False,
+):
     """
     Convert a DesignSpace object to DSSketch format and save to file.
 
@@ -34,9 +35,12 @@ def convert_to_dss(
         vars_threshold: Minimum frequency for auto-generating avar2 variables.
                        0 = disabled, 3 = default (values appearing 3+ times)
         avar2_format: Format for avar2 output - "matrix" (default) or "linear"
+        return_report: Also return the structured ConversionReport (default False)
 
     Returns:
-        Path to the created DSS file
+        Path to the created DSS file, or a (path, ConversionReport) tuple when
+        return_report is True. The report carries what the conversion could not
+        express faithfully - see dssketch.core.report.
 
     Example:
         from fontTools.designspaceLib import DesignSpaceDocument
@@ -67,6 +71,8 @@ def convert_to_dss(
     with open(dss_file, "w", encoding="utf-8") as f:
         f.write(dss_content)
 
+    if return_report:
+        return str(dss_file), converter.report
     return str(dss_file)
 
 
@@ -157,7 +163,8 @@ def convert_designspace_to_dss_string(
     optimize: bool = True,
     vars_threshold: int = 3,
     avar2_format: str = "matrix",
-) -> str:
+    return_report: bool = False,
+):
     """
     Convert a DesignSpace object to DSSketch format string.
 
@@ -167,9 +174,12 @@ def convert_designspace_to_dss_string(
         vars_threshold: Minimum frequency for auto-generating avar2 variables.
                        0 = disabled, 3 = default (values appearing 3+ times)
         avar2_format: Format for avar2 output - "matrix" (default) or "linear"
+        return_report: Also return the structured ConversionReport (default False)
 
     Returns:
-        DSSketch format string
+        DSSketch format string, or a (string, ConversionReport) tuple when
+        return_report is True. The report carries what the conversion could not
+        express faithfully - see dssketch.core.report.
 
     Example:
         from fontTools.designspaceLib import DesignSpaceDocument
@@ -194,4 +204,8 @@ def convert_designspace_to_dss_string(
 
     # Write DSS document to string
     writer = DSSWriter(optimize=optimize, avar2_format=avar2_format)
-    return writer.write(dss_doc)
+    dss_string = writer.write(dss_doc)
+
+    if return_report:
+        return dss_string, converter.report
+    return dss_string

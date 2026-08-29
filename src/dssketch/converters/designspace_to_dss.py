@@ -18,6 +18,17 @@ from fontTools.designspaceLib import (
 
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
 from ..core.instances import createInstances
+from ..core.report import (
+    CATEGORY_INSTANCES,
+    INSTANCE_EXTRA,
+    INSTANCE_RENAMED,
+    INSTANCE_UNREACHABLE,
+    SEVERITY_INFO,
+    SEVERITY_WARNING,
+    ConversionIssue,
+    ConversionReport,
+    InstanceRef,
+)
 from ..utils.logging import DSSketchLogger
 
 
@@ -33,6 +44,8 @@ class DesignSpaceToDSS:
         """
         self.vars_threshold = vars_threshold
         self.font_resources = {}
+        #: Structured diagnostics from the most recent convert() call.
+        self.report = ConversionReport()
         self.load_external_data()
 
     def load_external_data(self):
@@ -53,6 +66,7 @@ class DesignSpaceToDSS:
 
     def convert(self, ds_doc: DesignSpaceDocument) -> DSSDocument:
         """Convert DesignSpace document to DSS document"""
+        self.report = ConversionReport()
         dss_doc = DSSDocument(family=self._extract_family_name(ds_doc))
 
         # Determine common path for sources
@@ -510,30 +524,106 @@ class DesignSpaceToDSS:
         extra = [produced[p] for p in produced if p not in declared]
 
         if missing:
-            DSSketchLogger.warning(
-                f"`instances auto` does not reach {len(missing)} of the "
-                f"{len(declared)} instances declared in the DesignSpace. "
-                f"The sketch will not describe this design space completely: "
-                f"{self._sample(missing)}"
+            refs = [
+                InstanceRef(style_name=name, location=dict(loc))
+                for loc, name in ((p, declared[p]) for p in declared if p not in produced)
+            ]
+            issue = self.report.add(
+                ConversionIssue(
+                    category=CATEGORY_INSTANCES,
+                    code=INSTANCE_UNREACHABLE,
+                    severity=SEVERITY_WARNING,
+                    description=(
+                        f"`instances auto` does not reach {len(missing)} of the "
+                        f"{len(declared)} instances declared in the DesignSpace"
+                    ),
+                    details=(
+                        "The sketch will not describe this design space completely. "
+                        "These positions are not produced by any combination of the "
+                        "axis labels, so they cannot be regenerated."
+                    ),
+                    suggested_fix=(
+                        "Add axis labels that land on these positions, or keep the "
+                        "instances listed explicitly."
+                    ),
+                    instances=sorted(refs, key=lambda r: r.style_name),
+                    raw_data={"declared": len(declared), "unreachable": len(missing)},
+                )
             )
+            DSSketchLogger.warning(f"{issue.description}: {self._sample(missing)}")
 
         if renamed:
+            refs = [
+                InstanceRef(
+                    style_name=declared[p],
+                    location=dict(p),
+                    other_style_name=produced[p],
+                )
+                for p in declared
+                if p in produced and declared[p] != produced[p]
+            ]
+            issue = self.report.add(
+                ConversionIssue(
+                    category=CATEGORY_INSTANCES,
+                    code=INSTANCE_RENAMED,
+                    severity=SEVERITY_WARNING,
+                    description=(
+                        f"{len(renamed)} instance(s) keep their position but are "
+                        f"named differently by the generator"
+                    ),
+                    details=(
+                        "The DesignSpace may predate a change in the elidable naming "
+                        "rules. The positions themselves are intact."
+                    ),
+                    suggested_fix=(
+                        "Regenerate the DesignSpace from its sketch so the names agree."
+                    ),
+                    instances=sorted(refs, key=lambda r: r.style_name),
+                    raw_data={"declared": len(declared), "renamed": len(renamed)},
+                )
+            )
             DSSketchLogger.warning(
-                f"{len(renamed)} instance(s) keep their position but are named "
-                f"differently by the generator - the DesignSpace may predate a "
-                f"change in the elidable rules: "
+                issue.description
+                + " - the DesignSpace may predate a change in the elidable rules: "
                 + ", ".join(f"'{was}' -> '{now}'" for was, now in renamed[:3])
                 + (f" (+{len(renamed) - 3} more)" if len(renamed) > 3 else "")
             )
 
         if extra:
+            refs = [
+                InstanceRef(style_name=name, location=dict(loc))
+                for loc, name in ((p, produced[p]) for p in produced if p not in declared)
+            ]
+            issue = self.report.add(
+                ConversionIssue(
+                    category=CATEGORY_INSTANCES,
+                    code=INSTANCE_EXTRA,
+                    severity=SEVERITY_INFO,
+                    description=(
+                        f"`instances auto` generates {len(extra)} instance(s) beyond "
+                        f"the {len(declared)} in the DesignSpace"
+                    ),
+                    details=(
+                        "The DesignSpace was filtered. A sketch expresses that with an "
+                        "`instances auto` / `skip` block, which cannot be recovered "
+                        "from a DesignSpace: `skip` instructs the generator, while a "
+                        "DesignSpace records only the result of applying it."
+                    ),
+                    suggested_fix=(
+                        "If the omission is intentional, list these under "
+                        "`instances auto` / `skip`."
+                    ),
+                    instances=sorted(refs, key=lambda r: r.style_name),
+                    raw_data={"declared": len(declared), "extra": len(extra)},
+                )
+            )
             DSSketchLogger.info(
-                f"`instances auto` generates {len(extra)} instance(s) beyond the "
-                f"{len(declared)} in the DesignSpace. If that is intentional, add "
-                f"them to an `instances auto` / `skip` block: {self._sample(extra)}"
+                issue.description
+                + ". If that is intentional, add them to an `instances auto` / "
+                + f"`skip` block: {self._sample(extra)}"
             )
 
-        if not (missing or renamed or extra):
+        if not self.report.of_category(CATEGORY_INSTANCES):
             DSSketchLogger.debug(
                 f"`instances auto` reproduces all {len(declared)} declared instances"
             )
