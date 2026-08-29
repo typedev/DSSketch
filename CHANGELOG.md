@@ -4,20 +4,12 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.18] - 2026-08-29
+
 ### Added
-- **Custom discrete axis support**: Any axis with `0:0:1` range now works as discrete (e.g., `LOOP discrete`, `FILL discrete`), not just `ital` and `slnt`
-- **UFO layer support**: Sources can specify UFO layers via `@layer="layer_name"` flag, enabling multiple masters from a single UFO file
-- **Multiple `@base` sources for discrete axes**: Each discrete axis value can have its own base source, validated automatically
-- **Sparse master support**: Sources can be marked as sparse (correction layers with reduced glyph coverage) via `@sparse` flag. Bidirectional: DesignSpace `name="sparse.*"` ↔ DSSketch `@sparse`. Detection on DS→DSS also recognizes `*-sparse.ufo` filename suffix as fallback.
 - **Unnamed avar map points**: an axis map entry that carries no STAT label is now expressible as `100 > 100` (bare user value, no style name). This supports axes that extend past their named styles — e.g. an axis declared `100:400:1000` whose named styles only span Thin(200)…Black(900). Such a point shapes the user→design curve but names no instance.
 
 ### Fixed
-- `DiscreteAxisHandler.is_discrete()` no longer requires axis name in hardcoded list — any `0:0:1` axis is discrete
-- Parser correctly assigns positional values (0, 1, 2...) to custom discrete axis labels instead of silently returning fallback 100.0
-- Writer outputs `discrete` keyword and simplified label format for all discrete axes, not just `ital`
-- **Weight axis excluded from elidable removal**: Font compilers expect a weight name in styleName — removing it (e.g., "Compressed Regular" → "Compressed") caused misinterpretation. Weight labels like "Regular" are now always preserved in instance names
-- **Instance locations use design-space coordinates**: Fixed forward map (user→design) instead of broken reverseMap lookup
-- Updated example files with corrected skip rules and elidable behavior
 - **DS→DSS no longer drops unlabeled map points**: `_convert_axis()` branched `if axis.axisLabels: ... elif axis.map: ...`, so on an axis that had both, every `<map>` entry without a matching `<label>` was silently discarded — corrupting the avar curve at both ends. It now takes the union of map keys and label keys
 - **Masters are no longer required to sit on a mapped point**: a master lives in design space and may be placed between named styles (e.g. a Bold master at design 625 while the Bold label maps to 575). This was a hard error; it is now a warning
 - **Masters are no longer required to sit on the extreme *named* point**: masters are commonly drawn outside the named range so that every instance interpolates inside the master envelope rather than landing on a raw master. This was a hard error; it is now a warning
@@ -29,6 +21,24 @@ All notable changes to DSSketch will be documented in this file.
 
 ### Documentation
 - README: document installing DSSketch as a system-wide CLI in editable mode via `uv tool install -e .` (or `pipx install --editable`), and explain how it differs from `uv pip install -e .`, which only exposes the command inside the active virtualenv
+
+## [1.1.17] - 2026-05-16
+
+Releases 1.1.10 through 1.1.16 shipped without changelog entries; their changes are folded into this section.
+
+### Added
+- **Custom discrete axis support**: Any axis with `0:0:1` range now works as discrete (e.g., `LOOP discrete`, `FILL discrete`), not just `ital` and `slnt`
+- **UFO layer support**: Sources can specify UFO layers via `@layer="layer_name"` flag, enabling multiple masters from a single UFO file
+- **Multiple `@base` sources for discrete axes**: Each discrete axis value can have its own base source, validated automatically
+- **Sparse master support**: Sources can be marked as sparse (correction layers with reduced glyph coverage) via `@sparse` flag. Bidirectional: DesignSpace `name="sparse.*"` ↔ DSSketch `@sparse`. Detection on DS→DSS also recognizes `*-sparse.ufo` filename suffix as fallback.
+
+### Fixed
+- `DiscreteAxisHandler.is_discrete()` no longer requires axis name in hardcoded list — any `0:0:1` axis is discrete
+- Parser correctly assigns positional values (0, 1, 2...) to custom discrete axis labels instead of silently returning fallback 100.0
+- Writer outputs `discrete` keyword and simplified label format for all discrete axes, not just `ital`
+- **Weight axis excluded from elidable removal**: Font compilers expect a weight name in styleName — removing it (e.g., "Compressed Regular" → "Compressed") caused misinterpretation. Weight labels like "Regular" are now always preserved in instance names
+- **Instance locations use design-space coordinates**: Fixed forward map (user→design) instead of broken reverseMap lookup
+- Updated example files with corrected skip rules and elidable behavior
 
 ## [1.1.9] - 2026-01-07
 
