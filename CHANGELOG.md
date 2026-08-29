@@ -18,6 +18,9 @@ All notable changes to DSSketch will be documented in this file.
 - **Instance locations use design-space coordinates**: Fixed forward map (user→design) instead of broken reverseMap lookup
 - Updated example files with corrected skip rules and elidable behavior
 
+### Documentation
+- README: document installing DSSketch as a system-wide CLI in editable mode via `uv tool install -e .` (or `pipx install --editable`), and explain how it differs from `uv pip install -e .`, which only exposes the command inside the active virtualenv
+
 ## [1.1.9] - 2026-01-07
 
 ### Added

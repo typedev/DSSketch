@@ -352,6 +352,38 @@ pip install dssketch
 pip install -e .
 ```
 
+#### As a system-wide CLI in editable mode (recommended for development)
+
+`uv pip install -e .` installs into the *currently active* virtualenv, so the
+`dssketch` command only exists while that venv is activated. To get `dssketch`
+available **everywhere** while still running straight from your working copy,
+use `uv tool install`:
+
+```bash
+cd /path/to/DSSketch
+uv tool install -e .
+```
+
+This creates an isolated environment under `~/.local/share/uv/tools/dssketch/`
+and links all three entry points — `dssketch`, `dss`, `dssketch-data` — into
+`~/.local/bin/` (make sure it is on your `PATH`; `uv tool update-shell` adds it).
+Because the install is editable, edits to `src/dssketch/**.py` and to
+`src/dssketch/data/*.yaml` take effect immediately — no reinstall needed.
+
+```bash
+uv tool list                          # show installed tools
+uv tool install -e . --force          # reinstall (needed after changing
+                                      # [project.scripts] or dependencies)
+uv tool install -e ".[dev]" --force   # include dev deps (pytest, ruff, mypy)
+uv tool uninstall dssketch            # remove
+```
+
+The `pipx` equivalent, if you prefer it over `uv`:
+
+```bash
+pipx install --editable /path/to/DSSketch
+```
+
 ### Command Line
 ```bash
 # Convert DesignSpace → DSSketch (with UFO validation)
