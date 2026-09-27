@@ -15,6 +15,10 @@ class DSSAxisMapping:
     design_value: float      # Design space value (125)
     label: str              # Name (Regular)
     elidable: bool = False  # Whether this label can be elided in font names
+    # True when the .dssketch source wrote the user value ("300 Light > 295").
+    # False when it was inferred ("Light > 295" from the standards table,
+    # "Custom > 500" as user = design) or when there is no source text (DS → DSS).
+    user_value_explicit: bool = False
 
 
 @dataclass

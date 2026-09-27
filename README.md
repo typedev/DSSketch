@@ -730,7 +730,7 @@ instances auto
 
 **How it works:**
 - When `family` is missing, DSSketch reads the base source UFO (`@base` flag)
-- Extracts `font.info.familyName` from the UFO using fontParts
+- Extracts `font.info.familyName` from the UFO using defcon
 - Falls back to "Unknown" if UFO is not found or has no familyName
 - Logs a warning if auto-detection is used (non-critical)
 

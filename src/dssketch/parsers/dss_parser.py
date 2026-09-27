@@ -548,6 +548,7 @@ class DSSParser:
         if elidable:
             line = line.replace("@elidable", "").strip()
 
+        user_value_explicit = False
         if ">" in line:
             # Traditional format: "300 Light > 295" or "0.0 Upright > 0.0"
             parts = line.split(">")
@@ -560,6 +561,7 @@ class DSSParser:
             if left_parts[0].replace(".", "").replace("-", "").isdigit():
                 # Format: "300 Light" or "0.0 Upright" or just "8" (pure numeric)
                 user = float(left_parts[0])
+                user_value_explicit = True
                 label = " ".join(left_parts[1:]) if len(left_parts) > 1 else ""
                 # Don't generate fake labels for pure numeric mappings
                 # Keep label empty if not provided - this is valid for axis maps without labels
@@ -618,7 +620,11 @@ class DSSParser:
             )
 
         mapping = DSSAxisMapping(
-            user_value=user, design_value=design, label=label, elidable=elidable
+            user_value=user,
+            design_value=design,
+            label=label,
+            elidable=elidable,
+            user_value_explicit=user_value_explicit,
         )
         self.current_axis.mappings.append(mapping)
 

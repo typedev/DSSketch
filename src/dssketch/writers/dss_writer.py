@@ -4,10 +4,10 @@ DSS Writer for DSSketch
 This module handles writing DSSketch documents to DSS string format with optimization features.
 """
 
-from typing import List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, List, Optional, Set, Tuple
 
-# For DesignSpace document type hints
-from fontTools.designspaceLib import DesignSpaceDocument
+if TYPE_CHECKING:
+    from fontTools.designspaceLib import DesignSpaceDocument
 
 # Import utilities
 from ..core.mappings import Standards
@@ -33,7 +33,7 @@ class DSSWriter:
     def __init__(
         self,
         optimize: bool = True,
-        ds_doc: Optional[DesignSpaceDocument] = None,
+        ds_doc: Optional["DesignSpaceDocument"] = None,
         base_path: Optional[str] = None,
         use_label_coordinates: bool = True,
         use_label_ranges: bool = True,
@@ -300,8 +300,14 @@ class DSSWriter:
                     use_compact_form = False
                     axis_type = axis.name.lower()
 
-                    # Only try compact form for standard axes (weight, width)
-                    if self.optimize and axis_type in ["weight", "width"]:
+                    # Only try compact form for standard axes (weight, width), and
+                    # never drop a user value the source wrote out: it pins the
+                    # mapping independently of the standards table
+                    if (
+                        self.optimize
+                        and axis_type in ["weight", "width"]
+                        and not mapping.user_value_explicit
+                    ):
                         # Check if this label exists in standard mappings
                         if Standards.has_mapping(mapping.label, axis_type):
                             try:
@@ -559,6 +565,13 @@ class DSSWriter:
 
             if cond_parts:
                 condition_str = f"({' && '.join(cond_parts)})"
+
+        # A rule parsed from DSSketch keeps its pattern as written; it is only
+        # expanded against UFO glyphs on the way to DesignSpace. Write it back as is.
+        if rule.pattern and rule.to_pattern:
+            rule_name = self._format_rule_name(rule.name)
+            lines.append(f"    {rule.pattern} > {rule.to_pattern} {condition_str}{rule_name}")
+            return lines
 
         # Try to detect patterns for multiple substitutions
         if len(rule.substitutions) > 1:

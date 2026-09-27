@@ -19,11 +19,9 @@ class DataManager:
         # Package data directory (built-in defaults)
         self.package_data_dir = Path(__file__).parent / "data"
 
-        # User data directory (overrides)
+        # User data directory (overrides). Created only when something is
+        # written to it: reading a .dssketch must have no filesystem side effects.
         self.user_data_dir = self._get_user_data_dir()
-
-        # Create user directory if it doesn't exist
-        self.user_data_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_user_data_dir(self) -> Path:
         """Get user data directory based on OS or environment variable"""
@@ -82,6 +80,7 @@ class DataManager:
         filepath = self.user_data_dir / filename
 
         try:
+            self.user_data_dir.mkdir(parents=True, exist_ok=True)
             with open(filepath, "w", encoding="utf-8") as f:
                 if filepath.suffix in [".yaml", ".yml"]:
                     yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
@@ -146,6 +145,7 @@ class DataManager:
             return False
 
         try:
+            self.user_data_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(package_file, user_file)
             DSSketchLogger.info(f"Copied {filename} to user directory")
             return True

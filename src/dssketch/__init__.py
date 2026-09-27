@@ -7,16 +7,9 @@ and verbose .designspace XML files for variable font design.
 
 __version__ = "1.1.18"
 
-# Import all components from modular structure
-# Import high-level API functions
-from .api import (
-    convert_designspace_to_dss_string,
-    convert_dss_string_to_designspace,
-    convert_to_designspace,
-    convert_to_dss,
-)
-from .converters.designspace_to_dss import DesignSpaceToDSS
-from .converters.dss_to_designspace import DSSToDesignSpace
+# Light components: stdlib + PyYAML only. Importing these must never pull in
+# defcon or fontTools, so that a parse-only consumer (e.g. a diff tool reading
+# a .dssketch from git) can use DSSParser/DSSWriter without the UFO stack.
 from .core.mappings import Standards, UnifiedMappings
 from .core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 from .core.report import (
@@ -34,6 +27,31 @@ from .core.report import (
 from .core.validation import UFOValidator, ValidationReport
 from .parsers.dss_parser import DSSParser
 from .writers.dss_writer import DSSWriter
+
+# Converters need fontTools.designspaceLib; they load on first access.
+_LAZY = {
+    "convert_designspace_to_dss_string": ".api",
+    "convert_dss_string_to_designspace": ".api",
+    "convert_to_designspace": ".api",
+    "convert_to_dss": ".api",
+    "DesignSpaceToDSS": ".converters.designspace_to_dss",
+    "DSSToDesignSpace": ".converters.dss_to_designspace",
+}
+
+
+def __getattr__(name):
+    if name in _LAZY:
+        import importlib
+
+        value = getattr(importlib.import_module(_LAZY[name], __name__), name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    return sorted(set(globals()) | set(_LAZY))
+
 
 # Public API
 __all__ = [
@@ -92,6 +110,9 @@ def convert_file(input_path: str, output_path: str = None, optimize: bool = True
         Path to output file
     """
     from pathlib import Path
+
+    from .converters.designspace_to_dss import DesignSpaceToDSS
+    from .converters.dss_to_designspace import DSSToDesignSpace
 
     input_file = Path(input_path)
 

@@ -13,9 +13,6 @@ This module converts DSS documents back to DesignSpace format and includes metho
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-# UFO reading
-from defcon import Font
-
 # FontTools imports
 from fontTools.designspaceLib import (
     AxisDescriptor,
@@ -89,6 +86,8 @@ class DSSToDesignSpace:
             if not ufo_path.exists() or not ufo_path.is_dir():
                 self.logger.warning(f"UFO not found at '{ufo_path}' - using 'Unknown' as family name")
                 return "Unknown"
+
+            from defcon import Font
 
             font = Font(str(ufo_path))
             family_name = font.info.familyName
@@ -441,6 +440,8 @@ class DSSToDesignSpace:
 
             if not ufo_path.exists() or not ufo_path.is_dir():
                 return None
+
+            from defcon import Font
 
             font = Font(str(ufo_path))
             return {"familyName": font.info.familyName, "styleName": font.info.styleName}

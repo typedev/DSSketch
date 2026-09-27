@@ -26,7 +26,6 @@ classifiers = [
 dependencies = [
     "fonttools>=4.38.0",
     "defcon>=0.10.0",
-    "fontParts>=0.12.0",
     "pyyaml>=6.0",
 ]
 

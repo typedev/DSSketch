@@ -8,8 +8,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Set
 
-from defcon import Font
-
 from ..core.models import DSSDocument
 from ..utils.logging import DSSketchLogger
 
@@ -108,6 +106,8 @@ class UFOGlyphExtractor:
     def get_glyph_names_from_ufo(ufo_path: Path) -> Set[str]:
         """Extract all glyph names from a UFO file"""
         try:
+            from defcon import Font
+
             font = Font(str(ufo_path))
             return set(font.keys())
         except Exception as e:

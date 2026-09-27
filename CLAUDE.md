@@ -57,7 +57,7 @@ uv run pytest tests/                 # Run tests
 pip install -e .                     # Install in editable mode
 pip install -r requirements.txt      # Or install dependencies manually
 
-# Dependencies: fonttools, fontParts, defcon, pyyaml
+# Dependencies: fonttools, defcon, pyyaml (the parse path needs only pyyaml)
 ```
 
 ### Testing examples
@@ -219,17 +219,17 @@ try:
     result = parser.parse(content)
 
     # Check for validation issues
-    if parser.errors:
-        print(f"Found {len(parser.errors)} errors:")
-        for error in parser.errors:
+    if parser.validator.errors:
+        print(f"Found {len(parser.validator.errors)} errors:")
+        for error in parser.validator.errors:
             print(f"  ERROR: {error}")
 
-    if parser.warnings:
-        print(f"Found {len(parser.warnings)} warnings:")
-        for warning in parser.warnings:
+    if parser.validator.warnings:
+        print(f"Found {len(parser.validator.warnings)} warnings:")
+        for warning in parser.validator.warnings:
             print(f"  WARNING: {warning}")
 
-    if not parser.errors:
+    if not parser.validator.errors:
         print("Parsing successful!")
 
 except Exception as e:
@@ -1419,7 +1419,7 @@ instances off
 1. If `family` is specified in DSSketch - use it as-is
 2. If `family` is missing or empty:
    - Find the base source (`@base` flag)
-   - Read the UFO using fontParts
+   - Read the UFO using defcon
    - Extract `font.info.familyName`
    - Falls back to "Unknown" if UFO not found or has no familyName
    - Logs a warning (non-critical)
@@ -1503,6 +1503,21 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - Package initialization
 - Exports public API functions: `convert_to_dss`, `convert_to_designspace`, `convert_dss_string_to_designspace`, `convert_designspace_to_dss_string`
 - Exports core classes: `DSSParser`, `DSSWriter`, converters
+- **Import weight is a contract (issue #7)**: `import dssketch`, `DSSParser`,
+  `DSSWriter` and the models load only the stdlib and PyYAML — never defcon or
+  fontTools. Diff tools parse a `.dssketch` read from git, where the UFOs are
+  not on disk. Converters and the `convert_*` functions (fontTools) are
+  resolved lazily through the module `__getattr__` (`_LAZY` table), and
+  `from defcon import Font` lives inside the functions that open a UFO. When
+  adding a heavy export, put it in `_LAZY`, not at the top of `__init__.py`.
+  Pinned by `tests/test_light_imports.py`
+- **Parsing has no filesystem side effects**: `DataManager` creates the user
+  data directory only when writing to it (`save_user_data`,
+  `copy_package_to_user`, `dssketch-data edit`), never on read
+- **DSS → DSS keeps DSS-level forms**: a rule parsed from DSSketch has
+  `pattern`/`to_pattern` and empty `substitutions` (expansion needs UFOs and
+  happens only on the way to DesignSpace). `DSSWriter._format_rule()` writes
+  such a rule back verbatim. Tests: `tests/test_dss_to_dss.py`
 
 **`api.py`** - High-level API for DSSketch integration
 - `convert_to_dss(designspace, dss_path, optimize=True, vars_threshold=3, avar2_format="matrix")` - Convert DesignSpace object to DSSketch file
@@ -1605,6 +1620,11 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   - `avar2_mappings: List[DSSAvar2Mapping]` - avar2 inter-axis mappings
 - `DSSAxis` - Axis definition with mappings
 - `DSSAxisMapping` - Single axis mapping point (user/design values, label, elidable flag)
+  - `user_value_explicit: bool` - True only when the .dssketch source wrote the
+    user value (`300 Light > 295`, `100 > 100`). False when inferred (`Light > 295`
+    from the standards table, `Custom > 500` as user = design) and for DS → DSS.
+    The writer never compacts an explicit value away, and diff tools treat an
+    inferred one as derived, since a standards-table change would move it
 - `DSSSource` - Source file definition with location
 - `DSSInstance` - Instance definition
 - `DSSRule` - Substitution rule with conditions
