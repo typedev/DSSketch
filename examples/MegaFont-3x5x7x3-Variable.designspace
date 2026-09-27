@@ -61,7 +61,7 @@
   <rules>
     <rule name="heavy alternates">
       <conditionset>
-        <condition name="weight" minimum="725" maximum="1000"/>
+        <condition name="weight" minimum="725"/>
       </conditionset>
       <sub name="a" with="a.rvrn"/>
       <sub name="b" with="b.rvrn"/>
@@ -71,7 +71,7 @@
     </rule>
     <rule name="Compressed B">
       <conditionset>
-        <condition name="width" minimum="0" maximum="560"/>
+        <condition name="width" maximum="560"/>
       </conditionset>
       <sub name="B" with="B.alt"/>
     </rule>

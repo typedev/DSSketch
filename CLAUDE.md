@@ -866,14 +866,20 @@ DSSketch validates skip rules at two levels to ensure correctness:
 - To: `if '*' in from_part or (' ' in from_part...)`
 - This ensures patterns like `A*` are properly recognized as wildcards
 
-**Critical Fix for Rule Conditions (Design Space Coordinates):**
-- **Issue**: Rule condition bounds used user space axis bounds instead of design space bounds
-- **Problem**: `weight >= 480` with axis range 50:900 (user) created condition `minimum="480" maximum="900"` (user space max)
-- **Fix**: Added `_get_design_space_bounds()` method in `dss_parser.py:422-430`
-- **Solution**: Extract min/max from all `mapping.design_value` instead of `axis.minimum/maximum`
-- **Result**: Now correctly uses design space bounds: `minimum="480" maximum="1000"` (design space max)
-- **Code Location**: `src/dssketch/parsers/dss_parser.py:391-399` (condition parsing with design space bounds)
-- **Negative Values**: Fully supported in both rule conditions and axis bounds validation
+**One-sided Rule Conditions Stay Open:**
+- `weight >= Bold` is stored as `{"minimum": 725, "maximum": None}`, and
+  `weight <= Regular` as `{"minimum": None, "maximum": 420}` — design-space values
+- `None` means "to the end of the axis". DesignSpace expresses it natively
+  (`<condition name="weight" minimum="725"/>`), `designspaceLib` reads the missing
+  attribute back as `None`, and `varLib` treats it as the axis extreme
+- **Never close the bound in the parser.** It used to be filled with the largest
+  mapping design value (`_get_design_space_bounds()`, removed), which froze a
+  DSS-level statement into numbers: the rule silently stopped short when the axis
+  grew, and DSS → DSS rewrote `weight >= Bold` as `Bold <= weight <= Black`
+- DS → DSS keeps a missing bound as `None` too (it used to invent 0 / 1000); the
+  writer turns `None` back into `>=` / `<=`
+- **Negative Values**: fully supported in rule conditions
+- Tests: `tests/test_dss_to_dss.py`
 
 ### Implementation Notes for Explicit Axis Order
 
@@ -1569,7 +1575,6 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   - `_parse_source_line()` - Parse source definitions (supports label-based coordinates)
   - `_parse_axis_line()` - Parse axis definitions (supports label-based ranges)
   - `_parse_rule_line()` - Parse substitution rules
-  - `_get_design_space_bounds()` - Extract design space bounds for rule conditions
 
 #### Writers (`src/dssketch/writers/`)
 

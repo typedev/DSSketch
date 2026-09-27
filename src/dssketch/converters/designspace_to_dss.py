@@ -365,8 +365,8 @@ class DesignSpaceToDSS:
                     conditions.append(
                         {
                             "axis": condition["name"],
-                            "minimum": condition.get("minimum", 0),
-                            "maximum": condition.get("maximum", 1000),
+                            "minimum": condition.get("minimum"),
+                            "maximum": condition.get("maximum"),
                         }
                     )
         elif hasattr(rule, "conditions"):

@@ -1089,46 +1089,18 @@ class DSSParser:
                         raise
                     continue
 
-                # Find axis bounds from document axes (design space)
-                axis_min = -1000  # Default very low minimum
-                axis_max = 1000  # Default very high maximum
-
-                for doc_axis in self.document.axes:
-                    if doc_axis.name == axis or doc_axis.tag == axis:
-                        # Get design space bounds from mappings, not user space bounds
-                        axis_min, axis_max = self._get_design_space_bounds(doc_axis)
-                        break
-
+                # A one-sided condition stays open: None means "to the end of the
+                # axis", which DesignSpace and varLib understand natively. Closing
+                # it here with the current axis extent would freeze a DSS-level
+                # statement into numbers that go stale when the axis grows.
                 if operator == ">=":
-                    conditions.append(
-                        {
-                            "axis": axis,
-                            "minimum": value,
-                            "maximum": axis_max,
-                        }
-                    )
+                    conditions.append({"axis": axis, "minimum": value, "maximum": None})
                 elif operator == "<=":
-                    conditions.append(
-                        {
-                            "axis": axis,
-                            "minimum": axis_min,
-                            "maximum": value,
-                        }
-                    )
+                    conditions.append({"axis": axis, "minimum": None, "maximum": value})
                 elif operator == "==":
                     conditions.append({"axis": axis, "minimum": value, "maximum": value})
 
         return conditions
-
-    def _get_design_space_bounds(self, axis: DSSAxis) -> tuple[float, float]:
-        """Get design space bounds for axis from mappings"""
-        if not axis.mappings:
-            # No mappings, use user space bounds as fallback
-            return axis.minimum, axis.maximum
-
-        # Extract design space values from all mappings
-        design_values = [mapping.design_value for mapping in axis.mappings]
-        return min(design_values), max(design_values)
 
     def _tag_to_axis_name(self, tag: str) -> str:
         """Convert axis tag to actual axis name, matching existing axes in document"""

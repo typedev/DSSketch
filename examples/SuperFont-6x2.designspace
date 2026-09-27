@@ -29,7 +29,7 @@
   <rules>
     <rule name="heavy alternates">
       <conditionset>
-        <condition name="weight" minimum="789" maximum="1000"/>
+        <condition name="weight" minimum="789"/>
       </conditionset>
       <sub name="cent" with="cent.rvrn"/>
       <sub name="dollar" with="dollar.rvrn"/>

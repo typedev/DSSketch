@@ -51,7 +51,7 @@ def test_pattern_rules_survive_write():
     assert "    dollar cent > .heavy " in out
     assert "    * > .rvrn " in out
     assert "    A* > .alt " in out
-    assert "    dollar* cent* > .rvrn (" in out and '"heavy alternates"' in out
+    assert '    dollar* cent* > .rvrn (weight >= Bold) "heavy alternates"' in out
     assert "    a b > a.x b.x " in out
     assert _rules(DSSParser().parse(out)) == _rules(doc)
 
@@ -111,3 +111,33 @@ def test_writing_user_data_creates_dir(tmp_path, monkeypatch):
     assert not data_dir.exists()
     assert dm.copy_package_to_user("discrete-axis-labels.yaml")
     assert (data_dir / "discrete-axis-labels.yaml").is_file()
+
+
+def test_one_sided_conditions_stay_open():
+    doc = DSSParser().parse(SKETCH)
+    by_name = {r.name: r.conditions for r in doc.rules}
+    assert by_name["single"] == [{"axis": "weight", "minimum": 700.0, "maximum": None}]
+    assert by_name["rule4"] == [{"axis": "weight", "minimum": None, "maximum": 400.0}]
+
+    out = DSSWriter().write(doc)
+    assert '    A > A.alt (weight >= Bold) "single"' in out
+    assert "    A* > .alt (weight <= Regular)" in out
+
+
+def test_open_condition_reaches_designspace_open(tmp_path):
+    from fontTools.designspaceLib import DesignSpaceDocument
+
+    from dssketch import DesignSpaceToDSS
+    from dssketch.converters.dss_to_designspace import DSSToDesignSpace
+
+    sketch = SKETCH.split("rules")[0] + 'rules\n    A > A.alt (weight >= Bold) "single"\ninstances off\n'
+    ds = DSSToDesignSpace().convert(DSSParser().parse(sketch))
+    path = tmp_path / "t.designspace"
+    ds.write(str(path))
+
+    xml = path.read_text()
+    assert '<condition name="weight" minimum="700"/>' in xml  # no invented maximum
+
+    reread = DesignSpaceDocument.fromfile(str(path))
+    assert reread.rules[0].conditionSets == [[{"name": "weight", "minimum": 700, "maximum": None}]]
+    assert "(weight >= Bold)" in DSSWriter().write(DesignSpaceToDSS().convert(reread))
