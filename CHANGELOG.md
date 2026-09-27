@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-27
+
 ### Added
 - **`instances auto` fit report**: DS → DSSketch now checks that the generator actually reproduces the instances the DesignSpace declares, instead of assuming it. Three outcomes, reported separately because they mean different things: a declared position the generator never reaches (WARNING — the sketch cannot describe this design space), the same position under a different style name (WARNING — the DesignSpace may predate a change in the elidable rules), and positions the generator adds (INFO — the DesignSpace was filtered, which is what an `instances auto` / `skip` block expresses). Instances are matched by design-space **position**, never by style name: names diverge for reasons that are not losses, and name matching produced 90 phantom losses across the example corpus where position matching reported none. The report is purely diagnostic — it never alters the document and never synthesises a `skip` block, since `skip` instructs the generator while a DesignSpace records only the result of applying it. Warnings appear wherever DSSketch logging is set up, which the CLI does
 - **`DSSAxisMapping.user_value_explicit`**: tells whether the `.dssketch` source wrote the user value (`300 Light > 295`) or it was inferred (`Light > 295` from the standards table, `Custom > 500` as user = design). An inferred value depends on the standards table shipped with the installed DSSketch, so a tool diffing two revisions can treat it as derived rather than as something the file says. The writer no longer compacts an explicit value away even when it equals the standard one: `400 Regular > 400` stays as written

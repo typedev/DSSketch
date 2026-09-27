@@ -488,7 +488,7 @@ wheels = [
 
 [[package]]
 name = "dssketch"
-version = "1.1.18"
+version = "1.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "defcon", version = "0.12.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
