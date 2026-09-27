@@ -1763,6 +1763,21 @@ Typical compression ratios:
 - 4D fonts (weight×width×contrast×slant): 97% size reduction
 - Complex fonts: Up to 36x smaller (MyFont: 204KB → 5.6KB)
 
+## Releasing
+
+Releases are published by CI, never by hand:
+1. Move the `[Unreleased]` entries in `CHANGELOG.md` under `## [X.Y.Z] - YYYY-MM-DD`
+2. Bump `pyproject.toml`, `src/dssketch/__init__.py` and `.bumpversion.cfg` together
+3. Commit, tag `vX.Y.Z`, push the branch and the tag
+4. `.github/workflows/publish.yml` checks tag = versions = changelog section,
+   runs CI, uploads to PyPI by trusted publishing (environment `pypi`, `v*` tags
+   only) and creates the GitHub release from the changelog section
+
+A failed upload can be retried with "Re-run failed jobs"; a version already on
+PyPI can never be uploaded again, so fix forward with a new patch version.
+CI (`ci.yml`) runs the tests on Python 3.8–3.14: no `X | None` annotations or
+other syntax newer than `requires-python`.
+
 ## Common Development Tasks
 
 When modifying the converter:

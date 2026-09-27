@@ -762,7 +762,7 @@ class DSSWriter:
 
         return lines
 
-    def _get_axis_default(self, axis_name: str, dss_doc: DSSDocument) -> float | None:
+    def _get_axis_default(self, axis_name: str, dss_doc: DSSDocument) -> Optional[float]:
         """Get the default value for an axis by name or tag.
 
         Searches both regular and hidden axes.
@@ -776,7 +776,7 @@ class DSSWriter:
                 return axis.default
         return None
 
-    def _find_variable_for_value(self, value: float, dss_doc: DSSDocument) -> str | None:
+    def _find_variable_for_value(self, value: float, dss_doc: DSSDocument) -> Optional[str]:
         """Find a variable name that matches the given value.
 
         Returns:

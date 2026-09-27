@@ -20,6 +20,7 @@ All notable changes to DSSketch will be documented in this file.
 - **Dropped the unused `fontParts` dependency**: nothing in the package imported it. Family auto-detection reads the base UFO with defcon, as the docs now say
 
 ### Fixed
+- **Python 3.8 and 3.9 could not import the package**: three return annotations used `float | None`, which needs 3.10, although `requires-python` has always said `>=3.8`. Replaced with `Optional[...]`; the test suite now passes on 3.8 through 3.14, and CI keeps it that way
 - **`DSSWriter` crashed on rules parsed from DSSketch**: a rule with a wildcard or a glyph list (`dollar* cent* > .rvrn`, `* > .rvrn`, `dollar cent > .heavy`) is a DSSketch-level statement; the parser keeps it as `pattern`/`to_pattern`, and it is expanded against UFO glyphs only on the way to DesignSpace. The writer only knew the expanded `substitutions` form it gets from a DesignSpace, and raised `IndexError` on the empty list. It now writes such rules back as written, so parse → edit → write works on any `.dssketch`
 - **One-sided rule conditions stay open**: `weight >= Bold` was closed at parse time with the largest mapping design value, so DSS → DSS rewrote it as `Bold <= weight <= Black`, and the rule silently stopped short once the axis was extended. The open bound is now kept as `None` all the way through: DesignSpace gets `<condition name="weight" minimum="725"/>`, which `designspaceLib` and `varLib` read as "to the end of the axis". DS → DSS likewise keeps a missing bound instead of inventing 0 / 1000. Compiled fonts are unchanged wherever the axis ends at its last mapping, which covers every example; the DesignSpace XML loses the redundant `maximum`/`minimum` attribute, as seen in the regenerated `MegaFont-3x5x7x3-Variable`, `MegaFont-WithSkip` and `SuperFont-6x2` examples
 - `CLAUDE.md` error-handling example used `parser.errors` / `parser.warnings`, which do not exist; it is `parser.validator.errors` / `.warnings`
@@ -28,6 +29,11 @@ All notable changes to DSSketch will be documented in this file.
 
 ### Documentation
 - `notes/roundtrip-fidelity-issues.md`: five open findings from a DS → DSSketch → DS audit of the example corpus, each with root cause, a verified candidate fix, and the design question it turns on. Records that DSSketch sits above DesignSpace rather than mirroring it — `instances auto` and `skip` are instructions to a generator, so `skip` cannot survive a round-trip through DesignSpace and must not be reconstructed from it. No code changes
+
+### Infrastructure
+- **CI** (`.github/workflows/ci.yml`): runs the tests on Python 3.8–3.14 for every push to `main` and every pull request, builds the sdist and wheel, checks their metadata, and smoke-tests the installed wheel in a clean environment (data files packaged, parse path free of defcon, a DSSketch → DesignSpace conversion)
+- **Trusted publishing to PyPI** (`.github/workflows/publish.yml`): pushing a tag `vX.Y.Z` verifies it against `pyproject.toml`, `__init__.py` and a `## [X.Y.Z]` section in this file, runs CI on the tag, uploads to PyPI through OIDC — no API token stored anywhere — and creates the GitHub release with that changelog section as its notes. Uploads go through the `pypi` environment, which only `v*` tags may deploy to
+- Classifiers list Python 3.13 and 3.14
 
 ## [1.1.18] - 2026-08-29
 

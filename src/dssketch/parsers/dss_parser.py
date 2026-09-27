@@ -6,7 +6,7 @@ Clean version with separated validation concerns.
 
 import re
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from ..core.mappings import Standards
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
@@ -1501,7 +1501,7 @@ class DSSParser:
 
         return result
 
-    def _get_axis_default(self, axis_name: str) -> float | None:
+    def _get_axis_default(self, axis_name: str) -> Optional[float]:
         """Get the default value for an axis by name or tag.
 
         Searches both regular and hidden axes.
