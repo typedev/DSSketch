@@ -11,8 +11,27 @@ permissions:
   contents: read
 
 jobs:
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - name: Check that uv.lock is up to date
+        run: uv lock --check
+      - name: Build sdist and wheel
+        run: uv build
+      - name: Check metadata
+        run: uvx twine check --strict dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
   test:
     name: Test (Python ${{ matrix.python }})
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,54 +41,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
-        with:
-          python-version: ${{ matrix.python }}
-      - name: Run tests
-        run: uv run --locked --extra dev python -m pytest tests/
-
-  build:
-    name: Build distributions
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
-      - name: Build sdist and wheel
-        run: uv build
-      - name: Check metadata
-        run: uvx twine check --strict dist/*
-      - name: Smoke-test the installed wheel
-        # A clean environment with only the runtime dependencies: catches data
-        # files missing from the wheel and imports that only work from the tree
-        run: |
-          uv venv --python 3.12 "$RUNNER_TEMP/smoke"
-          uv pip install --python "$RUNNER_TEMP/smoke" dist/*.whl
-          cd "$RUNNER_TEMP"
-          "$RUNNER_TEMP/smoke/bin/python" - <<'EOF'
-          import sys
-          import dssketch
-          from dssketch import DSSParser, Standards, convert_dss_string_to_designspace
-
-          assert "defcon" not in sys.modules, "parse path imports defcon"
-          assert Standards.get_user_space_value("Condensed", "width") == 75
-          sketch = """\
-          family Smoke
-          axes
-              wght 100:400:900
-                  Thin > 100
-                  Regular > 400 @elidable
-                  Black > 900
-          sources [wght]
-              Smoke-Thin [Thin]
-              Smoke-Regular [Regular] @base
-              Smoke-Black [Black]
-          instances auto
-          """
-          ds = convert_dss_string_to_designspace(sketch)
-          assert len(ds.sources) == 3 and len(ds.instances) == 3
-          print("dssketch", dssketch.__version__, "OK")
-          EOF
-      - uses: actions/upload-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
-          if-no-files-found: error
+      # Test the wheel that gets published, installed the way a user installs
+      # it: from its own metadata, not from the source tree or uv.lock. This
+      # also catches data files missing from the wheel
+      - name: Install the wheel
+        run: |
+          uv venv --python ${{ matrix.python }} "$RUNNER_TEMP/venv"
+          uv pip install --python "$RUNNER_TEMP/venv" dist/*.whl pytest
+      - name: Run tests
+        run: '"$RUNNER_TEMP/venv/bin/python" -m pytest tests/'

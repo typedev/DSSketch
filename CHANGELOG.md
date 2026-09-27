@@ -31,7 +31,7 @@ All notable changes to DSSketch will be documented in this file.
 - `notes/roundtrip-fidelity-issues.md`: five open findings from a DS → DSSketch → DS audit of the example corpus, each with root cause, a verified candidate fix, and the design question it turns on. Records that DSSketch sits above DesignSpace rather than mirroring it — `instances auto` and `skip` are instructions to a generator, so `skip` cannot survive a round-trip through DesignSpace and must not be reconstructed from it. No code changes
 
 ### Infrastructure
-- **CI** (`.github/workflows/ci.yml`): runs the tests on Python 3.8–3.14 for every push to `main` and every pull request, builds the sdist and wheel, checks their metadata, and smoke-tests the installed wheel in a clean environment (data files packaged, parse path free of defcon, a DSSketch → DesignSpace conversion)
+- **CI** (`.github/workflows/ci.yml`): for every push to `main` and every pull request, builds the sdist and wheel, checks their metadata and that `uv.lock` is current, then installs the wheel on Python 3.8–3.14 and runs the tests against it — the published artifact, installed from its own metadata, not the source tree
 - **Trusted publishing to PyPI** (`.github/workflows/publish.yml`): pushing a tag `vX.Y.Z` verifies it against `pyproject.toml`, `__init__.py` and a `## [X.Y.Z]` section in this file, runs CI on the tag, uploads to PyPI through OIDC — no API token stored anywhere — and creates the GitHub release with that changelog section as its notes. Uploads go through the `pypi` environment, which only `v*` tags may deploy to
 - Classifiers list Python 3.13 and 3.14
 
