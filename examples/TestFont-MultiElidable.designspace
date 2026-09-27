@@ -10,13 +10,13 @@
         <label uservalue="100" name="HighContrast"/>
       </labels>
     </axis>
-    <axis tag="wdth" name="width" minimum="100" maximum="150" default="100">
+    <axis tag="wdth" name="width" minimum="100" maximum="125" default="100">
       <labelname xml:lang="en">Width</labelname>
       <map input="100" output="100"/>
-      <map input="150" output="150"/>
+      <map input="125" output="150"/>
       <labels ordering="1">
         <label uservalue="100" name="Normal" elidable="true"/>
-        <label uservalue="150" name="Extended"/>
+        <label uservalue="125" name="Extended"/>
       </labels>
     </axis>
     <axis tag="wght" name="weight" minimum="400" maximum="700" default="400">

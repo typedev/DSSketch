@@ -15,13 +15,13 @@
     <axis tag="wdth" name="width" minimum="60" maximum="200" default="100">
       <labelname xml:lang="en">Width</labelname>
       <map input="60" output="0"/>
-      <map input="80" output="380"/>
+      <map input="75" output="380"/>
       <map input="100" output="560"/>
       <map input="150" output="700"/>
       <map input="200" output="1000"/>
       <labels ordering="1">
         <label uservalue="60" name="Compressed"/>
-        <label uservalue="80" name="Condensed"/>
+        <label uservalue="75" name="Condensed"/>
         <label uservalue="100" name="Normal" elidable="true"/>
         <label uservalue="150" name="Wide"/>
         <label uservalue="200" name="Extended"/>

@@ -920,7 +920,13 @@ class DSSValidator:
         # Only warn if expected_label is a real standard name (not fallback like "Weight100")
         is_standard_name = not expected_label.startswith(axis_type.title())
 
-        if is_standard_name and expected_label != label:
+        # An alias (Compressed for UltraCondensed, ExtraLight for Extralight)
+        # resolves to the same standard value, so it is not a mismatch
+        is_alias_of_expected = Standards.has_mapping(label, axis_type) and (
+            abs(Standards.get_user_space_value(label, axis_type) - user_value) <= 0.1
+        )
+
+        if is_standard_name and expected_label != label and not is_alias_of_expected:
             # User_value matches a standard value but label is different
             self.warnings.append(
                 f"Axis '{axis.name}': user_value {user_value} typically uses "

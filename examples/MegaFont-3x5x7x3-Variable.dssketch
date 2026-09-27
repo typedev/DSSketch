@@ -6,7 +6,7 @@ axes
         50 LowContrast > 100
         100 HighContrast > 200
     wdth 60:100:200
-        Compressed > 0
+        60 Compressed > 0
         Condensed > 380
         Normal > 560 @elidable
         150 Wide > 700

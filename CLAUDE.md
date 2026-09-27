@@ -1063,7 +1063,7 @@ def _resolve_axis_range_value(self, value_str: str, axis_name: str) -> float:
   - `200 Light > 230` → user=200 (overrides standard 300), design=230
   - `980 DeepBlack > 1000` → user=980 (custom label), design=1000
   - `0 NonContrast > 0` → user=0, label="NonContrast", design=0
-  - `150 Wide > 700` → user=150 (overrides standard 100), design=700
+  - `150 Wide > 700` → user=150 (overrides standard 112.5), design=700
 
 **4. Unnamed Map Point Format** (`100 > 100`):
 - **Detection**: Line contains `>`, left side is a bare number with nothing after it
@@ -1170,10 +1170,10 @@ axes
         50 LowContrast > 100    # user=50, label=LowContrast, design=100
         100 HighContrast > 200  # user=100, label=HighContrast, design=200
     wdth 60:100:200
-        Compressed > 0          # Standard: user=62.5 (from mappings), design=0
+        60 Compressed > 0       # Explicit: user=60 (overrides standard 50), design=0
         Condensed > 380         # Standard: user=75 (from mappings), design=380
         Normal > 560            # Standard: user=100 (from mappings), design=560
-        150 Wide > 700          # Explicit: user=150 (overrides standard 100), design=700
+        150 Wide > 700          # Explicit: user=150 (overrides standard 112.5), design=700
         200 Extended > 1000     # Explicit: user=200 (overrides standard 125), design=1000
     wght Thin:Regular:Black
         Thin > 0                # Standard: user=100 (from mappings), design=0
@@ -1307,7 +1307,7 @@ def _validate_content(self, document: DSSDocument):
 Labels in avar2 use **user space** for input and **design space** for output:
 
 ```
-avar2 INPUT:  USER space    (Regular=400, Condensed=80)
+avar2 INPUT:  USER space    (Regular=400, Condensed=75)
 avar2 OUTPUT: DESIGN space  (wght=385, XOUC=50)
 ```
 
@@ -1712,6 +1712,16 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 ### Data Files
 
 - `data/unified-mappings.yaml` - Standard weight/width mappings and extended axis mappings (used for label-based ranges)
+  - **Width follows the OpenType spec exactly**: user values are the OS/2
+    `usWidthClass` "% of normal" column (= CSS `font-width`): UltraCondensed 50,
+    ExtraCondensed 62.5, Condensed 75, SemiCondensed 87.5, Normal 100,
+    SemiExpanded 112.5, Expanded 125, ExtraExpanded 150, UltraExpanded 200.
+    Spec names are canonical; Compressed, SemiCompressed, Narrow, Wide and the
+    *Extended forms are aliases. A designer's own scale is written explicitly
+    (`80 Condensed > 380`), never by editing this table: it changes the meaning
+    of every file that relies on the inferred form
+  - `data/unified-mappings.json` is the fallback copy and must stay identical
+    to the YAML (`tests/test_width_standards.py` checks it)
 - `data/unified-mappings.json` - JSON fallback version of unified-mappings.yaml
 - `data/font-resources-translations.json` - Localization data
 - `data/discrete-axis-labels.yaml` - Standard labels for discrete axes (ital, slnt)

@@ -32,21 +32,23 @@
     "Black Italic": {"user_space": 900, "style": "italic"}
   },
   "width": {
-    "Compressed": {"os2": 1, "user_space": 60},
-    "SemiCompressed": {"os2": 2, "user_space": 70},
-    "ExtraCondensed": {"alias_of": "SemiCompressed"},
-    "Condensed": {"os2": 3, "user_space": 80},
-    "SemiCondensed": {"os2": 4, "user_space": 90},
+    "UltraCondensed": {"os2": 1, "user_space": 50},
+    "Compressed": {"alias_of": "UltraCondensed"},
+    "ExtraCondensed": {"os2": 2, "user_space": 62.5},
+    "SemiCompressed": {"alias_of": "ExtraCondensed"},
+    "Condensed": {"os2": 3, "user_space": 75},
+    "SemiCondensed": {"os2": 4, "user_space": 87.5},
     "Narrow": {"alias_of": "SemiCondensed"},
     "Normal": {"os2": 5, "user_space": 100},
-    "Wide": {"os2": 6, "user_space": 115},
-    "SemiExpanded": {"os2": 7, "user_space": 125},
+    "SemiExpanded": {"os2": 6, "user_space": 112.5},
     "SemiExtended": {"alias_of": "SemiExpanded"},
-    "Expanded": {"os2": 8, "user_space": 150},
+    "Wide": {"alias_of": "SemiExpanded"},
+    "Expanded": {"os2": 7, "user_space": 125},
     "Extended": {"alias_of": "Expanded"},
+    "ExtraExpanded": {"os2": 8, "user_space": 150},
+    "ExtraExtended": {"alias_of": "ExtraExpanded"},
     "UltraExpanded": {"os2": 9, "user_space": 200},
-    "UltraExtended": {"alias_of": "UltraExpanded"},
-    "ExtraExpanded": {"alias_of": "UltraExpanded"}
+    "UltraExtended": {"alias_of": "UltraExpanded"}
   },
   "metadata": {
     "version": "2.0",
@@ -55,12 +57,12 @@
       "compact": true,
       "fallback_logic": "If user_space is missing, use os2 value. If os2 is missing, use user_space value.",
       "weight_axis": "Uses user_space values (os2 values are the same for weight)",
-      "width_axis": "Uses both os2 and user_space (they differ significantly)",
+      "width_axis": "Uses both os2 (1-9 class) and user_space (the spec's % of normal)",
       "aliases": "Entries with only 'alias_of' inherit all values from the referenced entry"
     },
     "sources": [
       "OpenType specification",
-      "CSS Fonts specification", 
+      "CSS Fonts specification",
       "fontTools designspace format",
       "Original Standards class",
       "stylenames.json"
@@ -74,6 +76,13 @@
         "os2": 5,
         "user_space": 100.0
       }
-    }
+    },
+    "notes": [
+      "COMPACT SCHEMA v2.0: Eliminates redundancy between os2 and user_space",
+      "For weight: Only user_space values stored (os2 = user_space for weight axis)",
+      "For width: Both values stored (OS/2 1-9 class, user_space = the spec's % of normal)",
+      "Aliases inherit all properties from referenced entries",
+      "Automatic fallback: missing user_space uses os2, missing os2 uses user_space"
+    ]
   }
 }

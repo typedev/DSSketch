@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <designspace format="5.0">
   <axes>
-    <axis tag="wdth" name="width" minimum="80" maximum="150" default="100">
+    <axis tag="wdth" name="width" minimum="75" maximum="125" default="100">
       <labelname xml:lang="en">Width</labelname>
-      <map input="80" output="75"/>
+      <map input="75" output="75"/>
       <map input="100" output="100"/>
-      <map input="150" output="150"/>
+      <map input="125" output="150"/>
       <labels ordering="0">
-        <label uservalue="80" name="Condensed"/>
+        <label uservalue="75" name="Condensed"/>
         <label uservalue="100" name="Normal" elidable="true"/>
-        <label uservalue="150" name="Extended"/>
+        <label uservalue="125" name="Extended"/>
       </labels>
     </axis>
     <axis tag="wght" name="weight" minimum="300" maximum="700" default="400">

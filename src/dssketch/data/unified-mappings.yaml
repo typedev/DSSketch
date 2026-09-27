@@ -3,7 +3,7 @@
 # 
 # COMPACT SCHEMA:
 # - For weight: only user_space values (os2 = user_space for weight)
-# - For width: both os2 and user_space (they differ significantly)
+# - For width: both os2 (1-9 class) and user_space (% of normal per the OS/2 spec)
 # - Aliases: entries with only 'alias_of' inherit all values from referenced entry
 # - Fallback: if user_space missing, use os2; if os2 missing, use user_space
 
@@ -113,62 +113,70 @@ weight:
     style: italic
 
 width:
-  # Width values show the key difference:
-  # OS/2 uses 1-9 scale, user_space uses design coordinates
-  # Both values needed since they differ significantly
-  
-  Compressed:
-    os2: 1          # Ultra-condensed in OS/2 spec
-    user_space: 60  # Design space coordinate
-    
-  SemiCompressed:
-    os2: 2          # Extra-condensed in OS/2 spec  
-    user_space: 70
-    
-  ExtraCondensed:   # Alternative name - inherits from SemiCompressed
-    alias_of: SemiCompressed
-    
+  # OpenType OS/2 usWidthClass (1-9) and its "% of normal" column, which the
+  # spec gives as the mapping to 'wdth' values. CSS font-width keywords use
+  # the same percentages. Spec names are canonical; Compressed, Wide, Narrow
+  # and the *Extended forms are common aliases.
+  # https://learn.microsoft.com/en-us/typography/opentype/spec/os2#uswidthclass
+
+  UltraCondensed:
+    os2: 1
+    user_space: 50
+
+  Compressed:       # Common name for Ultra-condensed
+    alias_of: UltraCondensed
+
+  ExtraCondensed:
+    os2: 2
+    user_space: 62.5
+
+  SemiCompressed:   # Common name for Extra-condensed
+    alias_of: ExtraCondensed
+
   Condensed:
-    os2: 3          # Condensed in OS/2 spec
-    user_space: 80
-    
+    os2: 3
+    user_space: 75
+
   SemiCondensed:
-    os2: 4          # Semi-condensed in OS/2 spec
-    user_space: 90
-    
-  Narrow:           # Alternative name - inherits from SemiCondensed
+    os2: 4
+    user_space: 87.5
+
+  Narrow:           # Common name for Semi-condensed
     alias_of: SemiCondensed
-    
+
   Normal:
-    os2: 5          # Medium/Normal in OS/2 spec
-    user_space: 100 # Standard design coordinate
-    
-  Wide:
-    os2: 6          # Semi-expanded in OS/2 spec
-    user_space: 115
-    
+    os2: 5
+    user_space: 100
+
   SemiExpanded:
-    os2: 7          # Expanded in OS/2 spec
-    user_space: 125
-    
-  SemiExtended:     # Alternative name - inherits from SemiExpanded
+    os2: 6
+    user_space: 112.5
+
+  SemiExtended:
     alias_of: SemiExpanded
-    
+
+  Wide:             # Common name for Semi-expanded
+    alias_of: SemiExpanded
+
   Expanded:
-    os2: 8          # Extra-expanded in OS/2 spec
-    user_space: 150
-    
-  Extended:         # Alternative name - inherits from Expanded
+    os2: 7
+    user_space: 125
+
+  Extended:
     alias_of: Expanded
-    
+
+  ExtraExpanded:
+    os2: 8
+    user_space: 150
+
+  ExtraExtended:
+    alias_of: ExtraExpanded
+
   UltraExpanded:
-    os2: 9          # Ultra-expanded in OS/2 spec
+    os2: 9
     user_space: 200
-    
-  UltraExtended:    # Alternative name - inherits from UltraExpanded
-    alias_of: UltraExpanded
-    
-  ExtraExpanded:    # Legacy name - inherits from UltraExpanded
+
+  UltraExtended:
     alias_of: UltraExpanded
 
 # Metadata about this mapping
@@ -181,7 +189,7 @@ metadata:
     compact: true
     fallback_logic: "If user_space is missing, use os2 value. If os2 is missing, use user_space value."
     weight_axis: "Uses user_space values (os2 values are the same for weight)"
-    width_axis: "Uses both os2 and user_space (they differ significantly)"
+    width_axis: "Uses both os2 (1-9 class) and user_space (the spec's % of normal)"
     aliases: "Entries with only 'alias_of' inherit all values from the referenced entry"
   
   sources:
@@ -203,6 +211,6 @@ metadata:
   notes:
     - "COMPACT SCHEMA v2.0: Eliminates redundancy between os2 and user_space"
     - "For weight: Only user_space values stored (os2 = user_space for weight axis)"
-    - "For width: Both values stored (OS/2 uses 1-9 scale, user_space uses design coordinates)"
+    - "For width: Both values stored (OS/2 1-9 class, user_space = the spec's % of normal)"
     - "Aliases inherit all properties from referenced entries"
     - "Automatic fallback: missing user_space uses os2, missing os2 uses user_space"

@@ -150,7 +150,7 @@ axes
 # Label-based ranges for weight and width:
 axes
     weight Thin:Regular:Black   # Auto-converts to 100:400:900
-    width Condensed:Normal:Extended  # Auto-converts to 80:100:150
+    width Condensed:Normal:Extended  # Auto-converts to 75:100:125
 ```
 
 #### Human-Readable Axis Names
@@ -670,9 +670,9 @@ axes
         980 DeepBlack > 1000   # Custom: user=980, design=1000
 
     wdth 60:100:200
-        Condensed > 380        # Standard: user=80 (from mappings)
+        Condensed > 380        # Standard: user=75 (from mappings)
         Normal > 560           # Standard: user=100 (from mappings)
-        150 Wide > 700         # Override: user=150 instead of standard 100
+        150 Wide > 700         # Override: user=150 instead of standard 112.5
         200 Extended > 1000    # Override: user=200 instead of standard 125
 
     CUSTOM CSTM 0:50:100
@@ -693,7 +693,7 @@ axes
 ```dssketch
 axes
     wdth 60:100:200
-        Compressed > 0
+        60 Compressed > 0      # user=60 (standard is 50), design=0
         Condensed > 380
         Normal > 560 @elidable
         150 Wide > 700         # user=150 (custom), design=700
@@ -1105,7 +1105,7 @@ axes
         Normal > 100
 
 avar2
-    # Input uses USER space: Regular=400, Condensed=80 (CSS standard)
+    # Input uses USER space: Regular=400, Condensed=75 (CSS standard)
     # Output uses DESIGN space: wght=385
     [wght=Regular, wdth=Condensed] > wght=385
 ```
@@ -1195,7 +1195,7 @@ sources [wght, wdth]
     .....
 
 avar2
-    # Labels resolve to USER space: Regular=400, Condensed=80
+    # Labels resolve to USER space: Regular=400, Condensed=75
     # Output is DESIGN space
     [wght=Regular, wdth=Condensed] > wght=385
     [wght=Bold, wdth=Condensed] > wght=650
