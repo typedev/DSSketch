@@ -4,16 +4,16 @@
 
 family FontWithLayers
 
-axes
+axes  # width before weight: names read "Condensed Bold", weight last
+    wdth 75:100:125
+        Condensed > 75
+        Normal > 100 @elidable
+        Expanded > 125
     wght 100:400:900
         Thin > 100
         Regular > 400 @elidable
         Bold > 700
         Black > 900
-    wdth 75:100:125
-        Condensed > 75
-        Normal > 100 @elidable
-        Expanded > 125
 
 # One UFO file can provide multiple masters via layers
 # This reduces file count while maintaining design flexibility

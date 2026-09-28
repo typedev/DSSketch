@@ -803,6 +803,17 @@ sources [wght, wdth]
 - Categories: 0 Axes, 1 Sources, 2 Instances, 3 Rules, 4 Document, 5 Sketch
 - Tests: `tests/test_conversion_report_coverage.py`
 
+**Naming contract with compilers (agreed with TDKit, 2026-09-28):**
+- The weight stays in every generated style name, **last or right before the
+  slope word** ("Condensed Regular Slant", "Bold Italic"). TDKit derives
+  usWeightClass from that word and will not use the wght coordinate. Do NOT
+  switch to the STAT naming rule (eliding the weight)
+- DSS → DS always writes `elidedfallbackname` (`models.elided_fallback_name`);
+  without it fontmake gives the VF's default named instance an empty name
+- The `ital` Upright label gets `linkeduservalue="1"` (STAT format 3)
+- An axes order that puts words after the weight is reported
+  (`INSTANCE_WEIGHT_NOT_LAST`). Tests: `tests/test_tdkit_naming_contract.py`
+
 **`lang` (localized names, `core/translations.py`):**
 - `lang de, ru` → `DSSDocument.languages`. DSS → DS
   (`DSSToDesignSpace._apply_languages`) adds those languages to visible axis

@@ -282,7 +282,9 @@ class DesignSpaceToDSS:
                 dropped = []
                 if label.userMinimum is not None or label.userMaximum is not None:
                     dropped.append("range")
-                if label.linkedUserValue is not None:
+                # Upright -> Italic on ital is what DSS -> DS writes back
+                generated_link = axis.tag == "ital" and label.userValue == 0 and label.linkedUserValue == 1
+                if label.linkedUserValue is not None and not generated_link:
                     dropped.append("linked value")
                 if label.olderSibling:
                     dropped.append("older sibling")

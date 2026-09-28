@@ -26,7 +26,7 @@
     <axis tag="ital" name="italic" values="0 1" default="0">
       <labelname xml:lang="en">Italic</labelname>
       <labels ordering="2">
-        <label uservalue="0" name="Upright" elidable="true"/>
+        <label uservalue="0" name="Upright" elidable="true" linkeduservalue="1"/>
         <label uservalue="1" name="Italic"/>
       </labels>
     </axis>

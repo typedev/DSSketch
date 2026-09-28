@@ -90,6 +90,11 @@ INSTANCE_EXTRA = 2
 #: instances). Out of scope for a sketch by design; reported so the loss is seen.
 INSTANCE_FIELDS_DROPPED = 3
 
+#: DSS -> DS: the axes order makes `instances auto` write a word after the
+#: weight ("Bold Condensed"). Compilers that read the weight from the style
+#: name expect it last or right before Italic/Slant.
+INSTANCE_WEIGHT_NOT_LAST = 4
+
 # =============================================================================
 # Issue codes — CATEGORY_AXES
 # =============================================================================

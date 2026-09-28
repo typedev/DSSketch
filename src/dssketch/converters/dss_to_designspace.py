@@ -43,6 +43,8 @@ from ..core.report import (
     CATEGORY_RULES,
     DOCUMENT_FAMILY_UNKNOWN,
     DOCUMENT_TRANSLATION_MISSING,
+    CATEGORY_INSTANCES,
+    INSTANCE_WEIGHT_NOT_LAST,
     RULE_DROPPED_EMPTY,
     RULE_GLYPH_NOT_IN_DEFAULT,
     RULE_SUBSTITUTIONS_SKIPPED,
@@ -193,10 +195,59 @@ class DSSToDesignSpace:
         # location is empty, and fontmake gives that VF instance an empty name
         doc.elidedFallbackName = elided_fallback_name(dss_doc)
 
+        # Link Upright to Italic on the ital axis (STAT format 3). Without it,
+        # compilers that build STAT from labels leave the style link out, and
+        # TDKit patches STAT itself
+        for axis in doc.axes:
+            if axis.tag == "ital" and 1 in (getattr(axis, "values", None) or []):
+                for label in axis.axisLabels:
+                    if label.userValue == 0 and label.linkedUserValue is None:
+                        label.linkedUserValue = 1
+
+        if dss_doc.instances_auto and not dss_doc.instances_off:
+            self._check_weight_word_position(dss_doc)
+
         if dss_doc.languages:
             self._apply_languages(doc, dss_doc)
 
         return doc
+
+    def _check_weight_word_position(self, dss_doc: DSSDocument) -> None:
+        """Warn when generated names would put a word after the weight.
+
+        `instances auto` names follow the order of the axes section, so with
+        `wght` before `wdth` it writes "Bold Condensed". Compilers that read the
+        weight from the style name - TDKit takes the last word, or the one before
+        an italic/slant word - then see no weight and fall back to 400. The
+        weight word must be last, or directly before the slope word.
+        """
+        slope_tags = {"ital", "slnt"}
+        seen_weight = False
+        after = []
+        for axis in dss_doc.axes:
+            if axis.tag == "wght":
+                seen_weight = True
+                continue
+            if not seen_weight or axis.tag in slope_tags:
+                continue
+            words = [m.label for m in axis.mappings if m.label and not m.elidable]
+            if words:
+                after.append((axis.tag, words))
+        if not after:
+            return
+        tags = ", ".join(tag for tag, _ in after)
+        example = after[0][1][0]
+        self._report(
+            CATEGORY_INSTANCES, INSTANCE_WEIGHT_NOT_LAST, SEVERITY_WARNING,
+            f"Instance names put {tags} words after the weight (e.g. 'Bold {example}')",
+            details=(
+                "Style names follow the order of the axes section. Compilers that "
+                "read the weight from the style name expect it last, or right before "
+                "Italic/Slant; TDKit reads 'Bold " + example + "' as weight 400."
+            ),
+            suggested_fix=f"Move {tags} before wght in the axes section.",
+            raw_data={"axes": [tag for tag, _ in after]},
+        )
 
     def _apply_languages(self, doc: DesignSpaceDocument, dss_doc: DSSDocument) -> None:
         """`lang`: write every derived name in the listed languages too.
