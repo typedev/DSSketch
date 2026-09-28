@@ -4,6 +4,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **24 more languages for `lang`**: the translation dictionary grows from 16 to 40 languages — it, pl, cs, sk, sl, hu, ro, nb, ca, pt-PT, bg, be, mk, ky, tt, uz, az, sr-Latn, et, lv, lt, is, vi, id. Every language has every word (weights, slopes, widths, axis names; a test keeps it so). Widths are composed from a base word and the Extra/Semi/Ultra modifier by each language's own compounding rule, pt-PT copies pt, and sr-Latn transliterates sr. The new words have not been reviewed by native speakers yet; `notes/translations-review.md` lists them with a confidence level. All 40 codes are written to a font's name table by fontTools except `es-419`, whose Windows LCID (0x580A) fontTools does not know yet
+
 ## [1.4.0] - 2026-09-28
 
 ### Fixed

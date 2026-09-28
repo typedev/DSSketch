@@ -127,3 +127,24 @@ def test_hand_made_translation_is_not_replaced():
 )
 def test_dictionary_covers_standard_labels(label, expected):
     assert Translations.label(label, "ru") == expected
+
+
+def test_every_language_has_every_word():
+    import json
+    from pathlib import Path
+
+    data = json.loads(
+        (Path(__file__).parent.parent / "src/dssketch/data/font-resources-translations.json").read_text()
+    )
+    sections = [s for s in data if s != "WEIGHT_EN_DEFAULTS"]
+    languages = {lang for s in sections for entry in data[s].values() for lang in entry}
+    assert len(languages) >= 40
+    gaps = [(s, key, lang) for s in sections for key, entry in data[s].items() for lang in languages if lang not in entry]
+    assert gaps == []
+
+
+@pytest.mark.parametrize("language", ["it", "pl", "cs", "pt-PT", "sr-Latn", "bg", "vi"])
+def test_new_languages_translate_style_names(language):
+    ds, report = _convert(language)
+    assert all(language in i.localisedStyleName for i in ds.instances)
+    assert not report.find(CATEGORY_DOCUMENT, DOCUMENT_TRANSLATION_MISSING)

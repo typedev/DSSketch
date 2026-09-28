@@ -1088,7 +1088,7 @@ The generated DesignSpace then carries, in each listed language:
 - **STAT label names**: `Bold` → `Fett` / `Жирный`;
 - **axis names**: `Weight` → `Gewicht` / `Вес`.
 
-Words come from `data/font-resources-translations.json`, which covers 16 languages: da, de, el, es, es-419, fi, fr, hr, kk, nl, pt, ru, sr, sv, tr, uk. A style name is translated word by word, keeping the English order and elisions. A word the dictionary lacks, such as a custom label like `HighContrast`, stays in English and is listed in the conversion report. To add or change words, copy the dictionary and edit it:
+Words come from `data/font-resources-translations.json`, which covers 40 languages: az, be, bg, ca, cs, da, de, el, es, es-419, et, fi, fr, hr, hu, id, is, it, kk, ky, lt, lv, mk, nb, nl, pl, pt, pt-PT, ro, ru, sk, sl, sr, sr-Latn, sv, tr, tt, uk, uz, vi. `es-419` is valid in a DesignSpace, but fontTools (4.66) cannot write it to a font's name table yet. A style name is translated word by word, keeping the English order and elisions. A word the dictionary lacks, such as a custom label like `HighContrast`, stays in English and is listed in the conversion report. To add or change words, copy the dictionary and edit it:
 
 ```bash
 dssketch-data copy font-resources-translations.json
