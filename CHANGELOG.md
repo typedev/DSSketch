@@ -4,6 +4,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **Unquoted names with spaces were cut to their first word, silently**: `family Sans Pro` parsed as `Sans`, and the sources `My Font Light.ufo [Thin]`, `My Font Regular.ufo [Regular]` and `My Font Black` all became the same `My.ufo` — three masters pointing at one file that does not exist. An unquoted value is now taken whole; quoting (`family "Sans Pro"`) works as before and remains what the writer emits. Every example parses exactly as before. Reported from ufo-tdkit-report's `.dssketch` diffing
+
 ## [1.2.0] - 2026-09-27
 
 ### Added

@@ -44,7 +44,7 @@ class DSSParser:
         Supports:
         - Double quotes: "FontName Condensed" -> FontName Condensed
         - Single quotes: 'FontName Condensed' -> FontName Condensed
-        - No quotes: FontName -> FontName
+        - No quotes: the whole value, spaces included: Sans Pro -> Sans Pro
         - Strips leading/trailing whitespace from extracted value
 
         Returns the extracted value.
@@ -61,10 +61,12 @@ class DSSParser:
             end_quote = text.index("'", 1)
             return text[1:end_quote].strip()
 
-        # No quotes - return first word only (split on whitespace)
-        # This maintains backward compatibility for values without quotes
-        parts = text.split()
-        return parts[0] if parts else ""
+        # No quotes - the whole value. Callers pass only the value part (comments,
+        # flags and coordinates are already cut off), so everything left belongs
+        # to it: "family Sans Pro" is "Sans Pro", and "My Font Light.ufo [0]" is
+        # "My Font Light.ufo". Keeping only the first word silently turned
+        # different sources into the same file.
+        return " ".join(text.split())
 
     def parse_file(self, filepath: str) -> DSSDocument:
         """Parse DSS file"""
