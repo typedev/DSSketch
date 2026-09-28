@@ -28,8 +28,11 @@ expect to run inside `repro/validation/` after `python make_ufos.py`.
 
 ## Plan
 
-**1.2.2: fixes only.** Correct files keep their behaviour; silent failures become
-errors.
+**1.2.2: fixes only. Done 2026-09-28** (commits `2656cc7`..`121f82e`). Correct
+files keep their behaviour; silent failures become errors. The one exception is
+item 4: sketches that an older DS → DSS left with design values in avar2 inputs.
+Those values are caught when they fall outside the axis's user range, and the
+CHANGELOG explains how to migrate.
 1. **Discreteness is inferred, not stored.** DSS → DS treats an axis as discrete
    only if it is named `italic`/`ital`, so `slnt discrete` and custom discrete axes
    become continuous. DS → DSS writes a 3+-value discrete axis as a range
@@ -69,10 +72,11 @@ never chain).
 
 1. Keep the `hidden` heuristic, or rely on explicit `axes hidden` only? Every real
    file marks hidden axes explicitly.
-2. Should `DSSAvar2Mapping.input` always hold user space, with DS → DSS mapping
-   back through the axis `<map>`? The 1.2.2 fix for item 4 takes this direction,
-   because it is what CLAUDE.md already documents.
-3. What does `$` mean on a visible output axis that has its own `<map>`: the user
-   default or the design default?
+2. ~~`DSSAvar2Mapping.input` always user space?~~ **Decided: yes (1.2.2).** DS → DSS
+   maps inputs back through the axis `<map>`. Legacy design values are caught when
+   they fall outside the axis's user range.
+3. ~~`$` on a visible output axis with its own `<map>`?~~ **Decided: the design
+   default (1.2.2).** avar2 outputs are design space, so this is the only
+   consistent reading.
 4. Explicit instances: reject them with a clear error, or support them as an
    exception? 1.2.2 only makes the silent drop visible.
