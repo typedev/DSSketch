@@ -50,13 +50,44 @@ class DSSAxis:
                 self.default = self.values[0]
 
     def get_design_value(self, user_value: float) -> float:
-        """Convert user value to design value"""
-        for mapping in self.mappings:
-            if mapping.user_value == user_value:
-                return mapping.design_value
-        # Linear interpolation if not found
-        return user_value
+        """Map a user-space value to design space through this axis's mappings.
 
+        Piecewise linear between mapping points and shifted beyond the end ones,
+        exactly like DesignSpace's axis map; identity for an axis without
+        mappings. Written here rather than taken from fontTools so that the parse
+        path does not import it.
+        """
+        return _piecewise_linear(
+            user_value, [(m.user_value, m.design_value) for m in self.mappings]
+        )
+
+    def get_user_value(self, design_value: float) -> float:
+        """Map a design-space value back to user space (inverse of get_design_value)"""
+        return _piecewise_linear(
+            design_value, [(m.design_value, m.user_value) for m in self.mappings]
+        )
+
+    @property
+    def design_default(self) -> float:
+        """The axis default in design space: where the default master sits"""
+        return self.get_design_value(self.default)
+
+
+def _piecewise_linear(value: float, points: List[Tuple[float, float]]) -> float:
+    """Same result as fontTools.varLib.models.piecewiseLinearMap"""
+    mapping = {x: y for x, y in points if x is not None and y is not None}
+    if not mapping:
+        return value
+    if value in mapping:
+        return mapping[value]
+    lo, hi = min(mapping), max(mapping)
+    if value < lo:
+        return value + mapping[lo] - lo
+    if value > hi:
+        return value + mapping[hi] - hi
+    below = max(k for k in mapping if k < value)
+    above = min(k for k in mapping if k > value)
+    return mapping[below] + (value - below) * (mapping[above] - mapping[below]) / (above - below)
 
 @dataclass
 class DSSSource:

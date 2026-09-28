@@ -485,8 +485,10 @@ class DSSWriter:
             if axis is None:
                 continue
 
-            # Check if value differs from default
-            if value != axis.default:
+            # Only include non-default values. Locations are design space, so
+            # compare with the default's design value, which is what the parser
+            # fills in for an omitted axis
+            if value != axis.design_default:
                 # Use axis tag for output (shorter)
                 axis_ref = axis.tag
 
@@ -778,7 +780,7 @@ class DSSWriter:
         return lines
 
     def _get_axis_default(self, axis_name: str, dss_doc: DSSDocument) -> Optional[float]:
-        """Get the default value for an axis by name or tag.
+        """Get an axis's default in design space, which is what avar2 `$` means.
 
         Searches both regular and hidden axes.
 
@@ -788,7 +790,7 @@ class DSSWriter:
         all_axes = dss_doc.axes + dss_doc.hidden_axes
         for axis in all_axes:
             if axis.name == axis_name or axis.tag == axis_name:
-                return axis.default
+                return axis.design_default
         return None
 
     def _find_variable_for_value(self, value: float, dss_doc: DSSDocument) -> Optional[str]:

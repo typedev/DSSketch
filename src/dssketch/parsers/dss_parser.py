@@ -872,10 +872,13 @@ class DSSParser:
 
         # Build location with all default values
         location = {}
+        # Source locations are design space: an omitted axis sits at the
+        # default's design value, which differs from axis.default (user space)
+        # whenever the axis maps its default (Regular > 420)
         for axis in self.document.axes:
-            location[axis.name] = axis.default
+            location[axis.name] = axis.design_default
         for axis in self.document.hidden_axes:
-            location[axis.name] = axis.default
+            location[axis.name] = axis.design_default
 
         # Determine filename
         filename = name if name.endswith((".ufo",".ufoz")) else f"{name}.ufo"
@@ -906,10 +909,13 @@ class DSSParser:
 
         # Build location starting with all defaults
         location = {}
+        # Source locations are design space: an omitted axis sits at the
+        # default's design value, which differs from axis.default (user space)
+        # whenever the axis maps its default (Regular > 420)
         for axis in self.document.axes:
-            location[axis.name] = axis.default
+            location[axis.name] = axis.design_default
         for axis in self.document.hidden_axes:
-            location[axis.name] = axis.default
+            location[axis.name] = axis.design_default
 
         # Parse named coordinates and override defaults
         coord_pairs = re.findall(r'(\w+)=([\w.-]+)', coords_part)
@@ -1541,7 +1547,7 @@ class DSSParser:
         all_axes = self.document.axes + self.document.hidden_axes
         for axis in all_axes:
             if axis.name == axis_name or axis.tag == axis_name:
-                return axis.default
+                return axis.design_default
         return None
 
     def _resolve_avar2_value(self, value_str: str, axis_name: str) -> float:
