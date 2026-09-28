@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-28
+
 ### Added
 - **ConversionReport for DSSketch → DesignSpace**: `convert_dss_string_to_designspace()` and `convert_to_designspace()` accept `return_report=True` and return `(designspace, report)`, like the other direction. The report holds the sketch's own validation messages (category `Sketch`) followed by what the conversion found — until now only logged, and the plain API leaves logging off: an explicit rule naming a glyph the default master lacks, wildcard substitutions skipped for a missing target (one issue per rule), a rule left out because nothing matched, an avar2 mapping naming an undefined axis (error: fontTools fails on it), a family name that could not be found
 - **DesignSpace → DSSketch reports what the sketch does not carry**: DSSketch leaves some DesignSpace data out by design; it no longer does so silently. New issues cover the document `<lib>` (found in every real project we checked), `elidedFallbackName`, document location labels (STAT format 4), `<variable-fonts>`, rules `processing="last"` (which changes when substitutions apply), STAT label extras (ranges, linked values, older siblings, localized names), per-source overrides (family name, muted info/kerning/glyphs) and per-instance data `instances auto` does not generate. A PostScript name is only reported when it differs from the generated `Family-Style`. Nothing is transformed. New categories `Document` (4) and `Sketch` (5); all codes are exported from the package root

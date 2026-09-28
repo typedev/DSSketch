@@ -5,7 +5,7 @@ This package provides bidirectional conversion between compact .dssketch format
 and verbose .designspace XML files for variable font design.
 """
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 
 # Light components: stdlib + PyYAML only. Importing these must never pull in
 # defcon or fontTools, so that a parse-only consumer (e.g. a diff tool reading
