@@ -474,8 +474,20 @@ class DSSToDesignSpace:
             # Sort substitutions by source glyph name for consistent output
             rule.subs = sorted(substitutions, key=lambda x: x[0])
         else:
-            # Use existing substitutions, also sorted
+            # Use existing substitutions, also sorted. An explicit rule is kept as
+            # written, but a glyph the default master lacks is reported: varLib
+            # would reject the rule at build time
             rule.subs = sorted(dss_rule.substitutions, key=lambda x: x[0])
+            default_glyphs = self._default_master_glyphs(doc)
+            if default_glyphs:
+                for from_glyph, to_glyph in rule.subs:
+                    missing = [g for g in (from_glyph, to_glyph) if g not in default_glyphs]
+                    if missing:
+                        DSSketchLogger.warning(
+                            f"Rule '{dss_rule.name}': {from_glyph} -> {to_glyph} uses "
+                            f"{', '.join(repr(g) for g in missing)}, not in the default "
+                            f"master; fontTools will reject this rule when building"
+                        )
 
         # Skip empty rules (no valid substitutions)
         if not rule.subs:
@@ -535,6 +547,26 @@ class DSSToDesignSpace:
             f"Available axes: {', '.join([axis.name for axis in doc.axes])}"
         )
 
+    def _default_master_glyphs(self, doc: DesignSpaceDocument) -> set:
+        """Glyph names of the default master(s), or an empty set if unreadable.
+
+        The @base sources (copyInfo) are the default masters; with a discrete
+        axis there is one per value, each the default of its own font, so their
+        glyph sets are combined.
+        """
+        cache = getattr(self, "_default_glyphs_cache", None)
+        if cache is not None and cache[0] is doc:
+            return cache[1]
+        base_path = (
+            Path(self.base_path)
+            if self.base_path and not isinstance(self.base_path, Path)
+            else self.base_path
+        )
+        base_sources = [s for s in doc.sources if s.copyInfo]
+        glyphs = UFOGlyphExtractor.get_all_glyphs_from_sources(base_sources, base_path)
+        self._default_glyphs_cache = (doc, glyphs)
+        return glyphs
+
     def _expand_wildcard_pattern(
         self, dss_rule: DSSRule, doc: DesignSpaceDocument
     ) -> List[Tuple[str, str]]:
@@ -546,7 +578,13 @@ class DSSToDesignSpace:
             if self.base_path and not isinstance(self.base_path, Path)
             else self.base_path
         )
-        all_glyphs = UFOGlyphExtractor.get_all_glyphs_from_sources(doc.sources, base_path)
+        # Substitutions must exist in the default master: that is the glyph set
+        # varLib checks rules against, and a glyph present only in a sparse or
+        # other non-default master fails the build. Fall back to every source
+        # only when no default master can be read
+        all_glyphs = self._default_master_glyphs(doc) or UFOGlyphExtractor.get_all_glyphs_from_sources(
+            doc.sources, base_path
+        )
 
         if not dss_rule.pattern or not dss_rule.to_pattern:
             # Validate regular substitutions (non-wildcard)
