@@ -70,13 +70,23 @@ never chain).
 
 ## Open decisions
 
-1. Keep the `hidden` heuristic, or rely on explicit `axes hidden` only? Every real
-   file marks hidden axes explicitly.
+1. ~~Keep the `hidden` heuristic?~~ **Decided: removed.** Only `hidden="1"` hides
+   an axis. A visible axis driven only by avar2 is reported
+   (`AXIS_OUTPUT_ONLY_VISIBLE`) rather than hidden.
 2. ~~`DSSAvar2Mapping.input` always user space?~~ **Decided: yes (1.2.2).** DS → DSS
    maps inputs back through the axis `<map>`. Legacy design values are caught when
    they fall outside the axis's user range.
 3. ~~`$` on a visible output axis with its own `<map>`?~~ **Decided: the design
    default (1.2.2).** avar2 outputs are design space, so this is the only
    consistent reading.
-4. Explicit instances: reject them with a clear error, or support them as an
-   exception? 1.2.2 only makes the silent drop visible.
+4. Explicit instances: **to be discussed separately.** The maintainer's direction:
+   listing instances one by one, with all their parameters, conflicts with what a
+   sketch is. Instead, an input check:
+   - Instances that `instances auto` (plus `skip`) reproduces are dropped as
+     redundant. The position-based fit report from DS → DSS already tells which
+     ones those are.
+   - For the ones it cannot reproduce, a *targeted* description that states only
+     what is not reproducible. Its shape is still open: a per-instance override,
+     an extra point, or a naming exception.
+
+   Until then, an explicit instance line is reported as ignored (1.2.2).

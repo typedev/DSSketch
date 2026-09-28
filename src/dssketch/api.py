@@ -12,6 +12,14 @@ from fontTools.designspaceLib import DesignSpaceDocument
 
 from .converters.designspace_to_dss import DesignSpaceToDSS
 from .converters.dss_to_designspace import DSSToDesignSpace
+from .core.report import (
+    CATEGORY_SKETCH,
+    SEVERITY_ERROR,
+    SEVERITY_WARNING,
+    SKETCH_VALIDATION_MESSAGE,
+    ConversionIssue,
+    ConversionReport,
+)
 from .parsers.dss_parser import DSSParser
 from .utils.logging import DSSketchLogger
 from .writers.dss_writer import DSSWriter
@@ -76,15 +84,36 @@ def convert_to_dss(
     return str(dss_file)
 
 
-def convert_to_designspace(dss_path: str) -> DesignSpaceDocument:
+def _sketch_report(parser: DSSParser, converter: DSSToDesignSpace) -> ConversionReport:
+    """The sketch's own validation messages, then what the conversion found"""
+    report = ConversionReport()
+    for severity, messages in (
+        (SEVERITY_ERROR, parser.validator.errors),
+        (SEVERITY_WARNING, parser.validator.warnings),
+    ):
+        for message in messages:
+            report.add(ConversionIssue(
+                category=CATEGORY_SKETCH, code=SKETCH_VALIDATION_MESSAGE,
+                severity=severity, description=message,
+            ))
+    report.issues.extend(converter.report.issues)
+    return report
+
+
+def convert_to_designspace(dss_path: str, return_report: bool = False):
     """
     Convert a DSSketch file to a DesignSpace object.
 
     Args:
         dss_path: Path to the .dssketch or .dss file to convert
+        return_report: Also return the structured ConversionReport (default False)
 
     Returns:
-        DesignSpaceDocument object
+        DesignSpaceDocument object, or a (DesignSpaceDocument, ConversionReport)
+        tuple when return_report is True. The report holds the sketch's
+        validation messages (category Sketch) and what the conversion found:
+        rules left out or trimmed, glyphs missing from the default master, an
+        unknown avar2 axis, an undetectable family name.
 
     Example:
         import dssketch
@@ -112,21 +141,25 @@ def convert_to_designspace(dss_path: str) -> DesignSpaceDocument:
     converter = DSSToDesignSpace(base_path=dss_file.parent)
     ds_doc = converter.convert(dss_doc)
 
+    if return_report:
+        return ds_doc, _sketch_report(parser, converter)
     return ds_doc
 
 
 def convert_dss_string_to_designspace(
-    dss_content: str, base_path: Union[str, Path] = None
-) -> DesignSpaceDocument:
+    dss_content: str, base_path: Union[str, Path] = None, return_report: bool = False
+):
     """
     Convert DSSketch content string to a DesignSpace object.
 
     Args:
         dss_content: DSSketch format string content
         base_path: Base path for resolving relative UFO paths (optional)
+        return_report: Also return the structured ConversionReport (default False)
 
     Returns:
-        DesignSpaceDocument object
+        DesignSpaceDocument object, or a (DesignSpaceDocument, ConversionReport)
+        tuple when return_report is True (see convert_to_designspace)
 
     Example:
         import dssketch
@@ -155,6 +188,8 @@ def convert_dss_string_to_designspace(
     converter = DSSToDesignSpace(base_path=base_path)
     ds_doc = converter.convert(dss_doc)
 
+    if return_report:
+        return ds_doc, _sketch_report(parser, converter)
     return ds_doc
 
 

@@ -97,6 +97,10 @@ None. This is an unambiguous defect.
 
 ## 2. The `hidden` heuristic overwrites the designer's decision
 
+> **Resolved 2026-09-28**: the heuristic is gone. Only `hidden="1"` hides an axis;
+> a visible axis driven only by avar2 is reported (`AXIS_OUTPUT_ONLY_VISIBLE`).
+> RobotoDelta now round-trips with 0 of 39 hidden, in its original axis order.
+
 **Severity: high — changes which axes a built font exposes.**
 
 ### Symptom

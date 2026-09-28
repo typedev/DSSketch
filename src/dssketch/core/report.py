@@ -41,12 +41,17 @@ CATEGORY_AXES = 0
 CATEGORY_SOURCES = 1
 CATEGORY_INSTANCES = 2
 CATEGORY_RULES = 3
+CATEGORY_DOCUMENT = 4
+#: What the sketch's own validation said (DSS -> DS only)
+CATEGORY_SKETCH = 5
 
 CATEGORY_NAMES = {
     CATEGORY_AXES: "Axes",
     CATEGORY_SOURCES: "Sources",
     CATEGORY_INSTANCES: "Instances",
     CATEGORY_RULES: "Rules",
+    CATEGORY_DOCUMENT: "Document",
+    CATEGORY_SKETCH: "Sketch",
 }
 
 # =============================================================================
@@ -79,6 +84,83 @@ INSTANCE_RENAMED = 1
 #: document was filtered. Expected; an `instances auto` / `skip` block is how a
 #: sketch expresses that, and it cannot be recovered from a DesignSpace.
 INSTANCE_EXTRA = 2
+
+#: DS -> DSS: per-instance data `instances auto` does not generate (custom
+#: PostScript names, style-map names, localized names, instance lib, glyph
+#: instances). Out of scope for a sketch by design; reported so the loss is seen.
+INSTANCE_FIELDS_DROPPED = 3
+
+# =============================================================================
+# Issue codes — CATEGORY_AXES
+# =============================================================================
+
+#: DS -> DSS: a visible axis appears only in avar2 outputs, which usually marks
+#: a parametric axis meant to be hidden. Kept visible, as the document declares.
+AXIS_OUTPUT_ONLY_VISIBLE = 0
+
+#: DS -> DSS: STAT label data the sketch does not express (label ranges,
+#: linked values, older siblings, localized label or axis names).
+AXIS_LABEL_DATA_DROPPED = 1
+
+#: DSS -> DS: an avar2 mapping names an axis the sketch does not define. It is
+#: written as is, and fontTools fails on it when building.
+AVAR2_UNKNOWN_AXIS = 2
+
+# =============================================================================
+# Issue codes — CATEGORY_SOURCES
+# =============================================================================
+
+#: DS -> DSS: per-source data the sketch does not express (family/style name
+#: overrides, localized family names, muted info/kerning/glyphs).
+SOURCE_FIELDS_DROPPED = 0
+
+# =============================================================================
+# Issue codes — CATEGORY_RULES
+# =============================================================================
+
+#: DS -> DSS: rules processing="last" (substitutions applied after other
+#: features, `rclt` instead of `rvrn`) is not expressed; the sketch's rules
+#: build with the default, first-in-line processing.
+RULES_PROCESSING_LAST_DROPPED = 0
+
+#: DSS -> DS: an explicit rule names a glyph the default master lacks; the rule
+#: is kept, and fontTools will reject it when building.
+RULE_GLYPH_NOT_IN_DEFAULT = 1
+
+#: DSS -> DS: a wildcard rule skipped glyphs whose target does not exist in the
+#: default master. Expected for patterns such as `* > .rvrn`.
+RULE_SUBSTITUTIONS_SKIPPED = 2
+
+#: DSS -> DS: a rule ended up with no substitution at all and was left out.
+RULE_DROPPED_EMPTY = 3
+
+# =============================================================================
+# Issue codes — CATEGORY_DOCUMENT
+# =============================================================================
+
+#: DS -> DSS: the document-level <lib> is not carried into the sketch.
+DOCUMENT_LIB_DROPPED = 0
+
+#: DS -> DSS: elidedFallbackName is not carried into the sketch.
+DOCUMENT_ELIDED_FALLBACK_DROPPED = 1
+
+#: DS -> DSS: document-level location labels (STAT format 4) are not carried.
+DOCUMENT_LOCATION_LABELS_DROPPED = 2
+
+#: DS -> DSS: <variable-fonts> / axis subsets are not carried.
+DOCUMENT_VARIABLE_FONTS_DROPPED = 3
+
+#: DSS -> DS: no family name was given and none could be read from the base
+#: UFO, so the document is named "Unknown".
+DOCUMENT_FAMILY_UNKNOWN = 4
+
+# =============================================================================
+# Issue codes — CATEGORY_SKETCH
+# =============================================================================
+
+#: DSS -> DS: a message from the sketch's validation, carried as text. Its
+#: severity is the validator's (error or warning).
+SKETCH_VALIDATION_MESSAGE = 0
 
 
 # =============================================================================

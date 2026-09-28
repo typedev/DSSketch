@@ -19,12 +19,25 @@ from fontTools.designspaceLib import (
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
 from ..core.instances import createInstances
 from ..core.report import (
+    AXIS_LABEL_DATA_DROPPED,
+    AXIS_OUTPUT_ONLY_VISIBLE,
+    CATEGORY_AXES,
+    CATEGORY_DOCUMENT,
     CATEGORY_INSTANCES,
+    CATEGORY_RULES,
+    CATEGORY_SOURCES,
+    DOCUMENT_ELIDED_FALLBACK_DROPPED,
+    DOCUMENT_LIB_DROPPED,
+    DOCUMENT_LOCATION_LABELS_DROPPED,
+    DOCUMENT_VARIABLE_FONTS_DROPPED,
     INSTANCE_EXTRA,
+    INSTANCE_FIELDS_DROPPED,
     INSTANCE_RENAMED,
     INSTANCE_UNREACHABLE,
+    RULES_PROCESSING_LAST_DROPPED,
     SEVERITY_INFO,
     SEVERITY_WARNING,
+    SOURCE_FIELDS_DROPPED,
     ConversionIssue,
     ConversionReport,
     InstanceRef,
@@ -74,9 +87,11 @@ class DesignSpaceToDSS:
         if sources_path:
             dss_doc.path = sources_path
 
-        # Determine hidden axes BEFORE converting axes
-        # Uses both hidden="1" attribute AND avar2 input/output analysis
+        # Hidden is what the DesignSpace declares (hidden="1"), nothing else.
+        # Whether to expose an axis is the designer's decision; avar2 topology is
+        # evidence about it, reported below, never a reason to rewrite it
         hidden_axis_names = self._determine_hidden_axes(ds_doc)
+        self._report_output_only_visible_axes(ds_doc, hidden_axis_names)
 
         # Convert axes - separate regular and hidden axes
         for axis in ds_doc.axes:
@@ -119,30 +134,192 @@ class DesignSpaceToDSS:
         for rule in ds_doc.rules:
             dss_doc.rules.extend(self._convert_rule(rule, ds_doc))
 
+        try:
+            self._report_dropped_data(ds_doc, dss_doc)
+        except Exception as e:  # a diagnostic must never break a conversion
+            DSSketchLogger.warning(f"Could not report dropped data: {e}")
+
         return dss_doc
 
+    # ============================================================
+    # DIAGNOSTICS: what the sketch does not carry
+    # ============================================================
+
+    def _report_dropped_data(self, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument) -> None:
+        """Report DesignSpace data the sketch does not express.
+
+        DSSketch is deliberately higher-level than DesignSpace, so some data has
+        no place in a sketch. Dropping it is by design; dropping it silently is
+        not. Each kind of loss is one issue, listing what it affects. Nothing
+        here changes the sketch.
+        """
+        report = self.report
+
+        # -- document ------------------------------------------------------
+        if ds_doc.lib:
+            report.add(ConversionIssue(
+                category=CATEGORY_DOCUMENT, code=DOCUMENT_LIB_DROPPED, severity=SEVERITY_WARNING,
+                description=f"Document <lib> dropped ({len(ds_doc.lib)} keys: {', '.join(sorted(ds_doc.lib))})",
+                details="Tools store project settings here (paths, plugin data, varLib options).",
+                raw_data={"keys": sorted(ds_doc.lib)},
+            ))
+        if ds_doc.elidedFallbackName:
+            report.add(ConversionIssue(
+                category=CATEGORY_DOCUMENT, code=DOCUMENT_ELIDED_FALLBACK_DROPPED, severity=SEVERITY_INFO,
+                description=f"elidedFallbackName '{ds_doc.elidedFallbackName}' dropped",
+                raw_data={"elidedFallbackName": ds_doc.elidedFallbackName},
+            ))
+        if ds_doc.locationLabels:
+            names = [label.name for label in ds_doc.locationLabels]
+            report.add(ConversionIssue(
+                category=CATEGORY_DOCUMENT, code=DOCUMENT_LOCATION_LABELS_DROPPED, severity=SEVERITY_WARNING,
+                description=f"{len(names)} location labels dropped: {', '.join(names)}",
+                details="Document-level location labels become STAT format 4 entries.",
+                raw_data={"labels": names},
+            ))
+        if ds_doc.variableFonts:
+            names = [vf.name for vf in ds_doc.variableFonts]
+            report.add(ConversionIssue(
+                category=CATEGORY_DOCUMENT, code=DOCUMENT_VARIABLE_FONTS_DROPPED, severity=SEVERITY_WARNING,
+                description=f"{len(names)} <variable-font> definitions dropped: {', '.join(names)}",
+                details="Without them a build produces the default set of variable fonts.",
+                raw_data={"variable_fonts": names},
+            ))
+
+        # -- rules ---------------------------------------------------------
+        if ds_doc.rulesProcessingLast and ds_doc.rules:
+            report.add(ConversionIssue(
+                category=CATEGORY_RULES, code=RULES_PROCESSING_LAST_DROPPED, severity=SEVERITY_WARNING,
+                description='rules processing="last" dropped',
+                details=(
+                    "The DesignSpace applies its substitutions after other features "
+                    "(rclt); a build from the sketch applies them first (rvrn)."
+                ),
+            ))
+
+        # -- axes: STAT label data -----------------------------------------
+        label_losses = []
+        for axis in ds_doc.axes:
+            other_langs = sorted(k for k in (axis.labelNames or {}) if k != "en")
+            if other_langs:
+                label_losses.append(f"{axis.tag}: axis name in {', '.join(other_langs)}")
+            for label in axis.axisLabels or []:
+                dropped = []
+                if label.userMinimum is not None or label.userMaximum is not None:
+                    dropped.append("range")
+                if label.linkedUserValue is not None:
+                    dropped.append("linked value")
+                if label.olderSibling:
+                    dropped.append("older sibling")
+                if label.labelNames:
+                    dropped.append("localized names")
+                if dropped:
+                    label_losses.append(f"{axis.tag} {label.name}: {', '.join(dropped)}")
+        if label_losses:
+            report.add(ConversionIssue(
+                category=CATEGORY_AXES, code=AXIS_LABEL_DATA_DROPPED, severity=SEVERITY_INFO,
+                description=f"STAT label data dropped for {len(label_losses)} items",
+                details="; ".join(label_losses),
+                raw_data={"items": label_losses},
+            ))
+
+        # -- sources -------------------------------------------------------
+        source_losses = []
+        for source in ds_doc.sources:
+            dropped = []
+            if source.familyName and source.familyName != dss_doc.family:
+                dropped.append(f"family name '{source.familyName}'")
+            if source.localisedFamilyName:
+                dropped.append("localized family names")
+            if source.muteInfo:
+                dropped.append("muted info")
+            if source.muteKerning:
+                dropped.append("muted kerning")
+            if source.mutedGlyphNames:
+                dropped.append(f"{len(source.mutedGlyphNames)} muted glyphs")
+            if dropped:
+                label = source.filename or source.name or "?"
+                source_losses.append(f"{label}: {', '.join(dropped)}")
+        if source_losses:
+            report.add(ConversionIssue(
+                category=CATEGORY_SOURCES, code=SOURCE_FIELDS_DROPPED, severity=SEVERITY_WARNING,
+                description=f"Per-source data dropped for {len(source_losses)} sources",
+                details="; ".join(source_losses),
+                raw_data={"sources": source_losses},
+            ))
+
+        # -- instances -----------------------------------------------------
+        fields = {
+            "styleMapFamilyName": "style-map family name",
+            "styleMapStyleName": "style-map style name",
+            "localisedFamilyName": "localized family names",
+            "localisedStyleName": "localized style names",
+            "localisedStyleMapFamilyName": "localized style-map family names",
+            "localisedStyleMapStyleName": "localized style-map style names",
+            "lib": "instance lib",
+            "glyphs": "glyph instances",
+            "locationLabel": "location label",
+        }
+        counts = {}
+        refs = []
+        for instance in ds_doc.instances:
+            present = [f for f in fields if getattr(instance, f, None)]
+            # instances auto writes Family-Style; only a different name is lost
+            generated = (
+                f"{(instance.familyName or dss_doc.family or '').replace(' ', '')}-"
+                f"{(instance.styleName or '').replace(' ', '')}"
+            )
+            if instance.postScriptFontName and instance.postScriptFontName != generated:
+                present.append("postScriptFontName")
+            for f in present:
+                counts[f] = counts.get(f, 0) + 1
+            if present:
+                refs.append(InstanceRef(style_name=instance.styleName or instance.name or "?",
+                                        location=dict(instance.getFullDesignLocation(ds_doc))))
+        if counts:
+            fields["postScriptFontName"] = "PostScript name"
+            summary = ", ".join(f"{fields[f]} ({n})" for f, n in sorted(counts.items()))
+            report.add(ConversionIssue(
+                category=CATEGORY_INSTANCES, code=INSTANCE_FIELDS_DROPPED, severity=SEVERITY_INFO,
+                description=f"Per-instance data dropped for {len(refs)} instances: {summary}",
+                details=(
+                    "instances auto generates instances from the labeled axis "
+                    "mappings; hand-set instance data has no place in a sketch."
+                ),
+                instances=refs,
+                raw_data={"fields": dict(counts)},
+            ))
+
     def _extract_family_name(self, ds_doc: DesignSpaceDocument) -> str:
-        """Extract family name from default source in DesignSpace document"""
-        # First try to find default source (copyLib=True or matching default coordinates)
+        """Family name of the default source, else the sources' most common one.
+
+        The default source is found with designspaceLib's findDefault(), which
+        maps the axis defaults to design space. Comparing source locations with
+        the user-space defaults, as this used to, misses the default master on
+        any axis whose default is mapped (RobotoDelta: opsz 14 -> 0), and the
+        sketch was then named "Unknown".
+        """
         default_source = None
         for source in ds_doc.sources:
             if source.copyLib:
                 default_source = source
                 break
-
-        # If no copyLib, find source at default coordinates
-        if not default_source and ds_doc.sources:
-            default_location = {axis.name: axis.default for axis in ds_doc.axes}
-            for source in ds_doc.sources:
-                if source.location == default_location:
-                    default_source = source
-                    break
-
-        # Extract family name from default source
-        if default_source and default_source.familyName:
+        if default_source is None:
+            try:
+                default_source = ds_doc.findDefault()
+            except Exception:
+                default_source = None
+        if default_source is not None and default_source.familyName:
             return default_source.familyName
 
-        return "Unknown"
+        names = [s.familyName for s in ds_doc.sources if s.familyName]
+        names += [i.familyName for i in ds_doc.instances if i.familyName]
+        if names:
+            return max(set(names), key=names.count)
+
+        # None known: leave it empty, so the sketch has no `family` line and
+        # DSS -> DS reads the name from the base UFO
+        return ""
 
     def _determine_sources_path(self, ds_doc: DesignSpaceDocument) -> Optional[str]:
         """Determine common path for all sources"""
@@ -666,37 +843,55 @@ class DesignSpaceToDSS:
         return shown + (f" (+{remaining} more)" if remaining > 0 else "")
 
     def _determine_hidden_axes(self, ds_doc: DesignSpaceDocument) -> set:
-        """Determine which axes should be hidden based on avar2 usage.
+        """Axes the DesignSpace declares hidden (hidden="1").
 
-        Priority:
-        1. If axis has hidden="1" attribute -> hidden
-        2. If axis appears ONLY in avar2 output (never in input) -> hidden
-        3. Otherwise -> visible
-
-        Returns:
-            Set of axis names that should be hidden.
+        This used to also hide every axis that appears only in avar2 outputs.
+        That rewrote the designer's decision: RobotoDelta went from 0 to 30 hidden
+        axes of 39, and AmstelvarA2-Roman's axes declared visible became hidden.
+        See notes/roundtrip-fidelity-issues.md, finding 2.
         """
-        hidden_axes = set()
+        return {axis.name for axis in ds_doc.axes if getattr(axis, "hidden", False)}
 
-        # Collect axes from avar2 mappings
+    def _report_output_only_visible_axes(self, ds_doc: DesignSpaceDocument, hidden: set) -> None:
+        """Point out visible axes that only avar2 drives.
+
+        An axis that appears in avar2 outputs but never in inputs is usually a
+        parametric axis meant to be hidden. Reported, not changed: the document
+        may expose it on purpose.
+        """
         input_axes = self._collect_avar2_input_axes(ds_doc)
         output_axes = self._collect_avar2_output_axes(ds_doc)
-
-        for axis in ds_doc.axes:
-            # Priority 1: explicit hidden attribute
-            if getattr(axis, 'hidden', False):
-                hidden_axes.add(axis.name)
-                continue
-
-            # Priority 2: axis only in output, never in input
-            # Check both by name and by tag
-            in_input = axis.name in input_axes or axis.tag in input_axes
-            in_output = axis.name in output_axes or axis.tag in output_axes
-
-            if in_output and not in_input:
-                hidden_axes.add(axis.name)
-
-        return hidden_axes
+        candidates = [
+            axis
+            for axis in ds_doc.axes
+            if axis.name not in hidden
+            and (axis.name in output_axes or axis.tag in output_axes)
+            and not (axis.name in input_axes or axis.tag in input_axes)
+        ]
+        if not candidates:
+            return
+        tags = [axis.tag for axis in candidates]
+        self.report.add(
+            ConversionIssue(
+                category=CATEGORY_AXES,
+                code=AXIS_OUTPUT_ONLY_VISIBLE,
+                severity=SEVERITY_WARNING,
+                description=(
+                    f"{len(tags)} visible axes are driven only by avar2 outputs: "
+                    f"{', '.join(tags)}"
+                ),
+                details=(
+                    "Such axes are usually parametric axes meant to be hidden. The "
+                    "DesignSpace does not declare them hidden, so the sketch keeps "
+                    "them visible and a font built from it exposes them to users."
+                ),
+                suggested_fix=(
+                    "If they should not be exposed, move them to an `axes hidden` "
+                    "section of the sketch (or set hidden=\"1\" in the DesignSpace)."
+                ),
+                raw_data={"axes": tags},
+            )
+        )
 
     def _extract_avar2_variables_from_dss(self, dss_mappings, threshold: int = 3) -> tuple:
         """Extract repeated values from CONVERTED DSS avar2 mappings to create variables

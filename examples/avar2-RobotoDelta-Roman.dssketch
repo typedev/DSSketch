@@ -1,4 +1,4 @@
-family Unknown
+family "Roboto Delta"
 path instances
 
 axes
@@ -12,119 +12,117 @@ axes
     wdth 25:100:151
     slnt -12:0:3
     GRAD GRAD -250:0:150
+    XTSP XTSP -100:0:100
     XOPQ XOPQ 2:96:310
     YOPQ YOPQ 2:79:280
     XTRA XTRA 244:463:741
     BDSZ BDSZ -1:0:1.4
+    WDSP WDSP 0:246:1000
+    XOUC XOUC 2:96:310
+    YOUC YOUC 2:79:280
+    XTUC XTUC 244:463:741
+    XTUD XTUD 463:463:741
+    XTUR XTUR 463:463:741
+    YOPE YOPE 79:79:280
+    YTUC YTUC 528:728:778
+    STUI STUI 2:92:736
+    STUO STUO 2:92:722
+    XOLC XOLC 2:96:310
+    YOLC YOLC 2:79:280
+    XTLC XTLC 244:463:741
+    YTAS YTAS 665:728:875
+    YTDE YTDE -310:-208:-100
+    YTLC YTLC 426:526:584
+    STLI STLI 2:32:412
+    STLO STLO 2:32:426
+    YOLB YOLB 132:132:280
+    XOFI XOFI 2:96:310
+    YOFI YOFI 2:79:280
+    XTFI XTFI 244:463:741
+    YTFI YTFI 270:743:793
+    BARS BARS 0:1000:1000
+    VANG VANG -3:0:13
+    VROT VROT 0:0:13
+    YTTL YTTL 0:25:50
+    XTTW XTTW 0:5:30
+    YTOS YTOS 0:30:50
 
-axes hidden
-    XTSP -100:0:100
-    WDSP 0:246:1000
-    XOUC 2:96:310
-    YOUC 2:79:280
-    XTUC 244:463:741
-    XTUD 463:463:741
-    XTUR 463:463:741
-    YOPE 79:79:280
-    YTUC 528:728:778
-    STUI 2:92:736
-    STUO 2:92:722
-    XOLC 2:96:310
-    YOLC 2:79:280
-    XTLC 244:463:741
-    YTAS 665:728:875
-    YTDE -310:-208:-100
-    YTLC 426:526:584
-    STLI 2:32:412
-    STLO 2:32:426
-    YOLB 132:132:280
-    XOFI 2:96:310
-    YOFI 2:79:280
-    XTFI 244:463:741
-    YTFI 270:743:793
-    BARS 0:1000:1000
-    VANG -3:0:13
-    VROT 0:0:13
-    YTTL 0:25:50
-    XTTW 0:5:30
-    YTOS 0:30:50
-
-sources
-    Roboto-Delta-wght400 @base
-    Roboto-Delta-GRAD-250 GRAD=-250 @layer=public.default
-    Roboto-Delta-GRAD150 GRAD=150 @layer=public.default
-    Roboto-Delta-VANG-3 VANG=-3 @layer=foreground
-    Roboto-Delta-VANG13 VANG=13 @layer=foreground
-    Roboto-Delta-VROT13 VANG=13, VROT=13 @layer=foreground
-    Roboto-Delta-XOFI2 XOFI=2 @layer=public.default
-    Roboto-Delta-XOFI310 XOFI=310 @layer=public.default
-    Roboto-Delta-XOUC2 XOUC=2 @layer=public.default
-    Roboto-Delta-XOUC310 XOUC=310 @layer=public.default
-    Roboto-Delta-XOLC2 XOLC=2 @layer=public.default
-    Roboto-Delta-XOLC310 XOLC=310 @layer=public.default
-    Roboto-Delta-XTUC244 XTUC=244 @layer=foreground
-    Roboto-Delta-XTUC244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTUC=244 @layer=foreground
-    Roboto-Delta-XTUC244-opsz144-wdth25-wght400 opsz=1, wdth=25, XTUC=244 @layer=foreground
-    Roboto-Delta-XTUC741 XTUC=741 @layer=foreground
-    Roboto-Delta-XTUC741-opsz144-wdth100-wght100 opsz=1, wght=100, XTUC=741 @layer=foreground
-    Roboto-Delta-XTUC741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTUC=741 @layer=foreground
-    Roboto-Delta-XTLC244 XTLC=244 @layer=foreground
-    Roboto-Delta-XTLC244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTLC=244 @layer=public.default
-    Roboto-Delta-XTLC244-opsz144-wdth25-wght400 opsz=1, XTLC=244 @layer=foreground
-    Roboto-Delta-XTLC741 XTLC=741 @layer=foreground
-    Roboto-Delta-XTLC741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTLC=741 @layer=foreground
-    Roboto-Delta-XTFI244 XTFI=244 @layer=foreground
-    Roboto-Delta-XTFI244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTFI=244 @layer=foreground
-    Roboto-Delta-XTFI741 XTFI=741 @layer=foreground
-    Roboto-Delta-XTFI741-opsz144-wdth100-wght100 opsz=1, wght=100, XTFI=741 @layer=foreground
-    Roboto-Delta-XTFI741-opsz144-wdth151-wght400 opsz=1, wdth=151, XTFI=741 @layer=foreground
-    Roboto-Delta-XTFI741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTFI=741 @layer=foreground
-    Roboto-Delta-XTSP-100 XTSP=-100 @layer=foreground
-    Roboto-Delta-XTSP100 XTSP=100 @layer=foreground
-    Roboto-Delta-YOFI2 YOFI=2 @layer=public.default
-    Roboto-Delta-YOFI280 YOFI=280 @layer=public.default
-    Roboto-Delta-YOUC2 YOUC=2 @layer=public.default
-    Roboto-Delta-YOUC280 YOUC=280 @layer=public.default
-    Roboto-Delta-YOLC2 YOLC=2 @layer=public.default
-    Roboto-Delta-YOLC280 YOLC=280 @layer=public.default
-    Roboto-Delta-YOPE280 YOPE=280 @layer=public.default
-    Roboto-Delta-YOLB280 YOLB=280 @layer=foreground
-    Roboto-Delta-YTAS665 YTAS=665 @layer=public.default
-    Roboto-Delta-YTAS875 YTAS=875 @layer=public.default
-    Roboto-Delta-YTDE-100 YTDE=-100 @layer=public.default
-    Roboto-Delta-YTDE-310 YTDE=-310 @layer=public.default
-    Roboto-Delta-YTFI270 YTFI=270 @layer=public.default
-    Roboto-Delta-YTFI793 YTFI=793 @layer=public.default
-    Roboto-Delta-YTLC426 YTLC=426 @layer=public.default
-    Roboto-Delta-YTLC584 YTLC=584 @layer=public.default
-    Roboto-Delta-YTOS0 YTOS=0 @layer=foreground
-    Roboto-Delta-YTOS50 YTOS=50 @layer=foreground
-    Roboto-Delta-YTUC528 YTUC=528 @layer=public.default
-    Roboto-Delta-YTUC778 YTUC=778 @layer=public.default
-    Roboto-Delta-YTTL50 YTTL=50 @layer=foreground
-    Roboto-Delta-YTTL0 YTTL=0 @layer=foreground
-    Roboto-Delta-XTTW30 XTTW=30 @layer=foreground
-    Roboto-Delta-XTTW0 XTTW=0 @layer=foreground
-    Roboto-Delta-XTUR741 XTUR=741 @layer=foreground
-    Roboto-Delta-WDSP0 WDSP=0 @layer=foreground
-    Roboto-Delta-WDSP1000 WDSP=1000 @layer=foreground
-    Roboto-Delta-BARS0 BARS=0 @layer=foreground
-    Roboto-Delta-XTUD741 XTUD=741 @layer=foreground
-    Roboto-Delta-STLI2 STLI=2 @layer=foreground
-    Roboto-Delta-STLI412 STLI=412 @layer=foreground
-    Roboto-Delta-STLO2 STLO=2 @layer=foreground
-    Roboto-Delta-STLO426 STLO=426 @layer=foreground
-    Roboto-Delta-STUI2 STUI=2 @layer=foreground
-    Roboto-Delta-STUI736 STUI=736 @layer=foreground
-    Roboto-Delta-STUO2 STUO=2 @layer=foreground
-    Roboto-Delta-STUO722 STUO=722 @layer=foreground
-    Roboto-Delta-opsz14-wdth100-wght1000 wght=1000
-    Roboto-Delta-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25
-    Roboto-Delta-opsz144-wdth25-wght400 opsz=1, wdth=25
-    Roboto-Delta-opsz144-wdth25-wght1000 opsz=1, wght=1000, wdth=25
-    Roboto-Delta-opsz144-wdth100-wght100 opsz=1, wght=100
-    Roboto-Delta-opsz144-wdth100-wght400 opsz=1
-    Roboto-Delta-opsz144-wdth100-wght1000 opsz=1, wght=1000
+sources [opsz, wght, wdth, slnt, GRAD, XTSP, XOPQ, YOPQ, XTRA, BDSZ, WDSP, XOUC, YOUC, XTUC, XTUD, XTUR, YOPE, YTUC, STUI, STUO, XOLC, YOLC, XTLC, YTAS, YTDE, YTLC, STLI, STLO, YOLB, XOFI, YOFI, XTFI, YTFI, BARS, VANG, VROT, YTTL, XTTW, YTOS]
+    Roboto-Delta-wght400 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @base
+    Roboto-Delta-GRAD-250 [0, 400, 100, 0, -250, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-GRAD150 [0, 400, 100, 0, 150, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-VANG-3 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, -3, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-VANG13 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 13, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-VROT13 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 13, 13, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XOFI2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 2, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-XOFI310 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 310, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-XOUC2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 2, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-XOUC310 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 310, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-XOLC2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 2, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-XOLC310 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 310, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-XTUC244 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 244, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTUC244-opsz144-wdth25-wght100 [1, 100, 25, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 244, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTUC244-opsz144-wdth25-wght400 [1, 400, 25, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 244, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTUC741 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 741, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTUC741-opsz144-wdth100-wght100 [1, 100, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 741, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTUC741-opsz144-wdth151-wght100 [1, 100, 151, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 741, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTLC244 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 244, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTLC244-opsz144-wdth25-wght100 [1, 100, 25, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 244, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-XTLC244-opsz144-wdth25-wght400 [1, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 244, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTLC741 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 741, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTLC741-opsz144-wdth151-wght100 [1, 100, 151, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 741, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTFI244 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 244, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTFI244-opsz144-wdth25-wght100 [1, 100, 25, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 244, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTFI741 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 741, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTFI741-opsz144-wdth100-wght100 [1, 100, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 741, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTFI741-opsz144-wdth151-wght400 [1, 400, 151, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 741, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTFI741-opsz144-wdth151-wght100 [1, 100, 151, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 741, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTSP-100 [0, 400, 100, 0, 0, -100, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTSP100 [0, 400, 100, 0, 0, 100, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-YOFI2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 2, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YOFI280 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 280, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YOUC2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 2, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YOUC280 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 280, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YOLC2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 2, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YOLC280 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 280, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YOPE280 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 280, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YOLB280 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 280, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-YTAS665 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 665, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTAS875 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 875, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTDE-100 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -100, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTDE-310 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -310, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTFI270 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 270, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTFI793 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 793, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTLC426 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 426, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTLC584 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 584, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTOS0 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 0] @layer=foreground
+    Roboto-Delta-YTOS50 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 50] @layer=foreground
+    Roboto-Delta-YTUC528 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 528, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTUC778 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 778, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=public.default
+    Roboto-Delta-YTTL50 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 50, 5, 30] @layer=foreground
+    Roboto-Delta-YTTL0 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 0, 5, 30] @layer=foreground
+    Roboto-Delta-XTTW30 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 30, 30] @layer=foreground
+    Roboto-Delta-XTTW0 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 0, 30] @layer=foreground
+    Roboto-Delta-XTUR741 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 741, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-WDSP0 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 0, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-WDSP1000 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 1000, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-BARS0 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 0, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-XTUD741 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 741, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-STLI2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 2, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-STLI412 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 412, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-STLO2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 2, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-STLO426 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 426, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-STUI2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 2, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-STUI736 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 736, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-STUO2 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 2, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-STUO722 [0, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 722, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30] @layer=foreground
+    Roboto-Delta-opsz14-wdth100-wght1000 [0, 1000, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30]
+    Roboto-Delta-opsz144-wdth25-wght100 [1, 100, 25, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30]
+    Roboto-Delta-opsz144-wdth25-wght400 [1, 400, 25, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30]
+    Roboto-Delta-opsz144-wdth25-wght1000 [1, 1000, 25, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30]
+    Roboto-Delta-opsz144-wdth100-wght100 [1, 100, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30]
+    Roboto-Delta-opsz144-wdth100-wght400 [1, 400, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30]
+    Roboto-Delta-opsz144-wdth100-wght1000 [1, 1000, 100, 0, 0, 0, 96, 79, 463, 0, 246, 96, 79, 463, 463, 463, 79, 728, 92, 92, 96, 79, 463, 728, -208, 526, 32, 32, 132, 96, 79, 463, 743, 1000, 0, 0, 25, 5, 30]
 
 avar2 vars
     $VANG1 = 0  # used 37 times

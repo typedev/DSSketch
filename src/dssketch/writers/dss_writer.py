@@ -78,9 +78,10 @@ class DSSWriter:
         """Generate DSS string from document"""
         lines = []
 
-        # Family declaration (with quotes if it contains spaces)
-        family_value = self._quote_if_spaces(dss_doc.family)
-        lines.append(f"family {family_value}")
+        # Family declaration (with quotes if it contains spaces). With no family
+        # known, leave the line out: DSS -> DS then reads it from the base UFO
+        if dss_doc.family and dss_doc.family.strip():
+            lines.append(f"family {self._quote_if_spaces(dss_doc.family)}")
         if dss_doc.suffix:
             lines.append(f"suffix {dss_doc.suffix}")
         if dss_doc.path:

@@ -1,5 +1,11 @@
 # Hidden Axes Detection Implementation Plan
 
+> **Superseded (2026-09-28).** The avar2-topology inference described below was
+> removed: it rewrote what the DesignSpace declares. DS → DSS now hides only the
+> axes with `hidden="1"`, and reports visible axes that only avar2 drives
+> (`AXIS_OUTPUT_ONLY_VISIBLE`). See `roundtrip-fidelity-issues.md`, finding 2.
+> Kept as a record of the reasoning.
+
 ## Goal
 Improve hidden axis detection in DS → DSS conversion by analyzing avar2 mappings.
 

@@ -784,6 +784,33 @@ sources [wght, wdth]
   renumber one.
 - **Tests**: `tests/test_instances_auto_fit.py` (17 tests)
 
+**ConversionReport in both directions:**
+- **DS → DSS** (`DesignSpaceToDSS._report_dropped_data`): everything a sketch
+  does not carry is reported, never silently dropped — document `<lib>`,
+  `elidedFallbackName`, location labels, `<variable-fonts>`, rules
+  `processing="last"`, STAT label extras, per-source overrides (family name,
+  mutes), per-instance data (`instances auto` regenerates PostScript names, so
+  only a *different* one counts). Plus `AXIS_OUTPUT_ONLY_VISIBLE`, below
+- **DSS → DS** (`DSSToDesignSpace.report`, via `_report()`, which also logs):
+  explicit rule glyph not in the default master, wildcard substitutions skipped
+  (one issue per rule), rule left out as empty, unknown avar2 axis (ERROR),
+  undetectable family name. The API prepends the sketch's validation messages
+  as category `Sketch` (code 0, message as text):
+  ```python
+  ds, report = dssketch.convert_dss_string_to_designspace(text, return_report=True)
+  ds, report = dssketch.convert_to_designspace("font.dssketch", return_report=True)
+  ```
+- Categories: 0 Axes, 1 Sources, 2 Instances, 3 Rules, 4 Document, 5 Sketch
+- Tests: `tests/test_conversion_report_coverage.py`
+
+**Hidden axes are declared, never inferred:**
+- DS → DSS hides exactly the axes with `hidden="1"`. It used to also hide every
+  axis appearing only in avar2 outputs, which rewrote the designer's decision
+  (RobotoDelta: 0 → 30 hidden of 39; Amstelvar axes declared visible became
+  hidden) and reordered axes. Such an axis is now reported
+  (`AXIS_OUTPUT_ONLY_VISIBLE`, warning) and left visible
+- In a hand-written sketch, `axes hidden` is how the author declares them
+
 **Instance Skip Functionality (`instances auto skip`):**
 - **Purpose**: Exclude specific instance combinations from automatic generation
 - **Syntax**: Indented list under `skip` keyword within `instances auto` section

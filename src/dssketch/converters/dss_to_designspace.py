@@ -34,6 +34,21 @@ from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 # Import validation components
 from ..core.validation import UFOGlyphExtractor
 from ..utils.discrete import DiscreteAxisHandler
+from ..core.report import (
+    AVAR2_UNKNOWN_AXIS,
+    CATEGORY_AXES,
+    CATEGORY_DOCUMENT,
+    CATEGORY_RULES,
+    DOCUMENT_FAMILY_UNKNOWN,
+    RULE_DROPPED_EMPTY,
+    RULE_GLYPH_NOT_IN_DEFAULT,
+    RULE_SUBSTITUTIONS_SKIPPED,
+    SEVERITY_ERROR,
+    SEVERITY_INFO,
+    SEVERITY_WARNING,
+    ConversionIssue,
+    ConversionReport,
+)
 from ..utils.logging import DSSketchLogger
 
 # Import utility classes
@@ -47,6 +62,15 @@ class DSSToDesignSpace:
         """Initialize converter with optional base path for UFO files"""
         self.base_path = base_path
         self.logger = DSSketchLogger()
+        #: What the last convert() found; see core/report.py
+        self.report = ConversionReport()
+
+    def _report(self, category: int, code: int, severity: int, description: str, **fields) -> None:
+        """Record an issue in the report and log it, so the CLI still shows it"""
+        self.report.add(ConversionIssue(category=category, code=code, severity=severity,
+                                        description=description, **fields))
+        log = self.logger.info if severity == SEVERITY_INFO else self.logger.warning
+        log(description)
 
     def _detect_family_name(self, dss_doc: DSSDocument) -> str:
         """Detect family name from UFO if not specified in DSS document.
@@ -68,8 +92,7 @@ class DSSToDesignSpace:
                 break
 
         if not base_source:
-            self.logger.warning("No base source found - using 'Unknown' as family name")
-            return "Unknown"
+            return self._family_unknown("no family line and no @base source to read it from")
 
         # Construct UFO path
         ufo_filename = base_source.filename
@@ -85,8 +108,7 @@ class DSSToDesignSpace:
         # Try to read familyName from UFO
         try:
             if not ufo_path.exists() or not ufo_path.is_dir():
-                self.logger.warning(f"UFO not found at '{ufo_path}' - using 'Unknown' as family name")
-                return "Unknown"
+                return self._family_unknown(f"no family line, and the base UFO '{ufo_path}' was not found")
 
             from defcon import Font
 
@@ -97,14 +119,21 @@ class DSSToDesignSpace:
                 self.logger.info(f"Detected family name '{family_name}' from {ufo_path.name}")
                 return family_name
             else:
-                self.logger.warning(f"No familyName in UFO '{ufo_path.name}' - using 'Unknown'")
-                return "Unknown"
+                return self._family_unknown(f"no family line, and '{ufo_path.name}' has no familyName")
         except Exception as e:
-            self.logger.warning(f"Failed to read UFO '{ufo_path}': {e} - using 'Unknown'")
-            return "Unknown"
+            return self._family_unknown(f"no family line, and '{ufo_path}' could not be read: {e}")
+
+    def _family_unknown(self, reason: str) -> str:
+        self._report(
+            CATEGORY_DOCUMENT, DOCUMENT_FAMILY_UNKNOWN, SEVERITY_WARNING,
+            f"Family name unknown ({reason}); using 'Unknown'",
+            suggested_fix="Add a `family` line to the sketch.",
+        )
+        return "Unknown"
 
     def convert(self, dss_doc: DSSDocument) -> DesignSpaceDocument:
         """Convert DSS document to DesignSpace document"""
+        self.report = ConversionReport()
         doc = DesignSpaceDocument()
 
         # Detect family name if not specified
@@ -354,9 +383,13 @@ class DSSToDesignSpace:
                 # Use display_name if available, otherwise fall back to name
                 return axis.display_name if axis.display_name else axis.name
 
-        # If not found, return the key as-is (might be a custom axis)
-        DSSketchLogger.warning(
-            f"avar2: axis '{axis_key}' not found in axes definitions, using as-is"
+        # Not defined anywhere: written as is, and varLib fails on it
+        self._report(
+            CATEGORY_AXES, AVAR2_UNKNOWN_AXIS, SEVERITY_ERROR,
+            f"avar2 mapping names axis '{axis_key}', which the sketch does not define",
+            details="It is written to the DesignSpace as is; fontTools fails on it when building.",
+            suggested_fix="Check the spelling, or define the axis (hidden axes go in `axes hidden`).",
+            raw_data={"axis": axis_key},
         )
         return axis_key
 
@@ -480,19 +513,23 @@ class DSSToDesignSpace:
             rule.subs = sorted(dss_rule.substitutions, key=lambda x: x[0])
             default_glyphs = self._default_master_glyphs(doc)
             if default_glyphs:
-                for from_glyph, to_glyph in rule.subs:
-                    missing = [g for g in (from_glyph, to_glyph) if g not in default_glyphs]
-                    if missing:
-                        DSSketchLogger.warning(
-                            f"Rule '{dss_rule.name}': {from_glyph} -> {to_glyph} uses "
-                            f"{', '.join(repr(g) for g in missing)}, not in the default "
-                            f"master; fontTools will reject this rule when building"
-                        )
+                missing = sorted(
+                    {g for pair in rule.subs for g in pair if g not in default_glyphs}
+                )
+                if missing:
+                    self._report(
+                        CATEGORY_RULES, RULE_GLYPH_NOT_IN_DEFAULT, SEVERITY_WARNING,
+                        f"Rule '{dss_rule.name}' uses {', '.join(repr(g) for g in missing)}, "
+                        f"not in the default master; fontTools will reject this rule when building",
+                        raw_data={"rule": dss_rule.name, "glyphs": missing},
+                    )
 
         # Skip empty rules (no valid substitutions)
         if not rule.subs:
-            DSSketchLogger.warning(
-                f"Skipping rule '{dss_rule.name}' - no valid substitutions found"
+            self._report(
+                CATEGORY_RULES, RULE_DROPPED_EMPTY, SEVERITY_WARNING,
+                f"Rule '{dss_rule.name}' left out: no substitution matched the default master",
+                raw_data={"rule": dss_rule.name},
             )
             return None
 
@@ -608,6 +645,7 @@ class DSSToDesignSpace:
 
         # Generate substitutions
         substitutions = []
+        skipped = []
         to_suffix = dss_rule.to_pattern
 
         for glyph in matching_glyphs:
@@ -625,10 +663,17 @@ class DSSToDesignSpace:
             if target in all_glyphs:
                 substitutions.append((glyph, target))
             else:
-                # Skip invalid substitutions and warn about missing target glyph
-                DSSketchLogger.warning(
-                    f"Skipping substitution {glyph} -> {target} - target glyph '{target}' not found in UFO files"
-                )
-                pass
+                skipped.append((glyph, target))
+
+        # By design for patterns like `* > .rvrn`: one note per rule, not per glyph
+        if skipped and substitutions:
+            shown = ", ".join(f"{a} -> {b}" for a, b in skipped[:5])
+            more = f" and {len(skipped) - 5} more" if len(skipped) > 5 else ""
+            self._report(
+                CATEGORY_RULES, RULE_SUBSTITUTIONS_SKIPPED, SEVERITY_INFO,
+                f"Rule '{dss_rule.name}': {len(skipped)} substitutions skipped, target not "
+                f"in the default master ({shown}{more})",
+                raw_data={"rule": dss_rule.name, "skipped": [list(p) for p in skipped]},
+            )
 
         return substitutions
