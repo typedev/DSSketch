@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-28
+
 ### Fixed
 - **A variable font's default named instance could end up without a name**: a DesignSpace from DSSketch had no `elidedfallbackname`. fontmake and ufo2ft fill any instance whose localized names are empty with the names DS5 derives from the STAT labels (`splitInterpolable(makeNames=True)`), and with every label elided that name is empty — so SuperFont's Regular got an empty `fvar` name. DSS → DS now always writes `elidedfallbackname`: the weight axis's elidable label (`Regular`, `Book`, …), else `Regular`. DS → DSS reports a DesignSpace's own value only when it differs from that. The seven generated example DesignSpaces gain the attribute and nothing else
 

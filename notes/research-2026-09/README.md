@@ -52,7 +52,7 @@ CHANGELOG explains how to migrate.
 7. **An explicit `instances` list is dropped without a word.**
 8. **Label-based axis ranges skip the min ≤ default ≤ max check.**
 
-**1.4.0: checks** (was planned as 1.3.0; the diagnostics part shipped in 1.3.0).
+**1.5.0: checks** (was planned as 1.3.0, then 1.4.0; the diagnostics shipped in 1.3.0, and 1.4.0 went to `lang` and the naming contract with TDKit).
 - avar2 checks: a default-input mapping (AVAR2-01) is an error, and the
   `AmstelvarA2-Roman` example has one; inputs/outputs outside the axis; an unknown
   axis name as a real error rather than a log line; corner completeness; outputs on
@@ -63,7 +63,7 @@ CHANGELOG explains how to migrate.
   per-instance and per-source fields, `rulesProcessingLast`, `elidedFallbackName`,
   and the hidden-axis heuristic's changes.
 
-**1.5.0: syntax.** Document `lib` (present in 4 of 4 real files, lost today); rule
+**1.6.0: syntax.** Document `lib` (present in 4 of 4 real files, lost today); rule
 OR; `rules processing last`; `elided-fallback`; a readable form for large avar2
 matrices; documentation of avar2 output semantics (outputs are deltas, and mappings
 never chain).
