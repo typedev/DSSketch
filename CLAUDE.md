@@ -803,6 +803,19 @@ sources [wght, wdth]
 - Categories: 0 Axes, 1 Sources, 2 Instances, 3 Rules, 4 Document, 5 Sketch
 - Tests: `tests/test_conversion_report_coverage.py`
 
+**`lang` (localized names, `core/translations.py`):**
+- `lang de, ru` → `DSSDocument.languages`. DSS → DS
+  (`DSSToDesignSpace._apply_languages`) adds those languages to visible axis
+  `labelNames`, STAT label `labelNames` and every instance's
+  `localisedStyleName`, from `data/font-resources-translations.json`
+- Style names are translated word by word (each word is a label), keeping the
+  English order and elisions. Missing words stay English → report 4.5
+- Lookup ignores case/spaces/hyphens and follows aliases (Roman→Upright,
+  Slant→Slanted, standard width/weight aliases). Stdlib only: parse path
+- DS → DSS (`_detect_languages`) writes `lang` only on an exact match with the
+  dictionary; any difference → report 4.6 and nothing is carried
+- Tests: `tests/test_lang.py`
+
 **Hidden axes are declared, never inferred:**
 - DS → DSS hides exactly the axes with `hidden="1"`. It used to also hide every
   axis appearing only in avar2 outputs, which rewrote the designer's decision

@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from ..core.mappings import Standards
+from ..core.translations import LANGUAGE_CODE
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
 from ..utils.discrete import DiscreteAxisHandler
 from ..utils.dss_validator import DSSValidationError, DSSValidator
@@ -181,6 +182,20 @@ class DSSParser:
 
         elif line.startswith("suffix "):
             self.document.suffix = line[7:].strip()
+
+        elif line.startswith("lang ") or line == "lang":
+            codes = [c for c in re.split(r"[,\s]+", line[4:].strip()) if c]
+            if not codes:
+                self.validator.errors.append("lang: no language given (e.g. `lang de, ru, es-419`)")
+            for code in codes:
+                if not LANGUAGE_CODE.match(code):
+                    self.validator.errors.append(
+                        f"lang: '{code}' is not a language code (e.g. de, ru, es-419)"
+                    )
+                elif code == "en":
+                    self.validator.warnings.append("lang: 'en' is always written; no need to list it")
+                elif code not in self.document.languages:
+                    self.document.languages.append(code)
 
         elif line.startswith("path "):
             path_value = line[5:].strip()

@@ -1064,6 +1064,39 @@ instances auto
 
 **Result**: Automatic generation of all meaningful style combinations with proper PostScript names, file paths, and style linking based on axes order.
 
+### Localized Names (`lang`)
+
+One line asks for every derived name in more languages:
+
+```dssketch
+family SuperFont
+lang de, ru, es-419
+
+axes
+    wght 100:400:900
+        Thin > 100
+        Regular > 400 @elidable
+        Bold > 700
+    ital discrete
+        Upright @elidable
+        Italic
+```
+
+The generated DesignSpace then carries, in each listed language:
+
+- **instance style names**: `Bold Italic` → `Fett Kursiv` / `Жирный Курсив`. These become the variable font's named instances and nameID 17 of static fonts;
+- **STAT label names**: `Bold` → `Fett` / `Жирный`;
+- **axis names**: `Weight` → `Gewicht` / `Вес`.
+
+Words come from `data/font-resources-translations.json`, which covers 16 languages: da, de, el, es, es-419, fi, fr, hr, kk, nl, pt, ru, sr, sv, tr, uk. A style name is translated word by word, keeping the English order and elisions. A word the dictionary lacks, such as a custom label like `HighContrast`, stays in English and is listed in the conversion report. To add or change words, copy the dictionary and edit it:
+
+```bash
+dssketch-data copy font-resources-translations.json
+dssketch-data edit
+```
+
+Converting a DesignSpace back writes `lang` only when its localized names are exactly the dictionary's. Hand-made translations are never replaced; the differences are reported.
+
 ### Disabling Instance Generation (`instances off`)
 
 When you want to completely disable automatic instance generation (e.g., for avar2 fonts where instances are not needed or should be managed externally):

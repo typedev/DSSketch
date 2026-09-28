@@ -84,6 +84,8 @@ class DSSWriter:
             lines.append(f"family {self._quote_if_spaces(dss_doc.family)}")
         if dss_doc.suffix:
             lines.append(f"suffix {dss_doc.suffix}")
+        if dss_doc.languages:
+            lines.append(f"lang {', '.join(dss_doc.languages)}")
         if dss_doc.path:
             lines.append(f"path {dss_doc.path}")
         lines.append("")

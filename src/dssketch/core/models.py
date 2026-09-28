@@ -146,6 +146,9 @@ class DSSDocument:
     """Complete DSS document structure"""
     family: str
     suffix: str = ""
+    # `lang de, ru`: languages to write derived names in (instance style names,
+    # STAT labels, axis names), from data/font-resources-translations.json
+    languages: List[str] = field(default_factory=list)
     path: str = ""  # Path to sources directory (relative to .dssketch file or absolute)
     axes: List[DSSAxis] = field(default_factory=list)
     hidden_axes: List[DSSAxis] = field(default_factory=list)  # avar2: hidden parametric axes

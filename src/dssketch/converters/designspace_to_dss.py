@@ -18,6 +18,7 @@ from fontTools.designspaceLib import (
 
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
 from ..core.instances import createInstances
+from ..core.translations import Translations
 from ..core.report import (
     AXIS_LABEL_DATA_DROPPED,
     AXIS_OUTPUT_ONLY_VISIBLE,
@@ -28,6 +29,7 @@ from ..core.report import (
     CATEGORY_SOURCES,
     DOCUMENT_ELIDED_FALLBACK_DROPPED,
     DOCUMENT_LIB_DROPPED,
+    DOCUMENT_TRANSLATIONS_DIFFER,
     DOCUMENT_LOCATION_LABELS_DROPPED,
     DOCUMENT_VARIABLE_FONTS_DROPPED,
     INSTANCE_EXTRA,
@@ -135,6 +137,11 @@ class DesignSpaceToDSS:
             dss_doc.rules.extend(self._convert_rule(rule, ds_doc))
 
         try:
+            self._detect_languages(ds_doc, dss_doc)
+        except Exception as e:  # a diagnostic must never break a conversion
+            DSSketchLogger.warning(f"Could not compare localized names: {e}")
+
+        try:
             self._report_dropped_data(ds_doc, dss_doc)
         except Exception as e:  # a diagnostic must never break a conversion
             DSSketchLogger.warning(f"Could not report dropped data: {e}")
@@ -144,6 +151,69 @@ class DesignSpaceToDSS:
     # ============================================================
     # DIAGNOSTICS: what the sketch does not carry
     # ============================================================
+
+    def _detect_languages(self, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument) -> None:
+        """Write `lang` when the document's localized names are exactly the ones
+        `lang` would generate from the dictionary.
+
+        This carries data, it does not guess intent: a sketch with `lang` builds
+        the very same names. Any difference - a hand-made translation, a language
+        on some instances only - leaves `lang` out and is reported, so nothing
+        is silently replaced by dictionary words.
+        """
+        languages = set()
+        for instance in ds_doc.instances:
+            languages |= set(instance.localisedStyleName)
+        for axis in ds_doc.axes:
+            if getattr(axis, "hidden", False):
+                continue
+            languages |= set(axis.labelNames or {})
+            for label in axis.axisLabels or []:
+                languages |= set(label.labelNames or {})
+        languages.discard("en")
+        if not languages:
+            return
+
+        differences = []
+        for language in sorted(languages):
+            for instance in ds_doc.instances:
+                if not instance.styleName:
+                    continue
+                expected, _ = Translations.style_name(instance.styleName, language)
+                actual = instance.localisedStyleName.get(language)
+                if actual != expected:
+                    differences.append(f"{language} '{instance.styleName}': {actual!r}, dictionary {expected!r}")
+            for axis in ds_doc.axes:
+                if getattr(axis, "hidden", False):
+                    continue
+                english = (axis.labelNames or {}).get("en", axis.name)
+                expected = Translations.axis_name(axis.tag, english, language)
+                actual = (axis.labelNames or {}).get(language)
+                if actual != expected:
+                    differences.append(f"{language} axis {axis.tag}: {actual!r}, dictionary {expected!r}")
+                for label in axis.axisLabels or []:
+                    expected = Translations.label(label.name, language)
+                    actual = (label.labelNames or {}).get(language)
+                    if actual != expected:
+                        differences.append(f"{language} label {label.name}: {actual!r}, dictionary {expected!r}")
+
+        if not differences:
+            dss_doc.languages = sorted(languages)
+            return
+        self.report.add(ConversionIssue(
+            category=CATEGORY_DOCUMENT, code=DOCUMENT_TRANSLATIONS_DIFFER, severity=SEVERITY_WARNING,
+            description=(
+                f"Localized names in {', '.join(sorted(languages))} are not the dictionary's; "
+                f"not carried ({len(differences)} differences)"
+            ),
+            details="; ".join(differences[:20]) + (" ..." if len(differences) > 20 else ""),
+            suggested_fix=(
+                "If the dictionary's words are acceptable, add `lang "
+                f"{', '.join(sorted(languages))}` to the sketch; to keep these names, "
+                "put them in font-resources-translations.json."
+            ),
+            raw_data={"languages": sorted(languages), "differences": differences},
+        ))
 
     def _report_dropped_data(self, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument) -> None:
         """Report DesignSpace data the sketch does not express.
@@ -200,7 +270,8 @@ class DesignSpaceToDSS:
         # -- axes: STAT label data -----------------------------------------
         label_losses = []
         for axis in ds_doc.axes:
-            other_langs = sorted(k for k in (axis.labelNames or {}) if k != "en")
+            covered = set(dss_doc.languages) | {"en"}
+            other_langs = sorted(k for k in (axis.labelNames or {}) if k not in covered)
             if other_langs:
                 label_losses.append(f"{axis.tag}: axis name in {', '.join(other_langs)}")
             for label in axis.axisLabels or []:
@@ -211,7 +282,7 @@ class DesignSpaceToDSS:
                     dropped.append("linked value")
                 if label.olderSibling:
                     dropped.append("older sibling")
-                if label.labelNames:
+                if set(label.labelNames or {}) - covered:
                     dropped.append("localized names")
                 if dropped:
                     label_losses.append(f"{axis.tag} {label.name}: {', '.join(dropped)}")
@@ -264,6 +335,11 @@ class DesignSpaceToDSS:
         refs = []
         for instance in ds_doc.instances:
             present = [f for f in fields if getattr(instance, f, None)]
+            # `lang` regenerates localized style names exactly (checked before)
+            if "localisedStyleName" in present and not (
+                set(instance.localisedStyleName) - set(dss_doc.languages) - {"en"}
+            ):
+                present.remove("localisedStyleName")
             # instances auto writes Family-Style; only a different name is lost
             generated = (
                 f"{(instance.familyName or dss_doc.family or '').replace(' ', '')}-"

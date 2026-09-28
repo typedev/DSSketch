@@ -12,6 +12,24 @@
     "Black": 900
   },
   "WEIGHT_LANG_VARIANTS": {
+    "Hairline": {
+      "fr": "Filiforme",
+      "de": "Haarfein",
+      "es": "Finísimo",
+      "es-419": "Finísimo",
+      "pt": "Finíssimo",
+      "uk": "Волосяний",
+      "kk": "Қылдай",
+      "ru": "Волосяной",
+      "fi": "Hiusohut",
+      "da": "Hårfin",
+      "nl": "Haarfijn",
+      "sv": "Hårfin",
+      "sr": "Власасто",
+      "hr": "Vlasasto",
+      "el": "Τριχοειδές",
+      "tr": "Kıl İnce"
+    },
     "Thin": {
       "fr": "Mince",
       "de": "Dünn",
@@ -174,6 +192,24 @@
       "el": "Εξαιρετικά Παχύ",
       "tr": "Ekstra Kalın"
     },
+    "Heavy": {
+      "fr": "Lourd",
+      "de": "Schwer",
+      "es": "Pesado",
+      "es-419": "Pesado",
+      "pt": "Pesado",
+      "uk": "Важкий",
+      "kk": "Ауыр",
+      "ru": "Тяжёлый",
+      "fi": "Raskas",
+      "da": "Tung",
+      "nl": "Zwaar",
+      "sv": "Tung",
+      "sr": "Тешко",
+      "hr": "Teško",
+      "el": "Βαρύ",
+      "tr": "Ağır"
+    },
     "Black": {
       "fr": "Noir",
       "de": "Schwarz",
@@ -194,6 +230,24 @@
     }
   },
   "ITALICS_LANG_VARIANTS": {
+    "Upright": {
+      "fr": "Droit",
+      "de": "Aufrecht",
+      "es": "Recta",
+      "es-419": "Recta",
+      "pt": "Direito",
+      "uk": "Прямий",
+      "kk": "Тік",
+      "ru": "Прямой",
+      "fi": "Pysty",
+      "da": "Opret",
+      "nl": "Rechtop",
+      "sv": "Upprätt",
+      "sr": "Усправно",
+      "hr": "Uspravno",
+      "el": "Όρθιο",
+      "tr": "Dik"
+    },
     "Italic": {
       "fr": "Italique",
       "de": "Kursiv",
@@ -285,6 +339,42 @@
       "hr": "Komprimirano",
       "el": "Συμπιεσμένο",
       "tr": "Sıkıştırılmış"
+    },
+    "Ultra Condensed": {
+      "fr": "Ultra-condensé",
+      "de": "Ultraschmal",
+      "es": "Ultracondensado",
+      "es-419": "Ultracondensado",
+      "pt": "Ultracondensado",
+      "uk": "Ультрастиснутий",
+      "kk": "Ультра Қысылған",
+      "ru": "Ультраузкий",
+      "fi": "Ultra Kavennettu",
+      "da": "Ultra Kondenseret",
+      "nl": "Ultra Samengedrukt",
+      "sv": "Ultrakondenserad",
+      "sr": "Ултра Сужено",
+      "hr": "Ultra Suženo",
+      "el": "Υπερσυμπυκνωμένο",
+      "tr": "Ultra Yoğunlaştırılmış"
+    },
+    "Extra Condensed": {
+      "fr": "Extra-condensé",
+      "de": "Extraschmal",
+      "es": "Extracondensado",
+      "es-419": "Extracondensado",
+      "pt": "Extracondensado",
+      "uk": "Екстра Стиснутий",
+      "kk": "Өте Тар",
+      "ru": "Экстра-узкий",
+      "fi": "Erittäin Kavennettu",
+      "da": "Ekstra Kondenseret",
+      "nl": "Extra Samengedrukt",
+      "sv": "Extra Kondenserad",
+      "sr": "Екстра Сужено",
+      "hr": "Ekstra Suženo",
+      "el": "Εξαιρετικά Συμπυκνωμένο",
+      "tr": "Ekstra Yoğunlaştırılmış"
     },
     "Condensed": {
       "fr": "Condensé",
@@ -448,6 +538,24 @@
       "el": "Πολύ Επεκταμένο",
       "tr": "Ekstra Genişletilmiş"
     },
+    "Ultra Extended": {
+      "fr": "Ultra-étendu",
+      "de": "Ultra Erweitert",
+      "es": "Ultra extendido",
+      "es-419": "Ultra extendido",
+      "pt": "Ultra estendido",
+      "uk": "Ультра Розширений",
+      "kk": "Ультра Кеңейтілген",
+      "ru": "Ультра Расширенный",
+      "fi": "Ultra Laajennettu",
+      "da": "Ultra Udvidet",
+      "nl": "Ultra Uitgebreid",
+      "sv": "Ultra Utökad",
+      "sr": "Ултра Проширено",
+      "hr": "Ultra Prošireno",
+      "el": "Υπερ-Επεκταμένο",
+      "tr": "Ultra Genişletilmiş"
+    },
     "Semi Expanded": {
       "fr": "Semi-étendu",
       "de": "Halb Ausgedehnt",
@@ -501,6 +609,24 @@
       "hr": "Ekstra Prošireno",
       "el": "Πολύ Επεκταμένο",
       "tr": "Ekstra Genişletilmiş"
+    },
+    "Ultra Expanded": {
+      "fr": "Ultra-élargi",
+      "de": "Ultra Ausgedehnt",
+      "es": "Ultra expandido",
+      "es-419": "Ultra expandido",
+      "pt": "Ultra expandido",
+      "uk": "Ультра Розтягнутий",
+      "kk": "Ультра Кеңейтілген",
+      "ru": "Ультра Раздвинутый",
+      "fi": "Ultra Laajennettu",
+      "da": "Ultra Udvidet",
+      "nl": "Ultra Uitgebreid",
+      "sv": "Ultra Utökad",
+      "sr": "Ултра Проширено",
+      "hr": "Ultra Prošireno",
+      "el": "Υπερ-Επεκταμένο",
+      "tr": "Ultra Genişletilmiş"
     }
   },
   "AXIS_LANG_VARIANTS": {

@@ -30,7 +30,7 @@ class DSSValidator:
     """Comprehensive DSS document validator"""
 
     # Valid keywords for better error detection
-    VALID_KEYWORDS = {"family", "suffix", "path", "axes", "sources", "instances", "rules"}
+    VALID_KEYWORDS = {"family", "suffix", "lang", "path", "axes", "sources", "instances", "rules"}
 
     # Maximum Levenshtein distance for typo suggestions (1-2 character edits)
     MAX_TYPO_DISTANCE = 2

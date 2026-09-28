@@ -154,6 +154,14 @@ DOCUMENT_VARIABLE_FONTS_DROPPED = 3
 #: UFO, so the document is named "Unknown".
 DOCUMENT_FAMILY_UNKNOWN = 4
 
+#: DSS -> DS: `lang` asked for a language, but some names had no translation in
+#: the dictionary and stay in English (or the language has no words at all).
+DOCUMENT_TRANSLATION_MISSING = 5
+
+#: DS -> DSS: the document's localized names are not what `lang` would generate
+#: from the dictionary, so no `lang` line is written and they are not carried.
+DOCUMENT_TRANSLATIONS_DIFFER = 6
+
 # =============================================================================
 # Issue codes — CATEGORY_SKETCH
 # =============================================================================

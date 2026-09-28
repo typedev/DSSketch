@@ -29,6 +29,7 @@ from fontTools.designspaceLib import (
 from ..core.instances import createInstances
 
 # Import models from core
+from ..core.translations import Translations
 from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 
 # Import validation components
@@ -40,6 +41,7 @@ from ..core.report import (
     CATEGORY_DOCUMENT,
     CATEGORY_RULES,
     DOCUMENT_FAMILY_UNKNOWN,
+    DOCUMENT_TRANSLATION_MISSING,
     RULE_DROPPED_EMPTY,
     RULE_GLYPH_NOT_IN_DEFAULT,
     RULE_SUBSTITUTIONS_SKIPPED,
@@ -186,7 +188,70 @@ class DSSToDesignSpace:
             if rule:
                 doc.addRule(rule)
 
+        if dss_doc.languages:
+            self._apply_languages(doc, dss_doc)
+
         return doc
+
+    def _apply_languages(self, doc: DesignSpaceDocument, dss_doc: DSSDocument) -> None:
+        """`lang`: write every derived name in the listed languages too.
+
+        Visible axis names and their STAT labels get `labelNames`, and every
+        instance a localized style name built from the same labels, word by
+        word. Hidden (parametric) axes are left alone. Words without a
+        translation stay in English and are reported per language.
+        """
+        known = set(Translations.languages())
+        hidden = {a.name for a in dss_doc.hidden_axes} | {
+            a.display_name for a in dss_doc.hidden_axes if a.display_name
+        }
+        for language in dss_doc.languages:
+            missing = set()
+            if language not in known:
+                self._report(
+                    CATEGORY_DOCUMENT, DOCUMENT_TRANSLATION_MISSING, SEVERITY_WARNING,
+                    f"lang {language}: the dictionary has no words in this language; "
+                    f"names stay in English",
+                    suggested_fix=(
+                        "Add the language to font-resources-translations.json "
+                        "(dssketch-data copy font-resources-translations.json). "
+                        f"Available: {', '.join(sorted(known))}"
+                    ),
+                    raw_data={"language": language, "words": []},
+                )
+                continue
+            for axis in doc.axes:
+                if axis.name in hidden or getattr(axis, "hidden", False):
+                    continue
+                english = axis.labelNames.get("en", axis.name)
+                translated = Translations.axis_name(axis.tag, english, language)
+                if translated:
+                    axis.labelNames[language] = translated
+                else:
+                    missing.add(english)
+                for label in axis.axisLabels or []:
+                    word = Translations.label(label.name, language)
+                    if word:
+                        label.labelNames[language] = word
+                    else:
+                        missing.add(label.name)
+            for instance in doc.instances:
+                if not instance.styleName:
+                    continue
+                name, words = Translations.style_name(instance.styleName, language)
+                instance.localisedStyleName[language] = name
+                missing.update(words)
+            if missing:
+                self._report(
+                    CATEGORY_DOCUMENT, DOCUMENT_TRANSLATION_MISSING, SEVERITY_WARNING,
+                    f"lang {language}: no translation for {', '.join(sorted(missing))}; "
+                    f"kept in English",
+                    suggested_fix=(
+                        "Add the words to font-resources-translations.json "
+                        "(dssketch-data copy font-resources-translations.json)."
+                    ),
+                    raw_data={"language": language, "words": sorted(missing)},
+                )
 
     def _convert_axis(self, dss_axis: DSSAxis):
         """Convert DSS axis to DesignSpace axis (returns AxisDescriptor or DiscreteAxisDescriptor)"""
