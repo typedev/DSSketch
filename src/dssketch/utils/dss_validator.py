@@ -219,6 +219,24 @@ class DSSValidator:
         self._validate_avar2_input_space(document)
 
         # Validate axes content
+        for axis in document.axes + document.hidden_axes:
+            # One user value, one point: a second mapping at the same user value
+            # gives the axis map two outputs for one input (the last one wins in
+            # fontTools) and makes instances auto drop one label and misplace the other
+            seen = {}
+            for mapping in axis.mappings:
+                if mapping.user_value in seen:
+                    first = seen[mapping.user_value]
+                    self.errors.append(
+                        f"Axis '{axis.name}': user value {mapping.user_value:g} is mapped twice "
+                        f"('{first.label or first.user_value}' > {first.design_value:g} and "
+                        f"'{mapping.label or mapping.user_value}' > {mapping.design_value:g}). "
+                        f"Each user value can map to only one design value; give one of them "
+                        f"a different user value."
+                    )
+                else:
+                    seen[mapping.user_value] = mapping
+
         for axis in document.axes:
             if axis.mappings:
                 for mapping in axis.mappings:

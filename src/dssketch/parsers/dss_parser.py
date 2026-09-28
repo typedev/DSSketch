@@ -1065,12 +1065,17 @@ class DSSParser:
                 self.in_skip_subsection = False
                 # Don't return - let it fall through to process this line
 
-        # Parse explicit instances (if not auto and not skip)
+        # Anything else is an explicit instance, which DSSketch does not describe:
+        # instances come from labeled axis mappings via `instances auto` (+ `skip`).
+        # Say so instead of dropping the line without a word
         line = line.strip()
-        if line != "auto" and not self.in_skip_subsection:
-            # Parse explicit instance (similar to source parsing)
-            # TODO: implement explicit instance parsing if needed
-            pass
+        if line and line != "auto" and not self.in_skip_subsection:
+            self.validator.warnings.append(
+                f"Instance line ignored: '{line}'. DSSketch does not list instances one "
+                f"by one; they are generated from the labeled axis mappings by "
+                f"'instances auto' (use 'skip' to leave combinations out, or "
+                f"'instances off' for none)."
+            )
 
     def _parse_condition_string(self, condition_str: str) -> List[dict]:
         """Parse condition string like 'weight >= 480' or 'weight >= Bold'
