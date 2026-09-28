@@ -84,6 +84,10 @@ class DSSValidator:
         # Merge parsing errors/warnings with validation errors/warnings
         all_errors = parsing_errors + self.errors
         all_warnings = parsing_warnings + self.warnings
+        # Keep the full lists on the validator: callers read parser.validator.errors
+        # after a non-strict parse, and parsing-phase errors used to vanish from it
+        self.errors = all_errors
+        self.warnings = all_warnings
 
         # Check for critical errors (from both parsing and validation)
         critical_errors = [e for e in all_errors if e.startswith("CRITICAL:")]
@@ -571,8 +575,8 @@ class DSSValidator:
         default_coords = {}
 
         for axis in document.axes:
-            # Check if this is a discrete axis (min=0, default=0, max=1)
-            is_discrete = axis.minimum == 0 and axis.default == 0 and axis.maximum == 1
+            # Discreteness is stored on the axis, not inferred from its range
+            is_discrete = axis.is_discrete
 
             if is_discrete:
                 # For discrete axes, find the @elidable mapping
@@ -651,12 +655,12 @@ class DSSValidator:
         if not document.axes or len(base_sources) < 2:
             return False
             
-        # Find discrete axes (those with min=0, default=0, max=1)
+        # Find discrete axes
         discrete_axes = []
         continuous_axes = []
         
         for axis in document.axes:
-            is_discrete = axis.minimum == 0 and axis.default == 0 and axis.maximum == 1
+            is_discrete = axis.is_discrete
             if is_discrete:
                 discrete_axes.append(axis)
             else:

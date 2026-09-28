@@ -33,6 +33,7 @@ from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 
 # Import validation components
 from ..core.validation import UFOGlyphExtractor
+from ..utils.discrete import DiscreteAxisHandler
 from ..utils.logging import DSSketchLogger
 
 # Import utility classes
@@ -160,14 +161,7 @@ class DSSToDesignSpace:
 
     def _convert_axis(self, dss_axis: DSSAxis):
         """Convert DSS axis to DesignSpace axis (returns AxisDescriptor or DiscreteAxisDescriptor)"""
-        # Check if this is a discrete axis (like italic)
-        is_discrete = (
-            dss_axis.minimum == 0
-            and dss_axis.maximum == 1
-            and dss_axis.name.lower() in ["italic", "ital"]
-        )
-
-        if is_discrete:
+        if dss_axis.is_discrete:
             # Create DiscreteAxisDescriptor for discrete axes
             axis = DiscreteAxisDescriptor()
             # Use display_name if available, otherwise fall back to name
@@ -180,26 +174,38 @@ class DSSToDesignSpace:
                 axis.labelNames = {"en": dss_axis.name}
             else:
                 axis.labelNames = {"en": dss_axis.name.title()}
-            axis.values = [0, 1]
+            axis.values = list(dss_axis.values or [dss_axis.minimum, dss_axis.maximum])
             axis.default = dss_axis.default
 
             # Add discrete labels
             axis.axisLabels = []
 
             if not dss_axis.mappings:
-                # Default discrete labels for italic
-                upright_label = AxisLabelDescriptor(name="Upright", userValue=0, elidable=True)
-                italic_label = AxisLabelDescriptor(name="Italic", userValue=1, elidable=False)
-                axis.axisLabels = [upright_label, italic_label]
+                # No labels written ("ital discrete"): the standard ones for this tag,
+                # if it has any. A custom tag gets none rather than invented names
+                standard = DiscreteAxisHandler.load_discrete_labels().get(dss_axis.tag, {})
+                for value in axis.values:
+                    names = standard.get(int(value))
+                    if names:
+                        axis.axisLabels.append(
+                            AxisLabelDescriptor(
+                                name=names[0], userValue=value, elidable=value == axis.default
+                            )
+                        )
             else:
-                # Use custom mappings for discrete axis labels
+                # Use custom mappings for discrete axis labels. An unnamed point
+                # ("2 > 2") only declares a value; it names nothing
                 for mapping in dss_axis.mappings:
+                    if not mapping.label:
+                        continue
                     label_desc = AxisLabelDescriptor(
                         name=mapping.label,
                         userValue=mapping.user_value,
                         elidable=mapping.elidable,
                     )
                     axis.axisLabels.append(label_desc)
+                if any(m.user_value != m.design_value for m in dss_axis.mappings):
+                    axis.map = [(m.user_value, m.design_value) for m in dss_axis.mappings]
         else:
             # Create regular AxisDescriptor for continuous axes
             axis = AxisDescriptor()

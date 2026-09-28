@@ -31,6 +31,23 @@ class DSSAxis:
     maximum: float
     mappings: List[DSSAxisMapping] = field(default_factory=list)
     display_name: Optional[str] = None  # UI display name (e.g., "Optical size" for opsz)
+    # Values of a discrete (non-interpolating) axis; None for a continuous axis.
+    # Discreteness is stored, never guessed from the range or the axis name: a
+    # custom discrete axis may have any number of values, and a continuous axis
+    # may well span 0..1.
+    values: Optional[List[float]] = None
+
+    @property
+    def is_discrete(self) -> bool:
+        return self.values is not None
+
+    def set_discrete_values(self, values: List[float]) -> None:
+        """Make this a discrete axis over `values`, keeping min/default/max consistent"""
+        self.values = sorted(set(values))
+        if self.values:
+            self.minimum, self.maximum = self.values[0], self.values[-1]
+            if self.default not in self.values:
+                self.default = self.values[0]
 
     def get_design_value(self, user_value: float) -> float:
         """Convert user value to design value"""

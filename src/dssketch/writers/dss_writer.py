@@ -16,6 +16,7 @@ from ..core.mappings import Standards
 from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 from ..core.validation import UFOGlyphExtractor
 from ..utils.patterns import PatternMatcher
+from ..utils.discrete import DiscreteAxisHandler
 
 
 class DSSWriter:
@@ -209,12 +210,8 @@ class DSSWriter:
         # Determine axis name for output (shortened if registered)
         axis_name = self._get_axis_display_name(axis.name, axis.tag)
 
-        # Axis header with range - detect discrete axes by values
-        is_discrete = (
-            axis.minimum == 0
-            and axis.default == 0
-            and axis.maximum == 1
-        )
+        # Discreteness is stored on the axis, never guessed from its range
+        is_discrete = axis.is_discrete
 
         if is_discrete:
             # Standard discrete axis (like italic) - use 'discrete' keyword
@@ -286,9 +283,9 @@ class DSSWriter:
 
         # Mappings
         if axis.mappings:
-            for mapping in axis.mappings:
+            for index, mapping in enumerate(axis.mappings):
                 # Check if this is a discrete axis with simplified format
-                if is_discrete and mapping.user_value == mapping.design_value:
+                if is_discrete and self._discrete_label_resolves(axis, mapping, index):
                     # Simplified discrete format: just "Upright" or "Italic"
                     label_line = f"        {mapping.label}"
                     if mapping.elidable:
@@ -347,6 +344,24 @@ class DSSWriter:
                     lines.append(label_line)
 
         return lines
+
+    @staticmethod
+    def _discrete_label_resolves(axis: DSSAxis, mapping, index: int) -> bool:
+        """Whether a bare label ("Serif") parses back to this mapping's value.
+
+        Mirrors DSSParser._parse_axis_mapping: a standard discrete label for the
+        tag, then a standard weight/width label, then the position among the
+        axis's mappings. Anything else needs the full "5 Serif > 5" form.
+        """
+        if not mapping.label or mapping.user_value != mapping.design_value:
+            return False
+        standard = DiscreteAxisHandler.load_discrete_labels().get(axis.tag, {})
+        for value, names in standard.items():
+            if mapping.label in names:
+                return float(value) == mapping.user_value
+        if Standards.has_mapping(mapping.label, axis.name):
+            return Standards.get_user_value_for_name(mapping.label, axis.name) == mapping.user_value
+        return float(index) == mapping.user_value
 
     def _get_axis_display_name(self, axis_name: str, axis_tag: str) -> str:
         """Get the display name for an axis - omit registered names, use uppercase for custom"""

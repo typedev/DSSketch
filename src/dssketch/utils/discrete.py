@@ -14,22 +14,13 @@ class DiscreteAxisHandler:
 
     @staticmethod
     def is_discrete(axis) -> bool:
-        """Check if an axis is discrete
+        """Check if an axis is discrete.
 
-        Args:
-            axis: An axis object with minimum, default, maximum, and name attributes
-
-        Returns:
-            True if the axis is discrete (binary 0/1 axis like italic)
+        A DSSAxis stores its discreteness (``values`` is not None); a fontTools
+        DiscreteAxisDescriptor carries ``values`` as well. Discreteness is never
+        guessed from a 0:0:1 range or from the axis name.
         """
-        return (
-            hasattr(axis, "minimum")
-            and axis.minimum == 0
-            and hasattr(axis, "default")
-            and axis.default == 0
-            and hasattr(axis, "maximum")
-            and axis.maximum == 1
-        )
+        return getattr(axis, "values", None) is not None
 
     @staticmethod
     def load_discrete_labels() -> Dict[str, Dict[int, List[str]]]:

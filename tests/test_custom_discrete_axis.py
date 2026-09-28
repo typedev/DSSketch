@@ -8,22 +8,24 @@ from src.dssketch.core.models import DSSDocument, DSSAxis, DSSAxisMapping, DSSSo
 
 
 class TestDiscreteAxisDetection:
-    """Test DiscreteAxisHandler.is_discrete() for custom axes"""
+    """Discreteness is stored on the axis (`values`), never guessed from its range"""
 
     def test_standard_discrete_axis(self):
-        """Standard ital axis with 0:0:1 is discrete"""
-        axis = DSSAxis(name="italic", tag="ital", minimum=0, default=0, maximum=1)
+        axis = DSSAxis(name="italic", tag="ital", minimum=0, default=0, maximum=1, values=[0, 1])
         assert DiscreteAxisHandler.is_discrete(axis) is True
 
     def test_custom_discrete_axis(self):
-        """Custom LOOP axis with 0:0:1 is discrete"""
-        axis = DSSAxis(name="LOOP", tag="LOOP", minimum=0, default=0, maximum=1)
+        axis = DSSAxis(name="LOOP", tag="LOOP", minimum=0, default=0, maximum=1, values=[0, 1])
         assert DiscreteAxisHandler.is_discrete(axis) is True
 
-    def test_custom_discrete_axis_lowercase(self):
-        """Custom lowercase axis with 0:0:1 is discrete"""
-        axis = DSSAxis(name="FILL", tag="FILL", minimum=0, default=0, maximum=1)
+    def test_custom_discrete_axis_three_values(self):
+        axis = DSSAxis(name="STYL", tag="STYL", minimum=0, default=0, maximum=2, values=[0, 1, 2])
         assert DiscreteAxisHandler.is_discrete(axis) is True
+
+    def test_zero_to_one_range_alone_is_continuous(self):
+        """A 0..1 range does not make an axis discrete"""
+        axis = DSSAxis(name="FILL", tag="FILL", minimum=0, default=0, maximum=1)
+        assert DiscreteAxisHandler.is_discrete(axis) is False
 
     def test_continuous_axis_not_discrete(self):
         """Standard weight axis is not discrete"""
@@ -252,7 +254,7 @@ class TestCustomDiscreteAxisWriting:
         doc.axes = [
             DSSAxis(name="weight", tag="wght", minimum=100, default=400, maximum=900,
                     mappings=[DSSAxisMapping(400, 400, "Regular")]),
-            DSSAxis(name="LOOP", tag="LOOP", minimum=0, default=0, maximum=1,
+            DSSAxis(name="LOOP", tag="LOOP", minimum=0, default=0, maximum=1, values=[0, 1],
                     mappings=[
                         DSSAxisMapping(0, 0, "Loopoff", elidable=True),
                         DSSAxisMapping(1, 1, "Loop"),
@@ -274,7 +276,7 @@ class TestCustomDiscreteAxisWriting:
         doc.axes = [
             DSSAxis(name="weight", tag="wght", minimum=100, default=400, maximum=900,
                     mappings=[DSSAxisMapping(400, 400, "Regular")]),
-            DSSAxis(name="LOOP", tag="LOOP", minimum=0, default=0, maximum=1,
+            DSSAxis(name="LOOP", tag="LOOP", minimum=0, default=0, maximum=1, values=[0, 1],
                     mappings=[
                         DSSAxisMapping(0, 0, "Loopoff", elidable=True),
                         DSSAxisMapping(1, 1, "Loop"),
@@ -403,11 +405,13 @@ instances off
         converter = DSSToDesignSpace()
         ds = converter.convert(dss_doc)
 
-        # Verify axes
+        # Verify axes: a discrete axis stays discrete whatever its name
+        from fontTools.designspaceLib import DiscreteAxisDescriptor
+
         loop_axis = [a for a in ds.axes if a.tag == "LOOP"][0]
-        assert loop_axis.minimum == 0
+        assert isinstance(loop_axis, DiscreteAxisDescriptor)
+        assert loop_axis.values == [0, 1]
         assert loop_axis.default == 0
-        assert loop_axis.maximum == 1
 
         # Verify source locations
         assert len(ds.sources) == 2

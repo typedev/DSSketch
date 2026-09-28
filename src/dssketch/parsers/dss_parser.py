@@ -106,6 +106,11 @@ class DSSParser:
             except Exception as e:
                 raise ValueError(f"Error parsing line {line_no}: {original_line}\n{e}") from e
 
+        # A discrete axis declared without labels ("ital discrete") keeps its 0/1 values
+        for axis in self.document.axes:
+            if axis.is_discrete and not axis.values:
+                axis.set_discrete_values([axis.minimum, axis.maximum])
+
         # Validate complete document
         try:
             errors, warnings = self.validator.validate_document(self.document)
@@ -297,6 +302,7 @@ class DSSParser:
         line = line.strip()
 
         # Extract optional display name from end of line: opsz 8:14:144 "Optical size"
+        discrete = False
         display_name = None
         if '"' in line:
             # Check for quoted string at end
@@ -372,6 +378,7 @@ class DSSParser:
             # Parse range values
             if range_part in ["binary", "discrete"]:
                 minimum, default, maximum = 0, 0, 1
+                discrete = True
             elif ":" in range_part:
                 values = range_part.split(":")
                 try:
@@ -421,6 +428,7 @@ class DSSParser:
 
             if range_part in ["binary", "discrete"]:
                 minimum, default, maximum = 0, 0, 1
+                discrete = True
             elif ":" in range_part:
                 values = range_part.split(":")
                 try:
@@ -501,6 +509,7 @@ class DSSParser:
 
                 if range_part in ["binary", "discrete"]:
                     minimum, default, maximum = 0, 0, 1
+                    discrete = True
                 elif ":" in range_part:
                     values = range_part.split(":")
                     try:
@@ -532,10 +541,24 @@ class DSSParser:
                     self._parse_axis_mapping(line)
             return
 
+        if not (minimum <= default <= maximum):
+            # Numeric ranges are checked before resolving; this also covers
+            # label-based ranges such as "Black:Regular:Thin"
+            self.validator.errors.append(
+                f"Invalid axis range for '{name}': values must be ordered "
+                f"min <= default <= max, got {minimum}:{default}:{maximum}"
+            )
+            return
+
         self.current_axis = DSSAxis(
             name=name, tag=tag, minimum=minimum, default=default, maximum=maximum,
             display_name=display_name
         )
+        # "discrete"/"binary" always means discrete. The numeric form 0:0:1 means it
+        # only for ital, as documented ("ital 0:0:1"): elsewhere it is an ordinary
+        # continuous axis that happens to span 0..1.
+        if discrete or (tag == "ital" and (minimum, default, maximum) == (0, 0, 1)):
+            self.current_axis.values = []  # filled from its labels as they are parsed
         self.document.axes.append(self.current_axis)
 
     def _parse_axis_mapping(self, line: str):
@@ -543,7 +566,7 @@ class DSSParser:
         # Strip leading whitespace for pattern matching
         line = line.strip()
         # Check if this is a discrete axis using centralized handler
-        is_discrete = DiscreteAxisHandler.is_discrete(self.current_axis)
+        is_discrete = self.current_axis.is_discrete
 
         # Check for @elidable flag
         elidable = "@elidable" in line
@@ -629,6 +652,10 @@ class DSSParser:
             user_value_explicit=user_value_explicit,
         )
         self.current_axis.mappings.append(mapping)
+        if self.current_axis.is_discrete:
+            self.current_axis.set_discrete_values(
+                [m.user_value for m in self.current_axis.mappings]
+            )
 
     def _resolve_axis_range_value(self, value_str: str, axis_name: str) -> float:
         """Resolve axis range value - can be numeric or label name

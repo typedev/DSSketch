@@ -234,6 +234,17 @@ class DesignSpaceToDSS:
             )
             dss_axis.mappings.append(mapping)
 
+        if hasattr(axis, "values") and axis.values:
+            # A discrete axis: every value must survive, including one that has
+            # neither a label nor a map entry. It becomes an unnamed point
+            present = {m.user_value for m in dss_axis.mappings}
+            for value in axis.values:
+                if value not in present:
+                    dss_axis.mappings.append(
+                        DSSAxisMapping(user_value=value, design_value=value, label="")
+                    )
+            dss_axis.values = sorted(axis.values)
+
         # Sort mappings by user value
         dss_axis.mappings.sort(key=lambda m: m.user_value)
 

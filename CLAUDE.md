@@ -304,6 +304,12 @@ When integrating DSSketch API into your workflow:
 - Discrete axes: `ital discrete` or `ital 0:0:1` for non-interpolating axes (like italic on/off)
 
 **Discrete Axes:**
+- Discreteness is **stored**, never guessed: `DSSAxis.values` holds a discrete
+  axis's values (`None` = continuous; `axis.is_discrete`). `discrete`/`binary`
+  sets it; `0:0:1` sets it only for `ital`. Values come from the labels as they
+  are parsed (`set_discrete_values`), so a custom axis may have any number
+  (`STYL discrete` / Sans / Serif / Mono → 0, 1, 2). Never test `min == 0 and
+  max == 1` or the axis name to decide discreteness
 - Used for axes that don't interpolate (e.g., Roman vs Italic)
 - Format: `ital discrete` (preferred) or `ital 0:0:1` (verbose)
 - Simplified labels: just `Upright` and `Italic` (no redundant > values)
