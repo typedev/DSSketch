@@ -176,11 +176,47 @@ class DSSValidator:
                         f"CRITICAL: Base source '{base_source.name}' coordinates {list(base_source.location.values())} do not match default coordinates {list(expected_coords.values())}"
                     )
 
+    def _validate_avar2_input_space(self, document: DSSDocument):
+        """Catch avar2 inputs written in design space.
+
+        avar2 inputs are user space. DSSketch 1.2.1 and earlier converted a
+        DesignSpace's inputs without mapping them back, so a sketch it wrote can
+        hold design values on an axis that has a map (RobotoDelta: `opsz=-1` for
+        user 8). Read as user space they would silently build a different font.
+        A value outside the axis's user range but inside its design range can
+        only be one of those; say so and give the user value. (A design value that
+        also lies inside the user range cannot be told apart.)
+        """
+        axes = {}
+        for axis in document.axes + document.hidden_axes:
+            axes[axis.name] = axes[axis.tag] = axis
+        for mapping in document.avar2_mappings:
+            for axis_key, value in mapping.input.items():
+                axis = axes.get(axis_key)
+                if axis is None or not axis.mappings:
+                    continue
+                if all(m.user_value == m.design_value for m in axis.mappings):
+                    continue
+                if axis.minimum <= value <= axis.maximum:
+                    continue
+                designs = [m.design_value for m in axis.mappings]
+                if min(designs) <= value <= max(designs):
+                    user = axis.get_user_value(value)
+                    self.errors.append(
+                        f"avar2 input {axis_key}={value:g} is outside the axis range "
+                        f"[{axis.minimum:g}, {axis.maximum:g}]. avar2 inputs are user space; "
+                        f"{value:g} looks like a design-space value, as DSSketch 1.2.1 and "
+                        f"earlier wrote when converting a DesignSpace. The user value is "
+                        f"{axis_key}={user:g} - write that (or reconvert from the DesignSpace)."
+                    )
+
     def _validate_content(self, document: DSSDocument):
         """Validate document content (non-critical)"""
 
         # CRITICAL: Check for duplicate mapping labels across axes
         self._validate_duplicate_mapping_labels(document)
+
+        self._validate_avar2_input_space(document)
 
         # Validate axes content
         for axis in document.axes:

@@ -3,11 +3,11 @@ path instances
 
 axes
     opsz 8:14:144
-        8  > -1
-        14  > 0
-        36  > 0.492
-        84  > 0.946
-        144  > 1
+        8 > -1
+        14 > 0
+        36 > 0.492
+        84 > 0.946
+        144 > 1
     wght 100:400:1000
     wdth 25:100:151
     slnt -12:0:3
@@ -50,75 +50,75 @@ axes hidden
     YTOS 0:30:50
 
 sources
-    Roboto-Delta-wght400 opsz=0 @base
-    Roboto-Delta-GRAD-250 opsz=0, GRAD=-250
-    Roboto-Delta-GRAD150 opsz=0, GRAD=150
-    Roboto-Delta-VANG-3 opsz=0, VANG=-3
-    Roboto-Delta-VANG13 opsz=0, VANG=13
-    Roboto-Delta-VROT13 opsz=0, VANG=13, VROT=13
-    Roboto-Delta-XOFI2 opsz=0, XOFI=2
-    Roboto-Delta-XOFI310 opsz=0, XOFI=310
-    Roboto-Delta-XOUC2 opsz=0, XOUC=2
-    Roboto-Delta-XOUC310 opsz=0, XOUC=310
-    Roboto-Delta-XOLC2 opsz=0, XOLC=2
-    Roboto-Delta-XOLC310 opsz=0, XOLC=310
-    Roboto-Delta-XTUC244 opsz=0, XTUC=244
-    Roboto-Delta-XTUC244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTUC=244
-    Roboto-Delta-XTUC244-opsz144-wdth25-wght400 opsz=1, wdth=25, XTUC=244
-    Roboto-Delta-XTUC741 opsz=0, XTUC=741
-    Roboto-Delta-XTUC741-opsz144-wdth100-wght100 opsz=1, wght=100, XTUC=741
-    Roboto-Delta-XTUC741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTUC=741
-    Roboto-Delta-XTLC244 opsz=0, XTLC=244
-    Roboto-Delta-XTLC244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTLC=244
-    Roboto-Delta-XTLC244-opsz144-wdth25-wght400 opsz=1, XTLC=244
-    Roboto-Delta-XTLC741 opsz=0, XTLC=741
-    Roboto-Delta-XTLC741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTLC=741
-    Roboto-Delta-XTFI244 opsz=0, XTFI=244
-    Roboto-Delta-XTFI244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTFI=244
-    Roboto-Delta-XTFI741 opsz=0, XTFI=741
-    Roboto-Delta-XTFI741-opsz144-wdth100-wght100 opsz=1, wght=100, XTFI=741
-    Roboto-Delta-XTFI741-opsz144-wdth151-wght400 opsz=1, wdth=151, XTFI=741
-    Roboto-Delta-XTFI741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTFI=741
-    Roboto-Delta-XTSP-100 opsz=0, XTSP=-100
-    Roboto-Delta-XTSP100 opsz=0, XTSP=100
-    Roboto-Delta-YOFI2 opsz=0, YOFI=2
-    Roboto-Delta-YOFI280 opsz=0, YOFI=280
-    Roboto-Delta-YOUC2 opsz=0, YOUC=2
-    Roboto-Delta-YOUC280 opsz=0, YOUC=280
-    Roboto-Delta-YOLC2 opsz=0, YOLC=2
-    Roboto-Delta-YOLC280 opsz=0, YOLC=280
-    Roboto-Delta-YOPE280 opsz=0, YOPE=280
-    Roboto-Delta-YOLB280 opsz=0, YOLB=280
-    Roboto-Delta-YTAS665 opsz=0, YTAS=665
-    Roboto-Delta-YTAS875 opsz=0, YTAS=875
-    Roboto-Delta-YTDE-100 opsz=0, YTDE=-100
-    Roboto-Delta-YTDE-310 opsz=0, YTDE=-310
-    Roboto-Delta-YTFI270 opsz=0, YTFI=270
-    Roboto-Delta-YTFI793 opsz=0, YTFI=793
-    Roboto-Delta-YTLC426 opsz=0, YTLC=426
-    Roboto-Delta-YTLC584 opsz=0, YTLC=584
-    Roboto-Delta-YTOS0 opsz=0, YTOS=0
-    Roboto-Delta-YTOS50 opsz=0, YTOS=50
-    Roboto-Delta-YTUC528 opsz=0, YTUC=528
-    Roboto-Delta-YTUC778 opsz=0, YTUC=778
-    Roboto-Delta-YTTL50 opsz=0, YTTL=50
-    Roboto-Delta-YTTL0 opsz=0, YTTL=0
-    Roboto-Delta-XTTW30 opsz=0, XTTW=30
-    Roboto-Delta-XTTW0 opsz=0, XTTW=0
-    Roboto-Delta-XTUR741 opsz=0, XTUR=741
-    Roboto-Delta-WDSP0 opsz=0, WDSP=0
-    Roboto-Delta-WDSP1000 opsz=0, WDSP=1000
-    Roboto-Delta-BARS0 opsz=0, BARS=0
-    Roboto-Delta-XTUD741 opsz=0, XTUD=741
-    Roboto-Delta-STLI2 opsz=0, STLI=2
-    Roboto-Delta-STLI412 opsz=0, STLI=412
-    Roboto-Delta-STLO2 opsz=0, STLO=2
-    Roboto-Delta-STLO426 opsz=0, STLO=426
-    Roboto-Delta-STUI2 opsz=0, STUI=2
-    Roboto-Delta-STUI736 opsz=0, STUI=736
-    Roboto-Delta-STUO2 opsz=0, STUO=2
-    Roboto-Delta-STUO722 opsz=0, STUO=722
-    Roboto-Delta-opsz14-wdth100-wght1000 opsz=0, wght=1000
+    Roboto-Delta-wght400 @base
+    Roboto-Delta-GRAD-250 GRAD=-250 @layer=public.default
+    Roboto-Delta-GRAD150 GRAD=150 @layer=public.default
+    Roboto-Delta-VANG-3 VANG=-3 @layer=foreground
+    Roboto-Delta-VANG13 VANG=13 @layer=foreground
+    Roboto-Delta-VROT13 VANG=13, VROT=13 @layer=foreground
+    Roboto-Delta-XOFI2 XOFI=2 @layer=public.default
+    Roboto-Delta-XOFI310 XOFI=310 @layer=public.default
+    Roboto-Delta-XOUC2 XOUC=2 @layer=public.default
+    Roboto-Delta-XOUC310 XOUC=310 @layer=public.default
+    Roboto-Delta-XOLC2 XOLC=2 @layer=public.default
+    Roboto-Delta-XOLC310 XOLC=310 @layer=public.default
+    Roboto-Delta-XTUC244 XTUC=244 @layer=foreground
+    Roboto-Delta-XTUC244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTUC=244 @layer=foreground
+    Roboto-Delta-XTUC244-opsz144-wdth25-wght400 opsz=1, wdth=25, XTUC=244 @layer=foreground
+    Roboto-Delta-XTUC741 XTUC=741 @layer=foreground
+    Roboto-Delta-XTUC741-opsz144-wdth100-wght100 opsz=1, wght=100, XTUC=741 @layer=foreground
+    Roboto-Delta-XTUC741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTUC=741 @layer=foreground
+    Roboto-Delta-XTLC244 XTLC=244 @layer=foreground
+    Roboto-Delta-XTLC244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTLC=244 @layer=public.default
+    Roboto-Delta-XTLC244-opsz144-wdth25-wght400 opsz=1, XTLC=244 @layer=foreground
+    Roboto-Delta-XTLC741 XTLC=741 @layer=foreground
+    Roboto-Delta-XTLC741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTLC=741 @layer=foreground
+    Roboto-Delta-XTFI244 XTFI=244 @layer=foreground
+    Roboto-Delta-XTFI244-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25, XTFI=244 @layer=foreground
+    Roboto-Delta-XTFI741 XTFI=741 @layer=foreground
+    Roboto-Delta-XTFI741-opsz144-wdth100-wght100 opsz=1, wght=100, XTFI=741 @layer=foreground
+    Roboto-Delta-XTFI741-opsz144-wdth151-wght400 opsz=1, wdth=151, XTFI=741 @layer=foreground
+    Roboto-Delta-XTFI741-opsz144-wdth151-wght100 opsz=1, wght=100, wdth=151, XTFI=741 @layer=foreground
+    Roboto-Delta-XTSP-100 XTSP=-100 @layer=foreground
+    Roboto-Delta-XTSP100 XTSP=100 @layer=foreground
+    Roboto-Delta-YOFI2 YOFI=2 @layer=public.default
+    Roboto-Delta-YOFI280 YOFI=280 @layer=public.default
+    Roboto-Delta-YOUC2 YOUC=2 @layer=public.default
+    Roboto-Delta-YOUC280 YOUC=280 @layer=public.default
+    Roboto-Delta-YOLC2 YOLC=2 @layer=public.default
+    Roboto-Delta-YOLC280 YOLC=280 @layer=public.default
+    Roboto-Delta-YOPE280 YOPE=280 @layer=public.default
+    Roboto-Delta-YOLB280 YOLB=280 @layer=foreground
+    Roboto-Delta-YTAS665 YTAS=665 @layer=public.default
+    Roboto-Delta-YTAS875 YTAS=875 @layer=public.default
+    Roboto-Delta-YTDE-100 YTDE=-100 @layer=public.default
+    Roboto-Delta-YTDE-310 YTDE=-310 @layer=public.default
+    Roboto-Delta-YTFI270 YTFI=270 @layer=public.default
+    Roboto-Delta-YTFI793 YTFI=793 @layer=public.default
+    Roboto-Delta-YTLC426 YTLC=426 @layer=public.default
+    Roboto-Delta-YTLC584 YTLC=584 @layer=public.default
+    Roboto-Delta-YTOS0 YTOS=0 @layer=foreground
+    Roboto-Delta-YTOS50 YTOS=50 @layer=foreground
+    Roboto-Delta-YTUC528 YTUC=528 @layer=public.default
+    Roboto-Delta-YTUC778 YTUC=778 @layer=public.default
+    Roboto-Delta-YTTL50 YTTL=50 @layer=foreground
+    Roboto-Delta-YTTL0 YTTL=0 @layer=foreground
+    Roboto-Delta-XTTW30 XTTW=30 @layer=foreground
+    Roboto-Delta-XTTW0 XTTW=0 @layer=foreground
+    Roboto-Delta-XTUR741 XTUR=741 @layer=foreground
+    Roboto-Delta-WDSP0 WDSP=0 @layer=foreground
+    Roboto-Delta-WDSP1000 WDSP=1000 @layer=foreground
+    Roboto-Delta-BARS0 BARS=0 @layer=foreground
+    Roboto-Delta-XTUD741 XTUD=741 @layer=foreground
+    Roboto-Delta-STLI2 STLI=2 @layer=foreground
+    Roboto-Delta-STLI412 STLI=412 @layer=foreground
+    Roboto-Delta-STLO2 STLO=2 @layer=foreground
+    Roboto-Delta-STLO426 STLO=426 @layer=foreground
+    Roboto-Delta-STUI2 STUI=2 @layer=foreground
+    Roboto-Delta-STUI736 STUI=736 @layer=foreground
+    Roboto-Delta-STUO2 STUO=2 @layer=foreground
+    Roboto-Delta-STUO722 STUO=722 @layer=foreground
+    Roboto-Delta-opsz14-wdth100-wght1000 wght=1000
     Roboto-Delta-opsz144-wdth25-wght100 opsz=1, wght=100, wdth=25
     Roboto-Delta-opsz144-wdth25-wght400 opsz=1, wdth=25
     Roboto-Delta-opsz144-wdth25-wght1000 opsz=1, wght=1000, wdth=25
@@ -127,97 +127,97 @@ sources
     Roboto-Delta-opsz144-wdth100-wght1000 opsz=1, wght=1000
 
 avar2 vars
-    $VANG1 = 0
-    $VROT1 = 0
-    $XOPQ1 = 96
-    $XOFI1 = 96
-    $XOUC1 = 96
-    $XOLC1 = 96
-    $XTRA1 = 463
-    $XTUC1 = 463
-    $XTLC1 = 463
-    $XTFI1 = 463
-    $XTSP1 = 0
-    $XTSP2 = 10
-    $XTSP3 = 30
-    $YOPE1 = 79
-    $YOLB1 = 132
-    $YOPQ1 = 79
-    $YOFI1 = 79
-    $YOUC1 = 79
-    $YOLC1 = 79
-    $BDSZ1 = 0
-    $BDSZ2 = 144
-    $YTAS1 = 728
-    $YTAS2 = 768
-    $YTAS3 = 756
-    $YTDE1 = -208
-    $YTDE2 = -155
-    $YTFI1 = 743
-    $YTLC1 = 526
-    $YTLC2 = 458
-    $YTLC3 = 545
-    $YTOS1 = 30
-    $YTOS2 = 15
-    $YTUC1 = 728
-    $YTTL1 = 25
-    $YTTL2 = 0
-    $XTTW1 = 5
-    $XTTW2 = 0
-    $XTUR1 = 463
-    $WDSP1 = 246
-    $WDSP2 = 250
-    $WDSP3 = 235
-    $WDSP4 = 265
-    $WDSP5 = 220
-    $WDSP6 = 175
-    $BARS1 = 1000
-    $BARS2 = 0
-    $XTUD1 = 463
-    $STUI1 = 92
-    $STUO1 = 92
-    $STLI1 = 32
-    $STLO1 = 32
+    $VANG1 = 0  # used 37 times
+    $VROT1 = 0  # used 37 times
+    $XOPQ1 = 96  # used 10 times
+    $XOFI1 = 96  # used 10 times
+    $XOUC1 = 96  # used 10 times
+    $XOLC1 = 96  # used 10 times
+    $XTRA1 = 463  # used 10 times
+    $XTUC1 = 463  # used 10 times
+    $XTLC1 = 463  # used 10 times
+    $XTFI1 = 463  # used 10 times
+    $XTSP1 = 0  # used 18 times
+    $XTSP2 = 10  # used 5 times
+    $XTSP3 = 30  # used 3 times
+    $YOPE1 = 79  # used 34 times
+    $YOLB1 = 132  # used 31 times
+    $YOPQ1 = 79  # used 9 times
+    $YOFI1 = 79  # used 9 times
+    $YOUC1 = 79  # used 9 times
+    $YOLC1 = 79  # used 9 times
+    $BDSZ1 = 0  # used 26 times
+    $BDSZ2 = 144  # used 10 times
+    $YTAS1 = 728  # used 21 times
+    $YTAS2 = 768  # used 9 times
+    $YTAS3 = 756  # used 6 times
+    $YTDE1 = -208  # used 26 times
+    $YTDE2 = -155  # used 10 times
+    $YTFI1 = 743  # used 38 times
+    $YTLC1 = 526  # used 19 times
+    $YTLC2 = 458  # used 10 times
+    $YTLC3 = 545  # used 6 times
+    $YTOS1 = 30  # used 28 times
+    $YTOS2 = 15  # used 6 times
+    $YTUC1 = 728  # used 36 times
+    $YTTL1 = 25  # used 28 times
+    $YTTL2 = 0  # used 10 times
+    $XTTW1 = 5  # used 28 times
+    $XTTW2 = 0  # used 10 times
+    $XTUR1 = 463  # used 35 times
+    $WDSP1 = 246  # used 13 times
+    $WDSP2 = 250  # used 10 times
+    $WDSP3 = 235  # used 3 times
+    $WDSP4 = 265  # used 3 times
+    $WDSP5 = 220  # used 3 times
+    $WDSP6 = 175  # used 3 times
+    $BARS1 = 1000  # used 28 times
+    $BARS2 = 0  # used 10 times
+    $XTUD1 = 463  # used 36 times
+    $STUI1 = 92  # used 33 times
+    $STUO1 = 92  # used 34 times
+    $STLI1 = 32  # used 35 times
+    $STLO1 = 32  # used 35 times
 
 avar2 matrix
-    outputs                                         VANG  VROT  XOPQ    XOFI    XOUC    XOLC    XTRA  XTUC  XTLC  XTFI  XTSP    YOPE    YOLB  YOPQ  YOFI  YOUC  YOLC  BDSZ    YTAS    YTDE    YTFI  YTLC    YTOS    YTUC  YTTL    XTTW    XTUR  WDSP    BARS    XTUD  STUI  STUO  STLI  STLO
-    [opsz=-1, slnt=0, wght=100, wdth=25, GRAD=0]    $     $     50      50      50      50      451   451   500   451   $       $       $     48    48    48    48    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP3  $       $     $     $     $     $   
-    [opsz=-1, slnt=0, wght=400, wdth=25, GRAD=0]    $     $     100     100     100     100     430   430   430   430   $       $       $     85    85    85    85    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP3  $       $     $     $     $     $   
-    [opsz=-1, slnt=0, wght=1000, wdth=25, GRAD=0]   $     $     150     150     150     150     400   400   390   400   $       $       145   105   105   105   105   $       $YTAS2  $       $     558     $       $     $       $       $     $WDSP3  $VANG1  $     $     $     $     $   
-    [opsz=-1, slnt=0, wght=100, wdth=100, GRAD=0]   $     $     54      54      54      54      532   532   532   532   20      $       $     50    50    50    50    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP2  $       $     $     $     $     $   
-    [opsz=-1, slnt=0, wght=400, wdth=100, GRAD=0]   $     $     103     103     103     103     480   480   480   480   $       $       $     86    86    86    86    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP2  $       $     $     $     $     $   
-    [opsz=-1, slnt=0, wght=1000, wdth=100, GRAD=0]  $     $     200     200     200     200     400   400   400   400   $       $       170   155   155   155   155   $       $YTAS2  $       $     558     $       $     $       $       $     $WDSP2  $VANG1  $     $     $     $     $   
-    [opsz=-1, slnt=0, wght=100, wdth=151, GRAD=0]   $     $     60      60      60      60      590   590   640   540   $XTSP3  $       $     54    54    54    54    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP4  $       $     $     $     $     $   
-    [opsz=-1, slnt=0, wght=400, wdth=151, GRAD=0]   $     $     108     108     108     108     530   530   550   530   $XTSP3  $       $     88    88    88    88    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP4  $       $     $     $     $     $   
-    [opsz=-1, slnt=0, wght=1000, wdth=151, GRAD=0]  $     $     210     210     210     210     414   414   414   414   $XTSP2  $       170   158   158   158   158   $       $YTAS2  $       $     566     $       $     $       $       $     $WDSP4  $VANG1  $     $     $     $     $   
-    [opsz=0, slnt=0, wght=100, wdth=25, GRAD=0]     $     $     44      44      44      44      $     $     $     $     $       $       $     42    42    42    42    $       $YTAS3  $       $     $       $       $     $       $       $     $WDSP5  $       $     $     $     $     $   
-    [opsz=0, slnt=0, wght=400, wdth=25, GRAD=0]     $     $     $STUI1  $STUI1  $STUI1  $STUI1  420   420   420   420   $       $       $     78    78    78    78    $       $       $       $     $       $       $     $       $       $     $WDSP5  $       $     $     $     $     $   
-    [opsz=0, slnt=0, wght=1000, wdth=25, GRAD=0]    $     $     206     206     206     206     327   327   327   327   -30     $       $     154   154   154   154   $       $       $       $     $       $       $     $       $       $     $WDSP5  $VANG1  $     $     $     $     $   
-    [opsz=0, slnt=0, wght=100, wdth=100, GRAD=0]    $     $     47      47      47      47      516   516   516   516   $XTSP2  $       $     44    44    44    44    $       $YTAS3  $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [opsz=0, wght=400, wdth=100, slnt=0]            $     $     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [opsz=0, slnt=0, wght=1000, wdth=100, GRAD=0]   $     $     210     210     210     210     380   380   380   380   -30     $       $     156   156   156   156   $       $       $       $     $       $       $     $       $       $     $       $VANG1  $     $     $     $     $   
-    [opsz=0, slnt=0, wght=100, wdth=151, GRAD=0]    $     $     53      53      53      53      620   620   620   620   $XTSP2  $       $     46    46    46    46    $       $YTAS3  $       $     $       $       $     $       $       $     $WDSP2  $       $     $     $     $     $   
-    [opsz=0, slnt=0, wght=400, wdth=151, GRAD=0]    $     $     100     100     100     100     560   558   575   560   $XTSP2  $       $     80    80    80    80    $       $       $       $     $       $       $     $       $       $     $WDSP2  $       $     $     $     $     $   
-    [opsz=0, slnt=0, wght=1000, wdth=151, GRAD=0]   $     $     214     214     214     214     415   415   415   415   $XTSP2  $       $     158   158   158   158   $       $       $       $     $       $       $     $       $       $     $WDSP2  $VANG1  $     $     $     $     $   
-    [opsz=1, slnt=0, wght=100, wdth=25, GRAD=0]     $     $     2       2       2       2       278   278   278   278   -75     $       $     2     2     2     2     $BDSZ2  $YTAS3  $YTDE2  $     $YTLC2  2       $     $VANG1  $VANG1  $     70      $       $     736   722   412   426 
-    [opsz=1, slnt=0, wght=400, wdth=25, GRAD=0]     $     $     48      48      48      48      267   267   267   267   -70     $       $     48    48    48    48    $BDSZ2  $       $YTDE2  $     $YTLC2  $XTTW1  $     $VANG1  $VANG1  $     70      $VANG1  $     566   722   330   340 
-    [opsz=1, slnt=0, wght=1000, wdth=25, GRAD=0]    $     $     248     248     248     248     244   244   244   244   -100    116     -     200   200   200   200   $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  $     $WDSP2  $VANG1  515   180   256   $     80  
-    [opsz=1, slnt=0, wght=100, wdth=100, GRAD=0]    $     $     4       4       4       4       506   506   506   506   -10     $       $     4     4     4     4     $BDSZ2  $YTAS3  $YTDE2  $     $YTLC2  $XTSP2  $     $VANG1  $VANG1  $     $WDSP6  $       $     $     $     $     $   
-    [opsz=1, slnt=0, wght=400, wdth=100, GRAD=0]    $     $     55      55      55      55      449   449   449   449   -24.9   $       $     49    49    49    49    $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  $     $WDSP6  $       $     $     $     $     $   
-    [opsz=1, slnt=0, wght=500, wdth=100, GRAD=0]    $     $     $       $       $       $       418   418   418   418   -40     -       -     82    82    82    82    $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  $     $WDSP6  $       $     $     $     $     $   
-    [opsz=1, slnt=0, wght=1000, wdth=100, GRAD=0]   $     $     300     300     300     300     270   270   270   270   -80     $XOPQ1  -     200   200   200   200   $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  $     $WDSP2  $VANG1  550   444   $     $     $   
-    [opsz=1, slnt=0, wght=100, wdth=151, GRAD=0]    $     $     4       4       4       4       658   658   678   658   $XTSP3  $       $     4     4     4     4     $BDSZ2  $YTAS3  $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  532   $WDSP2  $       $     60    60    $     $   
-    [opsz=1, slnt=0, wght=400, wdth=151, GRAD=0]    $     $     53      53      53      53      600   600   600   600   20      $       $     50    50    50    50    $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  542   $WDSP2  $       $     $     $     $     $   
-    [opsz=1, slnt=0, wght=1000, wdth=151, GRAD=0]   $     $     300     300     300     300     390   390   390   390   -50     86      -     205   205   205   205   $BDSZ2  $       $YTDE2  $     $YTLC2  20      $     $VANG1  $VANG1  480   390     $VANG1  $     $     $     2     $   
-    [slnt=-12]                                      $     $     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [slnt=3]                                        -3    4     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [XTRA=244]                                      $     $     $       $       $       $       244   244   244   244   $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [XTRA=741]                                      $     $     $       $       $       $       741   741   741   741   $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [XOPQ=2]                                        $     $     2       2       2       2       $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [XOPQ=310]                                      $     $     310     310     310     310     $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [YOPQ=2]                                        $     $     $       $       $       $       $     $     $     $     $       $       $     2     2     2     2     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [YOPQ=280]                                      $     $     $       $       $       $       $     $     $     $     $       $       $     280   280   280   280   $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
-    [BDSZ=-1]                                       $     $     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     -1      665     -100    $     $       $       665   $       $       $     $       $       $     $     $     $     $   
-    [BDSZ=1.4]                                      $     $     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     1.4     778     -252    $     $       $       778   $       $       $     $       $       $     $     $     $     $   
+    outputs                                          VANG  VROT  XOPQ    XOFI    XOUC    XOLC    XTRA  XTUC  XTLC  XTFI  XTSP    YOPE    YOLB  YOPQ  YOFI  YOUC  YOLC  BDSZ    YTAS    YTDE    YTFI  YTLC    YTOS    YTUC  YTTL    XTTW    XTUR  WDSP    BARS    XTUD  STUI  STUO  STLI  STLO
+    [opsz=8, slnt=0, wght=100, wdth=25, GRAD=0]      $     $     50      50      50      50      451   451   500   451   $       $       $     48    48    48    48    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP3  $       $     $     $     $     $   
+    [opsz=8, slnt=0, wght=400, wdth=25, GRAD=0]      $     $     100     100     100     100     430   430   430   430   $       $       $     85    85    85    85    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP3  $       $     $     $     $     $   
+    [opsz=8, slnt=0, wght=1000, wdth=25, GRAD=0]     $     $     150     150     150     150     400   400   390   400   $       $       145   105   105   105   105   $       $YTAS2  $       $     558     $       $     $       $       $     $WDSP3  $VANG1  $     $     $     $     $   
+    [opsz=8, slnt=0, wght=100, wdth=100, GRAD=0]     $     $     54      54      54      54      532   532   532   532   20      $       $     50    50    50    50    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP2  $       $     $     $     $     $   
+    [opsz=8, slnt=0, wght=400, wdth=100, GRAD=0]     $     $     103     103     103     103     480   480   480   480   $       $       $     86    86    86    86    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP2  $       $     $     $     $     $   
+    [opsz=8, slnt=0, wght=1000, wdth=100, GRAD=0]    $     $     200     200     200     200     400   400   400   400   $       $       170   155   155   155   155   $       $YTAS2  $       $     558     $       $     $       $       $     $WDSP2  $VANG1  $     $     $     $     $   
+    [opsz=8, slnt=0, wght=100, wdth=151, GRAD=0]     $     $     60      60      60      60      590   590   640   540   $XTSP3  $       $     54    54    54    54    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP4  $       $     $     $     $     $   
+    [opsz=8, slnt=0, wght=400, wdth=151, GRAD=0]     $     $     108     108     108     108     530   530   550   530   $XTSP3  $       $     88    88    88    88    $       $YTAS2  $       $     $YTLC3  $       $     $       $       $     $WDSP4  $       $     $     $     $     $   
+    [opsz=8, slnt=0, wght=1000, wdth=151, GRAD=0]    $     $     210     210     210     210     414   414   414   414   $XTSP2  $       170   158   158   158   158   $       $YTAS2  $       $     566     $       $     $       $       $     $WDSP4  $VANG1  $     $     $     $     $   
+    [opsz=14, slnt=0, wght=100, wdth=25, GRAD=0]     $     $     44      44      44      44      $     $     $     $     $       $       $     42    42    42    42    $       $YTAS3  $       $     $       $       $     $       $       $     $WDSP5  $       $     $     $     $     $   
+    [opsz=14, slnt=0, wght=400, wdth=25, GRAD=0]     $     $     $STUI1  $STUI1  $STUI1  $STUI1  420   420   420   420   $       $       $     78    78    78    78    $       $       $       $     $       $       $     $       $       $     $WDSP5  $       $     $     $     $     $   
+    [opsz=14, slnt=0, wght=1000, wdth=25, GRAD=0]    $     $     206     206     206     206     327   327   327   327   -30     $       $     154   154   154   154   $       $       $       $     $       $       $     $       $       $     $WDSP5  $VANG1  $     $     $     $     $   
+    [opsz=14, slnt=0, wght=100, wdth=100, GRAD=0]    $     $     47      47      47      47      516   516   516   516   $XTSP2  $       $     44    44    44    44    $       $YTAS3  $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [opsz=14, wght=400, wdth=100, slnt=0]            $     $     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [opsz=14, slnt=0, wght=1000, wdth=100, GRAD=0]   $     $     210     210     210     210     380   380   380   380   -30     $       $     156   156   156   156   $       $       $       $     $       $       $     $       $       $     $       $VANG1  $     $     $     $     $   
+    [opsz=14, slnt=0, wght=100, wdth=151, GRAD=0]    $     $     53      53      53      53      620   620   620   620   $XTSP2  $       $     46    46    46    46    $       $YTAS3  $       $     $       $       $     $       $       $     $WDSP2  $       $     $     $     $     $   
+    [opsz=14, slnt=0, wght=400, wdth=151, GRAD=0]    $     $     100     100     100     100     560   558   575   560   $XTSP2  $       $     80    80    80    80    $       $       $       $     $       $       $     $       $       $     $WDSP2  $       $     $     $     $     $   
+    [opsz=14, slnt=0, wght=1000, wdth=151, GRAD=0]   $     $     214     214     214     214     415   415   415   415   $XTSP2  $       $     158   158   158   158   $       $       $       $     $       $       $     $       $       $     $WDSP2  $VANG1  $     $     $     $     $   
+    [opsz=144, slnt=0, wght=100, wdth=25, GRAD=0]    $     $     2       2       2       2       278   278   278   278   -75     $       $     2     2     2     2     $BDSZ2  $YTAS3  $YTDE2  $     $YTLC2  2       $     $VANG1  $VANG1  $     70      $       $     736   722   412   426 
+    [opsz=144, slnt=0, wght=400, wdth=25, GRAD=0]    $     $     48      48      48      48      267   267   267   267   -70     $       $     48    48    48    48    $BDSZ2  $       $YTDE2  $     $YTLC2  $XTTW1  $     $VANG1  $VANG1  $     70      $VANG1  $     566   722   330   340 
+    [opsz=144, slnt=0, wght=1000, wdth=25, GRAD=0]   $     $     248     248     248     248     244   244   244   244   -100    116     -     200   200   200   200   $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  $     $WDSP2  $VANG1  515   180   256   $     80  
+    [opsz=144, slnt=0, wght=100, wdth=100, GRAD=0]   $     $     4       4       4       4       506   506   506   506   -10     $       $     4     4     4     4     $BDSZ2  $YTAS3  $YTDE2  $     $YTLC2  $XTSP2  $     $VANG1  $VANG1  $     $WDSP6  $       $     $     $     $     $   
+    [opsz=144, slnt=0, wght=400, wdth=100, GRAD=0]   $     $     55      55      55      55      449   449   449   449   -24.9   $       $     49    49    49    49    $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  $     $WDSP6  $       $     $     $     $     $   
+    [opsz=144, slnt=0, wght=500, wdth=100, GRAD=0]   $     $     $       $       $       $       418   418   418   418   -40     -       -     82    82    82    82    $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  $     $WDSP6  $       $     $     $     $     $   
+    [opsz=144, slnt=0, wght=1000, wdth=100, GRAD=0]  $     $     300     300     300     300     270   270   270   270   -80     $XOPQ1  -     200   200   200   200   $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  $     $WDSP2  $VANG1  550   444   $     $     $   
+    [opsz=144, slnt=0, wght=100, wdth=151, GRAD=0]   $     $     4       4       4       4       658   658   678   658   $XTSP3  $       $     4     4     4     4     $BDSZ2  $YTAS3  $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  532   $WDSP2  $       $     60    60    $     $   
+    [opsz=144, slnt=0, wght=400, wdth=151, GRAD=0]   $     $     53      53      53      53      600   600   600   600   20      $       $     50    50    50    50    $BDSZ2  $       $YTDE2  $     $YTLC2  $YTOS2  $     $VANG1  $VANG1  542   $WDSP2  $       $     $     $     $     $   
+    [opsz=144, slnt=0, wght=1000, wdth=151, GRAD=0]  $     $     300     300     300     300     390   390   390   390   -50     86      -     205   205   205   205   $BDSZ2  $       $YTDE2  $     $YTLC2  20      $     $VANG1  $VANG1  480   390     $VANG1  $     $     $     2     $   
+    [slnt=-12]                                       $     $     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [slnt=3]                                         -3    4     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [XTRA=244]                                       $     $     $       $       $       $       244   244   244   244   $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [XTRA=741]                                       $     $     $       $       $       $       741   741   741   741   $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [XOPQ=2]                                         $     $     2       2       2       2       $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [XOPQ=310]                                       $     $     310     310     310     310     $     $     $     $     $       $       $     $     $     $     $     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [YOPQ=2]                                         $     $     $       $       $       $       $     $     $     $     $       $       $     2     2     2     2     $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [YOPQ=280]                                       $     $     $       $       $       $       $     $     $     $     $       $       $     280   280   280   280   $       $       $       $     $       $       $     $       $       $     $       $       $     $     $     $     $   
+    [BDSZ=-1]                                        $     $     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     -1      665     -100    $     $       $       665   $       $       $     $       $       $     $     $     $     $   
+    [BDSZ=1.4]                                       $     $     $       $       $       $       $     $     $     $     $       $       $     $     $     $     $     1.4     778     -252    $     $       $       778   $       $       $     $       $       $     $     $     $     $   
 
 instances off

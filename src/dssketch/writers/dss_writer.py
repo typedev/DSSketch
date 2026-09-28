@@ -867,11 +867,11 @@ class DSSWriter:
         Returns:
             Label name if found, None otherwise
         """
-        # Search in regular axes
+        # Inputs are user space, so match the label's user value
         for axis in dss_doc.axes:
             if axis.name == axis_name or axis.tag == axis_name:
                 for mapping in axis.mappings:
-                    if mapping.design_value == value:
+                    if mapping.label and mapping.user_value == value:
                         return mapping.label
                 break
 

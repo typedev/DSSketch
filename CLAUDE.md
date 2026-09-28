@@ -1335,6 +1335,13 @@ avar2
 2. Converter transforms user=400 → design=435 for DesignSpace XML (via `_user_to_design_value()`)
 3. Output values are already in design space, used as-is
 
+**Every number, not only labels:** `DSSAvar2Mapping.input` always holds user
+space. DSS → DS maps each input through `DSSAxis.get_design_value()`
+(piecewise linear, like fontTools); DS → DSS maps DesignSpace's design-space
+inputs back with `axis.map_backward()`. Never pass a number through unmapped:
+that is how `[wght=550]` used to reach the font as 550 instead of 512.5.
+`_validate_avar2_input_space()` flags design values left in old sketches.
+
 **This creates clean semantics:**
 - Axis mapping `Regular > 435` = default design value
 - avar2 overrides for specific axis combinations

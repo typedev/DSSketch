@@ -315,32 +315,16 @@ class DSSToDesignSpace:
         return mapping
 
     def _user_to_design_value(self, axis_key: str, user_value: float, dss_doc: DSSDocument) -> float:
-        """Convert user space value to design space value for an axis.
+        """Convert a user-space value to design space through the axis's mappings.
 
-        Looks up the axis mapping to find the design value corresponding to the user value.
-        If no exact mapping is found, returns the user value as-is (they might be equal).
-
-        Args:
-            axis_key: Axis name or tag
-            user_value: Value in user space
-            dss_doc: DSS document with axis definitions
-
-        Returns:
-            Corresponding design space value
+        avar2 inputs are user space in DSSketch (labels and plain numbers alike)
+        and design space in DesignSpace. A number between two mapping points is
+        interpolated along the axis curve; it used to pass through unchanged
+        unless it hit a labeled point exactly.
         """
-        # Search in both regular and hidden axes
-        all_axes = dss_doc.axes + dss_doc.hidden_axes
-
-        for axis in all_axes:
+        for axis in dss_doc.axes + dss_doc.hidden_axes:
             if axis.name == axis_key or axis.tag == axis_key:
-                # Look for a mapping with this user_value
-                for mapping in axis.mappings:
-                    if mapping.user_value == user_value:
-                        return mapping.design_value
-
-                # No exact mapping found - user and design might be equal
-                # This is common for axes without explicit mappings
-                return user_value
+                return axis.get_design_value(user_value)
 
         # Axis not found - return as-is
         return user_value

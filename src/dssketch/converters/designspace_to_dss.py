@@ -425,9 +425,15 @@ class DesignSpaceToDSS:
         name = getattr(mapping, 'description', None)
 
         # Convert input location (axis name -> value)
+        # DesignSpace stores inputs in design space; DSSketch holds them in user
+        # space (what a label means, and what DSS -> DS maps forward again)
         input_location = {}
         if hasattr(mapping, 'inputLocation') and mapping.inputLocation:
+            axes_by_name = {axis.name: axis for axis in ds_doc.axes}
             for axis_name, value in mapping.inputLocation.items():
+                axis = axes_by_name.get(axis_name)
+                if axis is not None and getattr(axis, "map", None):
+                    value = axis.map_backward(value)
                 # Convert to axis tag if possible for shorter output
                 axis_tag = self._get_axis_tag(axis_name, ds_doc)
                 input_location[axis_tag] = value
