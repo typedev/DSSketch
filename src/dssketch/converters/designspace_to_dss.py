@@ -6,7 +6,7 @@ This module converts DesignSpace documents to DSS format.
 
 import json
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from fontTools.designspaceLib import (
     AxisDescriptor,
@@ -117,9 +117,7 @@ class DesignSpaceToDSS:
 
         # Convert rules
         for rule in ds_doc.rules:
-            dss_rule = self._convert_rule(rule, ds_doc)
-            if dss_rule:
-                dss_doc.rules.append(dss_rule)
+            dss_doc.rules.extend(self._convert_rule(rule, ds_doc))
 
         return dss_doc
 
@@ -360,37 +358,52 @@ class DesignSpaceToDSS:
             location=dict(instance.location),
         )
 
-    def _convert_rule(self, rule: RuleDescriptor, ds_doc: DesignSpaceDocument) -> Optional[DSSRule]:
-        """Convert DesignSpace rule to DSS rule"""
+    def _convert_rule(self, rule: RuleDescriptor, ds_doc: DesignSpaceDocument) -> List[DSSRule]:
+        """Convert a DesignSpace rule to DSS rules, one per conditionset.
+
+        A DesignSpace rule applies when ANY of its conditionsets matches, and the
+        conditions inside one conditionset are ANDed. A DSS rule holds a single
+        AND-ed condition, so a rule with several conditionsets becomes several
+        DSS rules with the same substitutions and name, one per conditionset.
+        That keeps the OR: the substitution applies wherever any of them matches.
+        Merging the conditions into one rule would turn it into an AND.
+        """
         if not rule.subs:
-            return None
+            return []
 
-        substitutions = []
-        for sub in rule.subs:
-            substitutions.append((sub[0], sub[1]))
+        substitutions = [(sub[0], sub[1]) for sub in rule.subs]
 
-        conditions = []
-        if hasattr(rule, "conditionSets") and rule.conditionSets:
+        condition_sets = []
+        if getattr(rule, "conditionSets", None):
             for condset in rule.conditionSets:
-                for condition in condset:
-                    conditions.append(
+                condition_sets.append(
+                    [
                         {
                             "axis": condition["name"],
                             "minimum": condition.get("minimum"),
                             "maximum": condition.get("maximum"),
                         }
-                    )
-        elif hasattr(rule, "conditions"):
-            for condition in rule.conditions:
-                conditions.append(
+                        for condition in condset
+                    ]
+                )
+        elif getattr(rule, "conditions", None):
+            condition_sets.append(
+                [
                     {
                         "axis": condition.name,
                         "minimum": condition.minimum,
                         "maximum": condition.maximum,
                     }
-                )
+                    for condition in rule.conditions
+                ]
+            )
+        if not condition_sets:
+            condition_sets = [[]]
 
-        return DSSRule(name=rule.name or "rule", substitutions=substitutions, conditions=conditions)
+        return [
+            DSSRule(name=rule.name or "rule", substitutions=list(substitutions), conditions=conditions)
+            for conditions in condition_sets
+        ]
 
     # ============================================================
     # avar2 CONVERSION METHODS
