@@ -1,0 +1,78 @@
+# DSSketch gap research (September 2026)
+
+This research asks what DSSketch is missing, measured against an independent
+audit of DesignSpace failure modes: `designspace-lint`'s
+`docs/audit/2026-09-coverage/`, 163 rows derived from the specs and the fontTools
+source. It rests on two design principles:
+
+- DSSketch sits above DesignSpace. Instances are generated from labeled mappings
+  (`instances auto` / `skip`) rather than listed, so per-instance features are
+  out of scope by design.
+- DS → DSS diagnoses rather than transforms. DSS-only constructs are never
+  inferred from a DesignSpace.
+
+The headline findings below were re-verified by hand, beyond the reports' own
+probes.
+
+## Reports
+
+| File | Question |
+|---|---|
+| `expressibility.md` | Which DesignSpace 5 features DSSketch can express: supported, worth adding, out of scope by design, grey zone. Round-trip probes included |
+| `avar2-hoi.md` | The avar2/HOI rows of the audit against DSSketch's avar2 syntax: traps it lets through, gaps in what it can express, grey zones, proposed checks |
+| `validation-gaps.md` | Every non-avar2 audit row: prevented by construction, caught, could catch, or **can introduce** (bugs DSSketch's own generation ships) |
+
+`repro/` holds the probes behind the reports. Run the `repro/validation/*.py`
+scripts from the repository root with `uv run python`. The ones that need UFOs
+expect to run inside `repro/validation/` after `python make_ufos.py`.
+
+## Plan
+
+**1.2.2: fixes only.** Correct files keep their behaviour; silent failures become
+errors.
+1. **Discreteness is inferred, not stored.** DSS → DS treats an axis as discrete
+   only if it is named `italic`/`ital`, so `slnt discrete` and custom discrete axes
+   become continuous. DS → DSS writes a 3+-value discrete axis as a range
+   (`0:0:2`), and converting it back crashes with "multiple @base".
+2. **Rule OR becomes AND.** A DesignSpace rule with several `<conditionset>`s (OR)
+   is flattened into one AND condition on DS → DSS.
+3. **Omitted source coordinates use the user-space default** where the
+   design-space default is needed.
+4. **avar2 numeric input is not mapped.** A numeric input that is not a label is
+   passed through instead of being mapped through the axis `<map>`: `[wght=550]`
+   stays 550 where 512.5 is correct. The model also carries user values when parsed
+   from text and design values when converted from DS.
+5. **Two labels with the same user value on one axis** corrupt the axis map and
+   `instances auto`.
+6. **Rule glyphs are checked against the union of all masters**, not the default
+   master, and explicit `a > a.alt` rules are not checked at all.
+7. **An explicit `instances` list is dropped without a word.**
+8. **Label-based axis ranges skip the min ≤ default ≤ max check.**
+
+**1.3.0: checks and diagnostics.**
+- avar2 checks: a default-input mapping (AVAR2-01) is an error, and the
+  `AmstelvarA2-Roman` example has one; inputs/outputs outside the axis; an unknown
+  axis name as a real error rather than a log line; corner completeness; outputs on
+  visible axes.
+- Source range and duplicate locations, axis map monotonicity, rule min ≤ max,
+  UPM consistency.
+- ConversionReport entries for everything DS → DSS drops without saying so:
+  per-instance and per-source fields, `rulesProcessingLast`, `elidedFallbackName`,
+  and the hidden-axis heuristic's changes.
+
+**1.4.0: syntax.** Document `lib` (present in 4 of 4 real files, lost today); rule
+OR; `rules processing last`; `elided-fallback`; a readable form for large avar2
+matrices; documentation of avar2 output semantics (outputs are deltas, and mappings
+never chain).
+
+## Open decisions
+
+1. Keep the `hidden` heuristic, or rely on explicit `axes hidden` only? Every real
+   file marks hidden axes explicitly.
+2. Should `DSSAvar2Mapping.input` always hold user space, with DS → DSS mapping
+   back through the axis `<map>`? The 1.2.2 fix for item 4 takes this direction,
+   because it is what CLAUDE.md already documents.
+3. What does `$` mean on a visible output axis that has its own `<map>`: the user
+   default or the design default?
+4. Explicit instances: reject them with a clear error, or support them as an
+   exception? 1.2.2 only makes the silent drop visible.

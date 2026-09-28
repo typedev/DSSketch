@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.1">
+  <axes>
+    <axis tag="wght" name="weight" minimum="100" maximum="900" default="400">
+      <labelname xml:lang="en">Weight</labelname>
+      <map input="100" output="100"/>
+      <map input="400" output="400"/>
+      <map input="700" output="625"/>
+      <map input="900" output="1000"/>
+      <labels>
+        <label uservalue="100" name="Thin"/>
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="700" name="Bold"/>
+        <label uservalue="900" name="Black"/>
+      </labels>
+    </axis>
+    <axis tag="XHID" name="XHID" minimum="0" maximum="100" default="0" hidden="1">
+      <labelname xml:lang="en">XHID</labelname>
+    </axis>
+    <mappings>
+      <mapping>
+        <input>
+          <dimension name="weight" xvalue="550"/>
+        </input>
+        <output>
+          <dimension name="XHID" xvalue="50"/>
+        </output>
+      </mapping>
+    </mappings>
+  </axes>
+  <sources>
+    <source filename="sources/Regular.ufo" name="source.1" familyname="ProbeFont" stylename="Regular.ufo">
+      <lib copy="1"/>
+      <groups copy="1"/>
+      <features copy="1"/>
+      <info copy="1"/>
+      <location>
+        <dimension name="weight" xvalue="400"/>
+      </location>
+    </source>
+    <source filename="sources/Black.ufo" name="source.2" familyname="ProbeFont" stylename="Black.ufo">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+      </location>
+    </source>
+  </sources>
+</designspace>

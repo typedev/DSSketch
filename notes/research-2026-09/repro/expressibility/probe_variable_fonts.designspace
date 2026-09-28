@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="wght" name="weight" minimum="100" maximum="900" default="400">
+      <map input="100" output="100"/>
+      <map input="400" output="400"/>
+      <map input="900" output="900"/>
+      <labels>
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="900" name="Bold"/>
+      </labels>
+    </axis>
+    <axis tag="ital" name="italic" values="0 1" default="0">
+      <labels>
+        <label uservalue="0" name="Upright" elidable="true"/>
+        <label uservalue="1" name="Italic"/>
+      </labels>
+    </axis>
+  </axes>
+  <sources>
+    <source filename="Regular.ufo" familyname="Probe" stylename="Regular">
+      <info copy="1"/>
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="Bold.ufo">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="Italic.ufo">
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+    <source filename="BoldItalic.ufo">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+  </sources>
+  <variable-fonts>
+    <variable-font name="ProbeVF-Roman" filename="ProbeVF-Roman.ttf">
+      <axis-subsets>
+        <axis-subset name="weight"/>
+        <axis-subset name="italic" uservalue="0"/>
+      </axis-subsets>
+    </variable-font>
+    <variable-font name="ProbeVF-Italic" filename="ProbeVF-Italic.ttf">
+      <axis-subsets>
+        <axis-subset name="weight" userminimum="400" usermaximum="900" userdefault="400"/>
+        <axis-subset name="italic" uservalue="1"/>
+      </axis-subsets>
+      <lib>
+        <dict>
+          <key>com.example.note</key>
+          <string>italic cut</string>
+        </dict>
+      </lib>
+    </variable-font>
+  </variable-fonts>
+</designspace>

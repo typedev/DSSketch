@@ -1,0 +1,17 @@
+family Probe
+
+axes
+    wght 100:400:900 "weight"
+        100 > 100
+        Regular > 400 @elidable
+        900 Bold > 900
+    wdth 75:100:125 "width"
+        Condensed > 75
+        Normal > 100 @elidable
+        125 > 125
+
+sources [wght, wdth]
+    Regular [Regular, Normal] @base
+    Bold-Condensed [Bold, Condensed]
+
+instances off

@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="wght" name="weight" minimum="100" maximum="900" default="400">
+      <labelname xml:lang="de">Schriftstärke</labelname>
+      <labelname xml:lang="en">Weight</labelname>
+      <labelname xml:lang="fr">Graisse</labelname>
+      <map input="100" output="100"/>
+      <map input="400" output="400"/>
+      <map input="700" output="700"/>
+      <map input="900" output="900"/>
+      <labels ordering="3">
+        <label uservalue="300" userminimum="100" usermaximum="349" name="Light">
+          <labelname xml:lang="fr">Léger</labelname>
+        </label>
+        <label uservalue="400" userminimum="350" usermaximum="549" name="Regular" elidable="true">
+          <labelname xml:lang="fr">Normal</labelname>
+        </label>
+        <label uservalue="700" userminimum="550" usermaximum="849" name="Bold" linkeduservalue="400"/>
+        <label uservalue="900" userminimum="850" usermaximum="900" name="Black" oldersibling="true"/>
+      </labels>
+    </axis>
+  </axes>
+  <sources>
+    <source filename="Regular.ufo" name="S1" familyname="Probe" stylename="Regular">
+      <info copy="1"/>
+      <location>
+        <dimension name="weight" xvalue="400"/>
+      </location>
+    </source>
+    <source filename="Bold.ufo" name="S2" familyname="Probe" stylename="Bold">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+      </location>
+    </source>
+  </sources>
+  <instances>
+    <instance familyname="Probe" stylename="Regular">
+      <location>
+        <dimension name="weight" xvalue="400"/>
+      </location>
+    </instance>
+  </instances>
+</designspace>

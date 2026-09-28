@@ -1,0 +1,21 @@
+family ProbeFont
+path sources
+
+axes
+    wght 100:400:900
+        Thin > 100
+        Regular > 400 @elidable
+        700 Bold > 625
+        900 Black > 1000
+
+axes hidden
+    XHID 0:0:100
+
+avar2
+    [wght=550] > XHID=50
+
+sources [wght]
+    Regular.ufo [400] @base
+    Black.ufo [900]
+
+instances off

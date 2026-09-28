@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="wght" name="weight" minimum="400" maximum="700" default="400">
+      <labelname xml:lang="en">Weight</labelname>
+      <map input="400" output="400"/>
+      <map input="700" output="700"/>
+      <labels ordering="0">
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="700" name="Bold"/>
+      </labels>
+    </axis>
+  </axes>
+  <rules>
+    <rule name="heavy alternates">
+      <conditionset>
+        <condition name="weight" minimum="700"/>
+      </conditionset>
+      <sub name="cent" with="cent.rvrn"/>
+      <sub name="dollar" with="dollar.rvrn"/>
+    </rule>
+  </rules>
+  <sources>
+    <source filename="sources/Regular.ufo" name="source.1" familyname="RuleTest" stylename="Weight400">
+      <lib copy="1"/>
+      <groups copy="1"/>
+      <features copy="1"/>
+      <info copy="1"/>
+      <location>
+        <dimension name="weight" xvalue="400"/>
+      </location>
+    </source>
+    <source filename="sources/Bold.ufo" name="source.2" familyname="RuleTest" stylename="Weight700">
+      <location>
+        <dimension name="weight" xvalue="700"/>
+      </location>
+    </source>
+    <source filename="sources/Bold-sparse.ufo" name="sparse.3" familyname="RuleTest" stylename="Weight700">
+      <location>
+        <dimension name="weight" xvalue="700"/>
+      </location>
+    </source>
+  </sources>
+  <instances>
+    <instance familyname="RuleTest" stylename="Regular" filename="instances/RuleTest-Regular.ufo" postscriptfontname="RuleTest-Regular">
+      <location>
+        <dimension name="weight" xvalue="400"/>
+      </location>
+    </instance>
+    <instance familyname="RuleTest" stylename="Bold" filename="instances/RuleTest-Bold.ufo" postscriptfontname="RuleTest-Bold">
+      <location>
+        <dimension name="weight" xvalue="700"/>
+      </location>
+    </instance>
+  </instances>
+</designspace>

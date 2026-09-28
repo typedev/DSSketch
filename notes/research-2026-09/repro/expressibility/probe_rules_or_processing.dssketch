@@ -1,0 +1,20 @@
+family Probe
+
+axes
+    wght 100:400:900 "weight"
+        100 > 100
+        Regular > 400 @elidable
+        900 Bold > 900
+    wdth 75:100:125 "width"
+        75 > 75
+        100 > 100
+        125 > 125
+
+sources [wght, wdth]
+    Regular [Regular, 100] @base
+    Bold [Bold, 100]
+
+rules
+    dollar > dollar.alt (weight >= 700 && width <= 80) "orRule"
+
+instances off

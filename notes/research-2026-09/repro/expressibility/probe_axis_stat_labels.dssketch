@@ -1,0 +1,15 @@
+family Probe
+
+axes
+    wght 100:400:900 "weight"
+        100 > 100
+        Light > 300
+        Regular > 400 @elidable
+        Bold > 700
+        Black > 900
+
+sources [wght]
+    Regular [Regular] @base
+    Bold [Black]
+
+instances auto

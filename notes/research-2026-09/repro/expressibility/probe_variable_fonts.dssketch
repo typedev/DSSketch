@@ -1,0 +1,18 @@
+family Probe
+
+axes
+    wght 100:400:900 "weight"
+        100 > 100
+        Regular > 400 @elidable
+        900 Bold > 900
+    ital discrete "italic"
+        Upright @elidable
+        Italic
+
+sources [wght, ital]
+    Regular [Regular, Upright] @base
+    Bold [Bold, Upright]
+    Italic [Regular, Italic] @base
+    BoldItalic [Bold, Italic]
+
+instances off

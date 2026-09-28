@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="wght" name="weight" minimum="100" maximum="900" default="400">
+      <map input="100" output="100"/>
+      <map input="400" output="400"/>
+      <map input="900" output="900"/>
+      <labels>
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="900" name="Bold"/>
+      </labels>
+    </axis>
+    <axis tag="wdth" name="width" minimum="75" maximum="125" default="100">
+      <map input="75" output="75"/>
+      <map input="100" output="100"/>
+      <map input="125" output="125"/>
+      <labels>
+        <label uservalue="75" name="Condensed"/>
+        <label uservalue="100" name="Normal" elidable="true"/>
+      </labels>
+    </axis>
+  </axes>
+  <labels>
+    <label name="Bold Condensed">
+      <location>
+        <dimension name="weight" uservalue="900"/>
+        <dimension name="width" uservalue="75"/>
+      </location>
+    </label>
+    <label name="Reading" elidable="true">
+      <labelname xml:lang="fr">Lecture</labelname>
+      <location>
+        <dimension name="weight" uservalue="400"/>
+      </location>
+    </label>
+  </labels>
+  <sources>
+    <source filename="Regular.ufo" familyname="Probe" stylename="Regular">
+      <info copy="1"/>
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="width" xvalue="100"/>
+      </location>
+    </source>
+    <source filename="Bold-Condensed.ufo" familyname="Probe" stylename="Bold Condensed">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="width" xvalue="75"/>
+      </location>
+    </source>
+  </sources>
+</designspace>

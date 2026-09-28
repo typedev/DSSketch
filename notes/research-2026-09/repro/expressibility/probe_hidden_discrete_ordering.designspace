@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<designspace format="5.0">
+  <axes>
+    <axis tag="wght" name="weight" minimum="100" maximum="900" default="400">
+      <map input="100" output="100"/>
+      <map input="400" output="400"/>
+      <map input="900" output="900"/>
+      <labels ordering="0">
+        <label uservalue="400" name="Regular" elidable="true"/>
+        <label uservalue="900" name="Bold"/>
+      </labels>
+    </axis>
+    <axis tag="GRAD" name="GRAD" minimum="-200" maximum="150" default="0" hidden="1">
+      <labels ordering="1"/>
+    </axis>
+    <axis tag="ital" name="italic" values="0 1" default="0">
+      <labels ordering="2">
+        <label uservalue="0" name="Upright" elidable="true"/>
+        <label uservalue="1" name="Italic"/>
+      </labels>
+    </axis>
+  </axes>
+  <sources>
+    <source filename="Regular-Upright.ufo" name="Regular-Upright" familyname="Probe" stylename="Regular">
+      <info copy="1"/>
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="GRAD" xvalue="0"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="Bold-Upright.ufo" name="Bold-Upright">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="GRAD" xvalue="0"/>
+        <dimension name="italic" xvalue="0"/>
+      </location>
+    </source>
+    <source filename="Regular-Italic.ufo" name="Regular-Italic">
+      <location>
+        <dimension name="weight" xvalue="400"/>
+        <dimension name="GRAD" xvalue="0"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+    <source filename="Bold-Italic.ufo" name="Bold-Italic">
+      <location>
+        <dimension name="weight" xvalue="900"/>
+        <dimension name="GRAD" xvalue="0"/>
+        <dimension name="italic" xvalue="1"/>
+      </location>
+    </source>
+  </sources>
+</designspace>

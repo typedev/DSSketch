@@ -1,0 +1,20 @@
+family ProbeFont3
+path sources
+
+axes
+    wght 100:400:900
+        Thin > 100
+        Regular > 400 @elidable
+        Black > 900
+
+axes hidden
+    XHID 0:0:100
+
+avar2
+    [wght=900] > XHDI=50
+
+sources [wght]
+    Regular.ufo [400] @base
+    Black.ufo [900]
+
+instances off
