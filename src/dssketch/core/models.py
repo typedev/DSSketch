@@ -165,3 +165,18 @@ class DSSDocument:
     avar2_vars_counts: Dict[str, int] = field(default_factory=dict)  # Variable frequency counts: $name -> count
     avar2_mappings: List[DSSAvar2Mapping] = field(default_factory=list)  # avar2 mappings
 
+
+def elided_fallback_name(doc: "DSSDocument") -> str:
+    """The name for a location where every label is elided.
+
+    DS5 names such an instance with the document's elidedFallbackName; without
+    one, the name derived from STAT is empty, and fontmake/ufo2ft give the
+    variable font's default named instance an empty name. It is the elidable
+    label of the weight axis ("Regular", or e.g. "Book"), else "Regular".
+    """
+    for axis in doc.axes:
+        if axis.tag == "wght":
+            for mapping in axis.mappings:
+                if mapping.elidable and mapping.label:
+                    return mapping.label
+    return "Regular"

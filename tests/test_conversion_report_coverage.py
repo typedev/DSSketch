@@ -80,7 +80,7 @@ def test_plain_document_reports_nothing():
 def test_document_level_losses():
     d = _base_doc()
     d.lib = {"com.example.setting": 1}
-    d.elidedFallbackName = "Regular"
+    d.elidedFallbackName = "Book"  # the sketch would generate "Regular"
     d.locationLabels = [LocationLabelDescriptor(name="Reading", userLocation={"weight": 400})]
     r = _report(d)
     assert r.find(CATEGORY_DOCUMENT, DOCUMENT_LIB_DROPPED).raw_data["keys"] == ["com.example.setting"]
@@ -244,3 +244,9 @@ def test_sketch_validation_messages_come_first():
 def test_without_return_report_the_api_is_unchanged():
     ds = dssketch.convert_dss_string_to_designspace(SKETCH.format(rules="").replace("rules\n\n", ""))
     assert ds.axes and not isinstance(ds, tuple)
+
+
+def test_generated_elided_fallback_is_not_reported():
+    d = _base_doc()
+    d.elidedFallbackName = "Regular"
+    assert not _report(d).find(CATEGORY_DOCUMENT, DOCUMENT_ELIDED_FALLBACK_DROPPED)

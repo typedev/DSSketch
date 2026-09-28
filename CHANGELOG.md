@@ -4,6 +4,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **A variable font's default named instance could end up without a name**: a DesignSpace from DSSketch had no `elidedfallbackname`. fontmake and ufo2ft fill any instance whose localized names are empty with the names DS5 derives from the STAT labels (`splitInterpolable(makeNames=True)`), and with every label elided that name is empty — so SuperFont's Regular got an empty `fvar` name. DSS → DS now always writes `elidedfallbackname`: the weight axis's elidable label (`Regular`, `Book`, …), else `Regular`. DS → DSS reports a DesignSpace's own value only when it differs from that. The seven generated example DesignSpaces gain the attribute and nothing else
+
 ### Added
 - **`lang` — derived names in other languages**: a line `lang de, ru, es-419` makes DSS → DS write every name it derives from labels in those languages too — instance style names (the `fvar` subfamily and nameID 17), STAT label names and axis names — from `data/font-resources-translations.json` (16 languages; override with `dssketch-data copy font-resources-translations.json`). A style name is translated word by word, each word a label, in the order and with the elisions of the English name. Words without a translation stay in English and are reported per language (`DOCUMENT_TRANSLATION_MISSING`), as is a language the dictionary does not have. Hidden axes are left alone. DS → DSS writes `lang` back only when a DesignSpace's localized names are exactly the dictionary's; otherwise nothing is replaced and the differences are reported (`DOCUMENT_TRANSLATIONS_DIFFER`). The dictionary was completed for the standard labels it lacked: Hairline, Heavy, Ultra/Extra Condensed, Ultra Expanded/Extended, Upright (also for Roman), with Slant read as Slanted; label spelling no longer matters (`ExtraLight` = `Extralight` = `Extra Light`)
 

@@ -30,6 +30,7 @@ from ..core.instances import createInstances
 
 # Import models from core
 from ..core.translations import Translations
+from ..core.models import elided_fallback_name
 from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 
 # Import validation components
@@ -187,6 +188,10 @@ class DSSToDesignSpace:
             rule = self._convert_rule(dss_rule, doc)
             if rule:
                 doc.addRule(rule)
+
+        # Always named: without it the STAT-derived name of the all-elided
+        # location is empty, and fontmake gives that VF instance an empty name
+        doc.elidedFallbackName = elided_fallback_name(dss_doc)
 
         if dss_doc.languages:
             self._apply_languages(doc, dss_doc)

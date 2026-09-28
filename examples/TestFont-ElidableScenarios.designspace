@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <designspace format="5.0">
-  <axes>
+  <axes elidedfallbackname="Regular">
     <axis tag="wdth" name="width" minimum="75" maximum="125" default="100">
       <labelname xml:lang="en">Width</labelname>
       <map input="75" output="75"/>

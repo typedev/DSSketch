@@ -18,6 +18,7 @@ from fontTools.designspaceLib import (
 
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
 from ..core.instances import createInstances
+from ..core.models import elided_fallback_name
 from ..core.translations import Translations
 from ..core.report import (
     AXIS_LABEL_DATA_DROPPED,
@@ -233,10 +234,13 @@ class DesignSpaceToDSS:
                 details="Tools store project settings here (paths, plugin data, varLib options).",
                 raw_data={"keys": sorted(ds_doc.lib)},
             ))
-        if ds_doc.elidedFallbackName:
+        if ds_doc.elidedFallbackName and ds_doc.elidedFallbackName != elided_fallback_name(dss_doc):
             report.add(ConversionIssue(
                 category=CATEGORY_DOCUMENT, code=DOCUMENT_ELIDED_FALLBACK_DROPPED, severity=SEVERITY_INFO,
-                description=f"elidedFallbackName '{ds_doc.elidedFallbackName}' dropped",
+                description=(
+                    f"elidedFallbackName '{ds_doc.elidedFallbackName}' dropped; the sketch "
+                    f"generates '{elided_fallback_name(dss_doc)}'"
+                ),
                 raw_data={"elidedFallbackName": ds_doc.elidedFallbackName},
             ))
         if ds_doc.locationLabels:
