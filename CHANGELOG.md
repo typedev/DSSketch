@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.5] - 2026-10-22
+
 ### Added
 - **`diagnose()` places the document checks too**: a message about an axis, a mapping, a source, a rule or an avar2 mapping — a label used on two axes, a mapping outside the axis range, a master off the mapped points, a missing extreme, a base source off the default — now sits on the line that declares it, and points at the word it names (the second use of a duplicate label, the label of a mapping, the axis tag). Diagnostics come in text order; only what belongs to no line (no axes, no sources, no base source, no family) keeps `line=None`. In the examples, 280 of 288 messages are placed; the other 8 are "No sources found"
 - The parsed models carry the line that declared them: `line` on `DSSAxis`, `DSSAxisMapping`, `DSSSource`, `DSSRule` and `DSSAvar2Mapping` (`None` from DS → DSS). It is not part of equality or repr
