@@ -326,13 +326,21 @@ class DSSValidator:
 
     @staticmethod
     def normalize_whitespace(line: str) -> str:
-        """Normalize multiple spaces/tabs to single spaces"""
+        """Normalize multiple spaces/tabs to single spaces.
+
+        Text in quotes is kept as written: it is a name ("My  Font.ufo",
+        @layer="bold  layer"), and changing it would point to another file or layer.
+        """
         if line.strip():
             # Get leading whitespace
             leading_ws = len(line) - len(line.lstrip())
             content = line.strip()
-            # Normalize internal whitespace
-            normalized_content = re.sub(r"\\s+", " ", content)
+            # Normalize internal whitespace outside quotes. The pattern used to be
+            # r"\\s+" (a literal backslash and s), so nothing was ever collapsed
+            parts = re.split(r"(\"[^\"]*\"|'[^']*')", content)
+            normalized_content = "".join(
+                part if i % 2 else re.sub(r"\s+", " ", part) for i, part in enumerate(parts)
+            )
             return " " * leading_ws + normalized_content
         return line.strip()
 

@@ -18,6 +18,8 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
+from .utils.dss_validator import DSSValidator
+
 # =============================================================================
 # Token types (append-only)
 # =============================================================================
@@ -153,8 +155,8 @@ class _Tokenizer:
         if code.strip():
             atoms = _atoms(code)
             # The parser keeps the indentation for its section checks
-            indent = len(code) - len(code.lstrip())
-            out = self._classify(" " * indent + code.strip(), atoms)
+            # The parser's section checks run on the normalized line
+            out = self._classify(DSSValidator.normalize_whitespace(code), atoms)
 
         if hash_at >= 0:
             comment_end = len(raw.rstrip())
