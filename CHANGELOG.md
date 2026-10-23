@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.4] - 2026-10-22
+
 ### Fixed
 - **Runs of spaces and tabs inside a line were never collapsed**: the parser's whitespace normalization used the pattern `r"\\s+"`, a literal backslash followed by `s`, so it matched nothing. A section header written `axes  hidden` (two spaces) or `avar2\tmatrix` was not recognised — the hidden axes became visible ones — and a `skip` line such as `Bold  Italic` never matched an instance. Runs of whitespace now count as one space. Text in quotes keeps its spaces: it is a file or layer name (`"My  Font.ufo"`, `@layer="bold  layer"`). The examples parse exactly as before. The tokenizer applies the same normalization to its section checks
 
