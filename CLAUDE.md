@@ -1610,6 +1610,21 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - Placing a message: a token whose text is quoted in it ('Bolt'; an axis
   name also matches the tag the line writes), a SOURCE token only if nothing
   else matches; otherwise the whole line
+- `complete(text, line, column) -> List[Completion]` (`text`, `type` = the
+  token type it becomes, `detail`, `column`..`end_column` = the word it
+  replaces); never raises. Parses the whole text (`recover=True`) for axes,
+  labels, avar2 vars, and replays the tokenizer up to the cursor line for the
+  section. By place: keywords at column 0 (and `auto/off`, `hidden`,
+  `vars/matrix`, axis tags after `sources [`, `lang` codes); axes — the axis
+  is the last one declared above, a line indented deeper than it is a mapping
+  (standard labels not used yet; `@elidable` after the design value), else an
+  axis definition (unused registered tags, `discrete`, label ranges);
+  sources — the labels of the axis at that coordinate position (explicit
+  `sources [..]` order), flags after `]`; rules — inside `( )`, axes, and
+  after `axis >=` that axis's labels (design values); `skip` lines — all
+  labels; avar2 — inputs user-space labels, outputs axes incl. hidden, `$`
+  and variables. Glyph names and source file names are not suggested (needs
+  the UFOs). Standard labels with a space ("Bold Italic") are left out
 - **Token types are a contract** (`TOKEN_TYPES`): append-only, editors key
   styles on them
 - **The tokenizer mirrors the parser, not an ideal grammar**: comment from the

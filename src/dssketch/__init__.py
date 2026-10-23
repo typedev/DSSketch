@@ -50,7 +50,7 @@ from .core.report import (
 )
 from .core.validation import UFOValidator, ValidationReport
 from .parsers.dss_parser import DSSParser
-from .syntax import Diagnostic, Token, diagnose, tokenize
+from .syntax import Completion, Diagnostic, Token, complete, diagnose, tokenize
 from .writers.dss_writer import DSSWriter
 
 # Converters need fontTools.designspaceLib; they load on first access.
@@ -97,8 +97,10 @@ __all__ = [
     # Editor support: highlighting tokens, positioned diagnostics
     "tokenize",
     "diagnose",
+    "complete",
     "Token",
     "Diagnostic",
+    "Completion",
     # Structured conversion diagnostics
     "ConversionReport",
     "ConversionIssue",

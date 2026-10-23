@@ -1400,7 +1400,7 @@ for warning in parser.validator.warnings:
     print(f"WARNING: {warning}")
 ```
 
-### Editor Support (highlighting and positioned errors)
+### Editor Support (highlighting, errors, completion)
 
 For a code editor that edits `.dssketch` — the syntax knowledge stays in DSSketch,
 the editor only maps token types to styles:
@@ -1416,12 +1416,22 @@ for d in dssketch.diagnose(text):          # never raises; all problems at once
     print(d.severity, d.line, d.column, d.end_column, d.message)
     # in text order; a check about an axis, mapping or source sits on its line
     # line=None: about the document as a whole (no axes, no base source …)
+
+for c in dssketch.complete(text, line, column):   # the word at the cursor
+    print(c.text, c.type, c.detail, c.column, c.end_column)
+    # in "    Font-Thin [Re|": Regular label "design 420" 15 17
 ```
+
+`complete()` knows the place: section keywords at the start of a line, the
+axis's own labels in source coordinates and rule conditions (with their design
+value), standard weight/width labels in an axis's mappings, flags after a
+source, unused axes, avar2 axes and variables. `text` replaces columns
+`column`..`end_column` of the cursor line.
 
 Token types (`dssketch.syntax.TOKEN_TYPES`) are only ever added, never renamed:
 `keyword`, `axis-name`, `axis-tag`, `label`, `number`, `source`, `glyph`, `text`,
 `string`, `flag`, `variable`, `operator`, `punctuation`, `comment`, `unknown`.
-Both functions load only the standard library and PyYAML.
+All three load only the standard library and PyYAML.
 
 ### Intelligent Typo Detection
 

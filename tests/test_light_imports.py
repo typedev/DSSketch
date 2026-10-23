@@ -72,6 +72,8 @@ def test_editor_calls_are_light():
         from dssketch import tokenize, diagnose
         assert tokenize({SKETCH!r})
         assert not [d for d in diagnose({SKETCH!r}) if d.severity == "error"]
+        from dssketch import complete
+        assert complete({SKETCH!r}, 8, 16)
     """
     assert _loaded_after(code) == []
 

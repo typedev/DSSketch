@@ -562,3 +562,348 @@ def diagnose(text: str) -> List[Diagnostic]:
     if crash is not None:
         result.append(Diagnostic("error", str(crash), None))
     return result
+
+
+# =============================================================================
+# Completion
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class Completion:
+    """A suggestion for the word at the cursor.
+
+    `text` replaces columns `column`..`end_column` (exclusive) of the cursor
+    line: the part of the word already typed, and the rest of it after the
+    cursor. `type` is the token type the text becomes; `detail` says what it is
+    ("user 400", "design 420", "axis wght").
+    """
+
+    text: str
+    type: str
+    detail: str = ""
+    column: int = 0
+    end_column: int = 0
+
+
+# Characters that end a word (as in _ATOM)
+_WORD_TAIL = re.compile(r"[@$]?[^\s\[\](){},:=\"'@$<>=&]*$")
+_WORD_HEAD = re.compile(r"[^\s\[\](){},:=\"'@$<>=&]*")
+
+# Section and document keywords, as a line at column 0 starts them
+_LINE_KEYWORDS = (
+    "family", "suffix", "path", "lang", "axes", "axes hidden", "sources",
+    "rules", "instances auto", "instances off", "avar2", "avar2 vars", "avar2 matrix",
+)
+_HEADER_FOLLOWERS = {"axes": ("hidden",), "instances": ("auto", "off"), "avar2": ("vars", "matrix")}
+_SOURCE_FLAGS = ("@base", "@sparse", "@layer=")
+_COMPARISONS = (">=", "<=", "==", "<", ">")
+
+
+def _standard_labels(tag: str) -> List[Tuple[str, str]]:
+    """(label, detail) of the standard labels for a registered axis, by user value"""
+    from .core.mappings import UnifiedMappings
+    from .utils.discrete import DiscreteAxisHandler
+
+    axis_type = {"wght": "weight", "wdth": "width"}.get(tag)
+    if axis_type:
+        UnifiedMappings._load_mappings()
+        entries = UnifiedMappings.MAPPINGS.get(axis_type, {})
+        found = []
+        for name, entry in entries.items():
+            if " " in name:  # "Bold Italic" style entries: a label is one word
+                continue
+            target = entry.get("alias_of")
+            value = UnifiedMappings.get_user_space_value(name, axis_type)
+            detail = f"user {value:g}" + (f" (= {target})" if target else "")
+            # canonical names before their aliases at the same value
+            found.append((value, bool(target), name, detail))
+        return [(name, detail) for _, _, name, detail in sorted(found)]
+    labels = DiscreteAxisHandler.load_discrete_labels().get(tag, {})
+    return [
+        (name, f"value {value:g}")
+        for value, names in sorted(labels.items())
+        for name in names
+    ]
+
+
+class _Context:
+    """What complete() knows about the text: the parsed document and the line"""
+
+    def __init__(self, text: str, line: int):
+        from .parsers.dss_parser import DSSParser
+
+        self.lines = text.split("\n")
+        parser = DSSParser(strict_mode=False, recover=True)
+        try:
+            parser.parse(text)
+        except Exception:  # whatever was parsed is still in the document
+            pass
+        self.doc = parser.document
+        self.source_axis_order = parser.source_axis_order
+        self.line = line
+
+        self.tokenizer = _Tokenizer()
+        for line_no, raw in enumerate(self.lines[: line - 1], 1):
+            self.tokenizer.line(raw, line_no)
+
+    def axis(self, ref: str):
+        """The visible or hidden axis a name, tag or human name refers to"""
+        key = ref.lower()
+        for axis in self.doc.axes + self.doc.hidden_axes:
+            if key in (axis.name.lower(), axis.tag.lower()) or _AXIS_ALIASES.get(key) == axis.name.lower():
+                return axis
+        return None
+
+    def current_axis(self):
+        """The axis whose definition comes last before the cursor line"""
+        before = [a for a in self.doc.axes if a.line is not None and a.line < self.line]
+        return before[-1] if before else None
+
+    def labels(self, axis, space: str = "design") -> List[Tuple[str, str]]:
+        """(label, detail) of an axis's own mappings, leaving out the cursor line"""
+        if axis is None:
+            return []
+        return [
+            (m.label, f"{space} {m.design_value if space == 'design' else m.user_value:g}")
+            for m in axis.mappings
+            if m.label and m.line != self.line
+        ]
+
+    def axis_refs(self, hidden: bool = False) -> List[Tuple[str, str]]:
+        axes = self.doc.axes + (self.doc.hidden_axes if hidden else [])
+        return [(a.tag, f"axis {a.name}") for a in axes]
+
+
+def _filter(items, prefix: str, kind: str, column: int, end: int) -> List[Completion]:
+    seen = set()
+    out = []
+    for text, detail in items:
+        if text in seen or not text.lower().startswith(prefix.lower()):
+            continue
+        seen.add(text)
+        out.append(Completion(text, kind, detail, column, end))
+    return out
+
+
+def complete(text: str, line: int, column: int) -> List[Completion]:
+    """Suggestions for the word at a cursor (`line` from 1, `column` from 0).
+
+    What fits the place: section keywords at the start of a line, the axis's
+    own labels in source coordinates and rule conditions, standard weight and
+    width labels in an axis's mappings, flags after a source, avar2 variables …
+    Never raises; an empty list where nothing fits (a comment, a glyph name).
+    """
+    try:
+        return _complete(text, line, column)
+    except Exception:
+        return []
+
+
+def _complete(text: str, line: int, column: int) -> List[Completion]:
+    lines = text.split("\n")
+    if not 1 <= line <= len(lines):
+        return []
+    raw = lines[line - 1]
+    column = max(0, min(column, len(raw)))
+    before = raw[:column]
+    if "#" in before or before.count('"') % 2 or before.count("'") % 2:
+        return []  # in a comment or a string
+
+    prefix = _WORD_TAIL.search(before).group()
+    start = column - len(prefix)
+    end = column + len(_WORD_HEAD.match(raw, column).group())
+    atoms = _atoms(before[:start])
+    words = [a.text for a in atoms if a.kind == "word"]
+    last = atoms[-1] if atoms else None
+    indent = len(raw) - len(raw.lstrip())
+
+    def offer(items, kind):
+        return _filter(items, prefix, kind, start, end)
+
+    # A line at column 0 starts a section, or continues a section header
+    if indent == 0 and not atoms:
+        return offer([(k, "") for k in _LINE_KEYWORDS], KEYWORD)
+    if indent == 0 and words and words[0] in _HEADER_FOLLOWERS and len(atoms) == 1:
+        return offer([(k, "") for k in _HEADER_FOLLOWERS[words[0]]], KEYWORD)
+
+    ctx = _Context(text, line)
+    if indent == 0 and words and words[0] == "sources":
+        listed = set(words[1:])
+        return offer([r for r in ctx.axis_refs() if r[0] not in listed], AXIS_TAG)
+    if indent == 0 and words and words[0] == "lang":
+        from .core.translations import Translations
+
+        listed = set(words[1:])
+        return offer([(code, "") for code in Translations.languages() if code not in listed], TEXT)
+    if indent == 0 and words:
+        return []
+
+    section = ctx.tokenizer.section
+
+    if prefix.startswith("@"):
+        flags = {"axes": ("@elidable",), "sources": _SOURCE_FLAGS}.get(section, ())
+        return offer([(f, "") for f in flags], FLAG)
+    if prefix.startswith("$") and section in ("avar2", "avar2_matrix"):
+        variables = [("$", "axis default")] + [
+            (f"${name}", f"= {value:g}") for name, value in ctx.doc.avar2_vars.items()
+        ]
+        return offer(variables, VARIABLE)
+
+    if section == "axes":
+        return _complete_axes(ctx, atoms, words, last, indent, offer)
+    if section == "sources":
+        return _complete_sources(ctx, atoms, words, last, offer)
+    if section == "rules":
+        return _complete_rules(ctx, atoms, last, offer)
+    if section == "instances":
+        if not atoms and (not ctx.tokenizer.in_skip or indent < 8):
+            return offer([("skip", "")], KEYWORD)
+        if ctx.tokenizer.in_skip or words:
+            listed = set(words)
+            items = [
+                (label, f"{axis.tag}") for axis in ctx.doc.axes
+                for label, _ in ctx.labels(axis) if label not in listed
+            ]
+            return offer(items, LABEL)
+        return []
+    if section in ("avar2", "avar2_matrix"):
+        return _complete_avar2(ctx, section, atoms, words, last, offer)
+    return []
+
+
+def _complete_axes(ctx, atoms, words, last, indent, offer):
+    axis = ctx.current_axis()
+    axis_indent = None
+    if axis is not None:
+        axis_line = ctx.lines[axis.line - 1]
+        axis_indent = len(axis_line) - len(axis_line.lstrip())
+
+    is_mapping = axis is not None and indent > axis_indent
+    if is_mapping:
+        if any(a.kind == "operator" and a.text == ">" for a in atoms):
+            # after the design value: the one flag a mapping takes
+            if last is not None and last.kind == "word":
+                return offer([("@elidable", "")], FLAG)
+            return []
+        if not words or (len(words) == 1 and _is_number(words[0])):
+            used = {m.label for m in axis.mappings if m.line != ctx.line}
+            items = [(n, d) for n, d in _standard_labels(axis.tag) if n not in used]
+            return offer(items, LABEL)
+        return []
+
+    # An axis definition line
+    if not atoms:
+        defined = {a.tag for a in ctx.doc.axes if a.line != ctx.line}
+        items = [(tag, f"axis {name}") for tag, name in _AXIS_ALIASES.items() if tag not in defined]
+        items += [(name, f"axis {tag}") for tag, name in _AXIS_ALIASES.items() if tag not in defined]
+        return offer(items, AXIS_TAG)
+    tag = words[0] if words else ""
+    tag = next((t for t, n in _AXIS_ALIASES.items() if tag in (t, n)), tag)
+    if len(atoms) == 1:
+        if tag in ("ital", "slnt"):
+            return offer([("discrete", "")], KEYWORD)
+    if tag in ("wght", "wdth") and (len(atoms) == 1 or (last.kind == "punct" and last.text == ":")):
+        return offer(_standard_labels(tag), LABEL)  # label-based range: Thin:Regular:Black
+    return []
+
+
+def _complete_sources(ctx, atoms, words, last, offer):
+    opens = sum(a.kind == "punct" and a.text == "[" for a in atoms)
+    closes = sum(a.kind == "punct" and a.text == "]" for a in atoms)
+    if opens > closes:
+        open_at = max(i for i, a in enumerate(atoms) if a.kind == "punct" and a.text == "[")
+        position = sum(a.kind == "punct" and a.text == "," for a in atoms[open_at:])
+        order = ctx.source_axis_order or [a.name for a in ctx.doc.axes]
+        if position < len(order):
+            return offer(ctx.labels(ctx.axis(order[position])), LABEL)
+        return []
+    if opens and closes:
+        return offer([(f, "") for f in _SOURCE_FLAGS], FLAG)
+    if last is not None and last.kind == "punct" and last.text == "=":
+        word = atoms[-2].text if len(atoms) > 1 else ""
+        return offer(ctx.labels(ctx.axis(word)), LABEL)
+    if last is not None and last.kind == "punct" and last.text == ",":
+        return offer(ctx.axis_refs(), AXIS_TAG)
+    return []
+
+
+def _complete_rules(ctx, atoms, last, offer):
+    depth = 0
+    for a in atoms:
+        if a.kind == "punct" and a.text == "(":
+            depth += 1
+        elif a.kind == "punct" and a.text == ")":
+            depth -= 1
+    if depth <= 0 or last is None:
+        return []  # glyph names: nothing to suggest without the UFOs
+
+    def refs():
+        return [(a.name, f"axis {a.tag}") for a in ctx.doc.axes] + ctx.axis_refs()
+
+    if last.kind == "operator" and last.text in _COMPARISONS:
+        before = atoms[-2] if len(atoms) > 1 else None
+        axis = ctx.axis(before.text) if before is not None and before.kind == "word" else None
+        if axis is not None:
+            return offer(ctx.labels(axis), LABEL)  # conditions are design space
+        return offer(refs(), AXIS_TAG)  # Regular <= weight
+    if (last.kind == "punct" and last.text == "(") or (last.kind == "operator" and last.text == "&&"):
+        items = refs()
+        offered = offer(items, AXIS_TAG)
+        labels = [(l, f"{a.tag} {d}") for a in ctx.doc.axes for l, d in ctx.labels(a)]
+        return offered + offer(labels, LABEL)
+    return []
+
+
+def _complete_avar2(ctx, section, atoms, words, last, offer):
+    opens = sum(a.kind == "punct" and a.text == "[" for a in atoms)
+    closes = sum(a.kind == "punct" and a.text == "]" for a in atoms)
+    eq_axis = None
+    if last is not None and last.kind == "punct" and last.text == "=" and len(atoms) > 1:
+        eq_axis = ctx.axis(atoms[-2].text)
+
+    def values():
+        return [("$", "axis default")] + [
+            (f"${name}", f"= {value:g}") for name, value in ctx.doc.avar2_vars.items()
+        ]
+
+    if opens > closes:  # inputs: user space
+        if eq_axis is not None:
+            return offer(ctx.labels(eq_axis, space="user"), LABEL)
+        if last is None or (last.kind == "punct" and last.text in "[,"):
+            return offer(ctx.axis_refs(), AXIS_TAG)
+        return []
+
+    if section == "avar2_matrix":
+        if not atoms:
+            has_outputs = any(
+                raw.strip().startswith("outputs") for raw in ctx.lines[: ctx.line - 1]
+            )
+            return [] if has_outputs else offer([("outputs", "")], KEYWORD)
+        if words and words[0] == "outputs":
+            listed = set(words[1:])
+            return offer([r for r in ctx.axis_refs(hidden=True) if r[0] not in listed], AXIS_TAG)
+        if closes:
+            return offer(values() + [("-", "no value")], VARIABLE)
+        return []
+
+    # linear outputs, also inside a { } block
+    if eq_axis is not None:
+        return offer(values(), VARIABLE)
+    in_block = ctx.tokenizer.section == "avar2" and _open_block(ctx)
+    after_arrow = any(a.kind == "operator" and a.text == ">" for a in atoms)
+    if (after_arrow or in_block) and (
+        last is None or (last.kind == "operator" and last.text == ">")
+        or (last.kind == "punct" and last.text in ",{")
+    ):
+        return offer(ctx.axis_refs(hidden=True), AXIS_TAG)
+    return []
+
+
+def _open_block(ctx) -> bool:
+    """Whether the cursor line sits inside an avar2 `{ }` block"""
+    depth = 0
+    for raw in ctx.lines[: ctx.line - 1]:
+        code = raw.split("#", 1)[0]
+        depth += code.count("{") - code.count("}")
+    return depth > 0
