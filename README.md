@@ -1414,7 +1414,8 @@ for token in dssketch.tokenize(text):      # every non-blank character, in order
 
 for d in dssketch.diagnose(text):          # never raises; all problems at once
     print(d.severity, d.line, d.column, d.end_column, d.message)
-    # line=None: about the whole document (no base source, duplicate labels …)
+    # in text order; a check about an axis, mapping or source sits on its line
+    # line=None: about the document as a whole (no axes, no base source …)
 ```
 
 Token types (`dssketch.syntax.TOKEN_TYPES`) are only ever added, never renamed:

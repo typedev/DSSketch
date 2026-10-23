@@ -19,6 +19,9 @@ class DSSAxisMapping:
     # False when it was inferred ("Light > 295" from the standards table,
     # "Custom > 500" as user = design) or when there is no source text (DS → DSS).
     user_value_explicit: bool = False
+    # Line of the .dssketch that declared it (from 1), for editors; None when
+    # there is no source text (DS -> DSS). Not part of equality or repr
+    line: Optional[int] = field(default=None, compare=False, repr=False)
 
 
 @dataclass
@@ -36,6 +39,9 @@ class DSSAxis:
     # custom discrete axis may have any number of values, and a continuous axis
     # may well span 0..1.
     values: Optional[List[float]] = None
+    # Line of the .dssketch that declared it (from 1), for editors; None when
+    # there is no source text (DS -> DSS). Not part of equality or repr
+    line: Optional[int] = field(default=None, compare=False, repr=False)
 
     @property
     def is_discrete(self) -> bool:
@@ -102,6 +108,9 @@ class DSSSource:
     copy_groups: bool = False
     copy_features: bool = False
     layer: Optional[str] = None  # UFO layer name (None = default layer)
+    # Line of the .dssketch that declared it (from 1), for editors; None when
+    # there is no source text (DS -> DSS). Not part of equality or repr
+    line: Optional[int] = field(default=None, compare=False, repr=False)
 
 
 @dataclass
@@ -122,6 +131,9 @@ class DSSRule:
     conditions: List[Dict[str, Any]]  # axis conditions
     pattern: Optional[str] = None  # wildcard pattern like "dollar* cent*"
     to_pattern: Optional[str] = None  # target pattern like ".rvrn"
+    # Line of the .dssketch that declared it (from 1), for editors; None when
+    # there is no source text (DS -> DSS). Not part of equality or repr
+    line: Optional[int] = field(default=None, compare=False, repr=False)
 
 
 @dataclass
@@ -139,6 +151,9 @@ class DSSAvar2Mapping:
     name: Optional[str]
     input: Dict[str, float]  # axis_name -> input value
     output: Dict[str, float]  # axis_name -> output value
+    # Line of the .dssketch that declared it (from 1), for editors; None when
+    # there is no source text (DS -> DSS). Not part of equality or repr
+    line: Optional[int] = field(default=None, compare=False, repr=False)
 
 
 @dataclass

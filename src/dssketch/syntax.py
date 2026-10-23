@@ -61,8 +61,8 @@ class Token:
 class Diagnostic:
     """A parser message placed in the text.
 
-    `line` is None for a message about the whole document (no base source,
-    duplicate labels …); such messages have no position yet.
+    `line` is None for a message about the document as a whole (no base
+    source, no axes, no family).
     `end_column` is exclusive.
     """
 
@@ -488,7 +488,12 @@ def _span(message: str, line_tokens: List[Token], raw: str) -> Tuple[int, int]:
         token
         for quoted in _QUOTED.findall(message)
         for token in line_tokens
-        if token.type != COMMENT and token.text.strip("\"'") == quoted
+        if token.type != COMMENT
+        and (
+            token.text.strip("\"'") == quoted
+            # "Axis 'weight'" on a line that writes the tag
+            or token.type == AXIS_TAG and _AXIS_ALIASES.get(token.text.lower()) == quoted.lower()
+        )
     ]
     # "Invalid coordinate in source 'X': Label 'Bolt' not found" is about the
     # label: the source name is only context
@@ -507,9 +512,10 @@ def diagnose(text: str) -> List[Diagnostic]:
     """Every error and warning the parser finds in a .dssketch text.
 
     Never raises: a line that fails becomes an error and parsing goes on, so an
-    editor gets all problems at once. Messages about one line carry its
-    position; document-level ones (no base source, duplicate labels …) come
-    last with `line=None`.
+    editor gets all problems at once. A message about an axis, mapping,
+    source, rule or avar2 mapping is placed on the line that declares it, and
+    the result is in text order. What belongs to no line (no base source, no
+    axes, no family) comes last with `line=None`.
     """
     from .parsers.dss_parser import DSSParser
     from .utils.dss_validator import DSSValidationError
@@ -527,23 +533,32 @@ def diagnose(text: str) -> List[Diagnostic]:
     for token in tokenize(text):
         by_line.setdefault(token.line, []).append(token)
 
-    result: List[Diagnostic] = []
-    for severity, message, line_no in parser.line_messages:
+    def placed(severity: str, message: str, line_no: Optional[int]) -> Diagnostic:
+        if line_no is None or not 1 <= line_no <= len(lines):
+            return Diagnostic(severity, message, None)
         column, end = _span(message, by_line.get(line_no, []), lines[line_no - 1])
-        result.append(Diagnostic(severity, message, line_no, column, end))
+        return Diagnostic(severity, message, line_no, column, end)
 
-    # validate_document() keeps the line messages first; the rest is about the document.
+    result = [placed(*entry) for entry in parser.line_messages]
+
+    # validate_document() keeps the line messages first; the rest it found in
+    # the document, each placed at the axis, mapping or source it is about.
     # If it failed half-way the lists hold only its own messages
+    validator = parser.validator
     n_errors, n_warnings = parser.line_phase_counts
-    errors, warnings = parser.validator.errors, parser.validator.warnings
     line_errors = [m for s, m, _ in parser.line_messages if s == "error"]
     line_warnings = [m for s, m, _ in parser.line_messages if s == "warning"]
-    document_errors = errors[n_errors:] if errors[:n_errors] == line_errors else errors
-    document_warnings = (
-        warnings[n_warnings:] if warnings[:n_warnings] == line_warnings else warnings
-    )
-    result.extend(Diagnostic("error", m, None) for m in document_errors)
-    result.extend(Diagnostic("warning", m, None) for m in document_warnings)
+    for severity, messages, n, line_messages, at_lines in (
+        ("error", validator.errors, n_errors, line_errors, validator.document_error_lines),
+        ("warning", validator.warnings, n_warnings, line_warnings, validator.document_warning_lines),
+    ):
+        found = messages[n:] if messages[:n] == line_messages else messages
+        if len(at_lines) != len(found):
+            at_lines = [None] * len(found)
+        result.extend(placed(severity, m, line) for m, line in zip(found, at_lines))
+
+    # In text order; what has no place (no base source, no axes …) comes last
+    result.sort(key=lambda d: (d.line is None, d.line or 0, d.column))
     if crash is not None:
         result.append(Diagnostic("error", str(crash), None))
     return result

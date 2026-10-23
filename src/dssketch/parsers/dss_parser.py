@@ -34,6 +34,7 @@ class DSSParser:
         self.recover = recover
         self.line_messages = []
         self.line_phase_counts = (0, 0)
+        self.current_line_no = None
         self.document = DSSDocument(family="")
         self.current_section = None
         self.current_axis = None
@@ -89,6 +90,7 @@ class DSSParser:
         for line_no, line in enumerate(lines, 1):
             original_line = line.rstrip()  # Keep leading spaces but remove trailing
             n_errors, n_warnings = len(self.validator.errors), len(self.validator.warnings)
+            self.current_line_no = line_no
 
             try:
                 self._parse_text_line(line, original_line)
@@ -96,6 +98,7 @@ class DSSParser:
                 if not self.recover:
                     raise ValueError(f"Error parsing line {line_no}: {original_line}\n{e}") from e
                 self.validator.errors.append(str(e))
+            self._stamp_line(line_no)
 
             for message in self.validator.errors[n_errors:]:
                 self.line_messages.append(("error", message, line_no))
@@ -138,6 +141,18 @@ class DSSParser:
             raise ValueError(str(e)) from e
 
         return self.document
+
+    def _stamp_line(self, line_no: int):
+        """Give what this line declared its line number (new objects are appended)"""
+        doc = self.document
+        lists = [doc.axes, doc.hidden_axes, doc.sources, doc.rules, doc.avar2_mappings]
+        if self.current_axis is not None:
+            lists.append(self.current_axis.mappings)
+        for items in lists:
+            for item in reversed(items):
+                if item.line is not None:
+                    break
+                item.line = line_no
 
     def _parse_text_line(self, line: str, original_line: str):
         """Parse one line of the file as read: split off the comment, skip blanks"""
@@ -1468,6 +1483,8 @@ class DSSParser:
         if output_str == "{" or output_str.endswith("{"):
             # Start multi-line block
             self._avar2_multiline_block = True
+            # The mapping is created at the closing brace; it belongs to this line
+            self._avar2_current_line = self.current_line_no
             self._avar2_current_name = mapping_name
             self._avar2_current_input = input_conditions
             self._avar2_current_outputs = {}
@@ -1644,7 +1661,8 @@ class DSSParser:
         mapping = DSSAvar2Mapping(
             name=self._avar2_current_name,
             input=self._avar2_current_input,
-            output=self._avar2_current_outputs
+            output=self._avar2_current_outputs,
+            line=getattr(self, "_avar2_current_line", None),
         )
         self.document.avar2_mappings.append(mapping)
 

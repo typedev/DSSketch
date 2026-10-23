@@ -57,6 +57,19 @@ class DSSValidator:
         self.strict_mode = strict_mode
         self.errors: List[str] = []
         self.warnings: List[str] = []
+        # Line of each message validate_document() adds (None: about the whole
+        # document), parallel to the part of errors/warnings after the parse phase
+        self.document_error_lines: List[Optional[int]] = []
+        self.document_warning_lines: List[Optional[int]] = []
+
+    def _error(self, message: str, at=None):
+        """Record a document-level error; `at` is the axis, mapping, source … it is about"""
+        self.errors.append(message)
+        self.document_error_lines.append(getattr(at, "line", None))
+
+    def _warning(self, message: str, at=None):
+        self.warnings.append(message)
+        self.document_warning_lines.append(getattr(at, "line", None))
 
     def validate_document(self, document: DSSDocument) -> Tuple[List[str], List[str]]:
         """
@@ -74,6 +87,8 @@ class DSSValidator:
 
         self.errors.clear()
         self.warnings.clear()
+        self.document_error_lines = []
+        self.document_warning_lines = []
 
         # Structural validation (critical)
         self._validate_structure(document, parsing_errors)
@@ -112,7 +127,7 @@ class DSSValidator:
 
         # Check family name - now just a warning, will be auto-detected from UFO if missing
         if not document.family or not document.family.strip():
-            self.warnings.append(
+            self._warning(
                 "No family name specified - will try to detect from base source UFO"
             )
 
@@ -122,22 +137,23 @@ class DSSValidator:
             # (parsing errors would explain WHY axes are missing)
             has_axis_parsing_errors = any("axis range" in err.lower() for err in parsing_errors)
             if not has_axis_parsing_errors:
-                self.errors.append(
+                self._error(
                     "CRITICAL: No axes found - cannot generate valid DesignSpace without axes"
                 )
         else:
             # Validate each axis has proper setup
             for i, axis in enumerate(document.axes):
                 if not axis.name or not axis.tag:
-                    self.errors.append(f"CRITICAL: Axis {i + 1} missing name or tag")
+                    self._error(f"CRITICAL: Axis {i + 1} missing name or tag", at=axis)
                 if axis.minimum == axis.maximum:
-                    self.errors.append(
-                        f"CRITICAL: Axis '{axis.name}' has invalid range (min = max = {axis.minimum})"
+                    self._error(
+                        f"CRITICAL: Axis '{axis.name}' has invalid range (min = max = {axis.minimum})",
+                        at=axis,
                     )
 
         # Check sources - WARNING (allows testing avar2 and other logic without sources)
         if not document.sources:
-            self.warnings.append(
+            self._warning(
                 "No sources found - DesignSpace will be created but cannot be used for font compilation"
             )
         else:
@@ -149,11 +165,12 @@ class DSSValidator:
                 if auto_detected:
                     # Mark the detected source as base
                     auto_detected.is_base = True
-                    self.warnings.append(
-                        f"Auto-detected base source: '{auto_detected.name}' (matches default coordinates)"
+                    self._warning(
+                        f"Auto-detected base source: '{auto_detected.name}' (matches default coordinates)",
+                        at=auto_detected,
                     )
                 else:
-                    self.errors.append(
+                    self._error(
                         "CRITICAL: No base source found (@base flag missing) and cannot auto-detect from default coordinates"
                     )
             elif len(base_sources) > 1:
@@ -162,8 +179,9 @@ class DSSValidator:
                     # Valid configuration with discrete axes
                     pass
                 else:
-                    self.errors.append(
-                        f"CRITICAL: Multiple base sources found ({len(base_sources)}) - only one @base source allowed"
+                    self._error(
+                        f"CRITICAL: Multiple base sources found ({len(base_sources)}) - only one @base source allowed",
+                        at=base_sources[1],
                     )
             else:
                 # Validate that the @base source has correct coordinates
@@ -172,8 +190,9 @@ class DSSValidator:
                 if expected_coords and not self._coordinates_match(
                     base_source.location, expected_coords, document.axes
                 ):
-                    self.errors.append(
-                        f"CRITICAL: Base source '{base_source.name}' coordinates {list(base_source.location.values())} do not match default coordinates {list(expected_coords.values())}"
+                    self._error(
+                        f"CRITICAL: Base source '{base_source.name}' coordinates {list(base_source.location.values())} do not match default coordinates {list(expected_coords.values())}",
+                        at=base_source,
                     )
 
     def _validate_avar2_input_space(self, document: DSSDocument):
@@ -202,12 +221,13 @@ class DSSValidator:
                 designs = [m.design_value for m in axis.mappings]
                 if min(designs) <= value <= max(designs):
                     user = axis.get_user_value(value)
-                    self.errors.append(
+                    self._error(
                         f"avar2 input {axis_key}={value:g} is outside the axis range "
                         f"[{axis.minimum:g}, {axis.maximum:g}]. avar2 inputs are user space; "
                         f"{value:g} looks like a design-space value, as DSSketch 1.2.1 and "
                         f"earlier wrote when converting a DesignSpace. The user value is "
-                        f"{axis_key}={user:g} - write that (or reconvert from the DesignSpace)."
+                        f"{axis_key}={user:g} - write that (or reconvert from the DesignSpace).",
+                        at=mapping,
                     )
 
     def _validate_content(self, document: DSSDocument):
@@ -227,12 +247,13 @@ class DSSValidator:
             for mapping in axis.mappings:
                 if mapping.user_value in seen:
                     first = seen[mapping.user_value]
-                    self.errors.append(
+                    self._error(
                         f"Axis '{axis.name}': user value {mapping.user_value:g} is mapped twice "
                         f"('{first.label or first.user_value}' > {first.design_value:g} and "
                         f"'{mapping.label or mapping.user_value}' > {mapping.design_value:g}). "
                         f"Each user value can map to only one design value; give one of them "
-                        f"a different user value."
+                        f"a different user value.",
+                        at=mapping,
                     )
                 else:
                     seen[mapping.user_value] = mapping
@@ -241,25 +262,28 @@ class DSSValidator:
             if axis.mappings:
                 for mapping in axis.mappings:
                     if mapping.user_value is None or mapping.design_value is None:
-                        self.warnings.append(
-                            f"Axis '{axis.name}' has incomplete mapping: {mapping.label}"
+                        self._warning(
+                            f"Axis '{axis.name}' has incomplete mapping: {mapping.label}",
+                            at=mapping,
                         )
 
                     # Check that mapping user_value is within axis range
                     if mapping.user_value is not None:
                         if mapping.user_value < axis.minimum or mapping.user_value > axis.maximum:
-                            self.errors.append(
+                            self._error(
                                 f"Axis '{axis.name}': mapping '{mapping.label}' has user_value {mapping.user_value} "
                                 f"which is outside the axis range [{axis.minimum}, {axis.maximum}]. "
-                                f"All mappings must be within the axis min/max range."
+                                f"All mappings must be within the axis min/max range.",
+                                at=mapping,
                             )
 
                 # Check for missing @elidable flags - important for instance naming
                 elidable_count = sum(1 for mapping in axis.mappings if mapping.elidable)
                 if elidable_count == 0:
-                    self.warnings.append(
+                    self._warning(
                         f"Axis '{axis.name}' has no @elidable mapping - this may cause issues with instance naming. "
-                        f"Consider marking the default/regular style as @elidable"
+                        f"Consider marking the default/regular style as @elidable",
+                        at=axis,
                     )
 
         # Validate sources coordinates
@@ -268,8 +292,9 @@ class DSSValidator:
             for source in document.sources:
                 actual_coords = len(source.location) if source.location else 0
                 if actual_coords != expected_coords:
-                    self.warnings.append(
-                        f"Source '{source.name}' has {actual_coords} coordinates, expected {expected_coords}"
+                    self._warning(
+                        f"Source '{source.name}' has {actual_coords} coordinates, expected {expected_coords}",
+                        at=source,
                     )
 
         # Validate source coordinates match their corresponding mappings
@@ -302,6 +327,7 @@ class DSSValidator:
 
         # Collect all labels from all axes with their source axis
         label_to_axes = {}  # {label: [(axis_name, axis_tag)]}
+        label_mappings = {}  # {label: [mapping]}, to point at the second use
 
         for axis in document.axes:
             for mapping in axis.mappings:
@@ -311,17 +337,20 @@ class DSSValidator:
                     continue
                 if label not in label_to_axes:
                     label_to_axes[label] = []
+                    label_mappings[label] = []
                 label_to_axes[label].append((axis.name, axis.tag))
+                label_mappings[label].append(mapping)
 
         # Find and report duplicates
         for label, axes_info in label_to_axes.items():
             if len(axes_info) > 1:
                 axes_names = [f"'{name}' ({tag})" for name, tag in axes_info]
-                self.errors.append(
+                self._error(
                     f"CRITICAL: Mapping label '{label}' is used in multiple axes: {', '.join(axes_names)}. "
                     f"Each mapping label must be unique across all axes to avoid conflicts in instance naming "
                     f"and label-based coordinates. Use different labels for each axis "
-                    f"(e.g., 'LightWeight' and 'LightWidth', or 'Light' and 'Narrow')."
+                    f"(e.g., 'LightWeight' and 'LightWidth', or 'Light' and 'Narrow').",
+                    at=label_mappings[label][1],
                 )
 
     @staticmethod
@@ -821,16 +850,18 @@ class DSSValidator:
                     )
 
                     if closest_mapping:
-                        self.warnings.append(
+                        self._warning(
                             f"Source '{source.name}' coordinate {source_coord} on axis '{axis.name}' "
                             f"does not sit on a mapped point. Closest mapping '{closest_mapping.label}' "
                             f"is at {closest_mapping.design_value}. This is legal - masters live in "
-                            f"design space and may be placed between named styles."
+                            f"design space and may be placed between named styles.",
+                            at=source,
                         )
                     else:
-                        self.warnings.append(
+                        self._warning(
                             f"Source '{source.name}' coordinate {source_coord} on axis '{axis.name}' "
-                            f"does not sit on a mapped point"
+                            f"does not sit on a mapped point",
+                            at=source,
                         )
     
     def _validate_extremes_coverage(self, document: DSSDocument):
@@ -869,17 +900,19 @@ class DSSValidator:
             # Only check for sources if mapping has a label (for instance generation)
             # Pure numeric axis maps (empty labels) don't require sources at extremes
             if not min_source_exists and min_mapping and min_mapping.label:
-                self.warnings.append(
+                self._warning(
                     f"No source at minimum mapping '{min_mapping.label}' "
                     f"({min_design}) on axis '{axis.name}'. Check that the masters still "
-                    f"span the whole design space - otherwise this end will extrapolate."
+                    f"span the whole design space - otherwise this end will extrapolate.",
+                    at=min_mapping,
                 )
 
             if not max_source_exists and max_mapping and max_mapping.label:
-                self.warnings.append(
+                self._warning(
                     f"No source at maximum mapping '{max_mapping.label}' "
                     f"({max_design}) on axis '{axis.name}'. Check that the masters still "
-                    f"span the whole design space - otherwise this end will extrapolate."
+                    f"span the whole design space - otherwise this end will extrapolate.",
+                    at=max_mapping,
                 )
 
     def _validate_axis_label_consistency(self, document: DSSDocument):
@@ -941,10 +974,11 @@ class DSSValidator:
                 # Find expected standard label for this value
                 expected_label = Standards.get_name_by_user_space(extreme_value, axis_type)
 
-                self.errors.append(
+                self._error(
                     f"Axis '{axis.name}' ({extreme_name}={extreme_value}): missing mapping for {extreme_name} value. "
                     f"Expected mapping with user_value {extreme_value} "
-                    f"(typically labeled '{expected_label}')."
+                    f"(typically labeled '{expected_label}').",
+                    at=axis,
                 )
 
     def _check_mapping_label_consistency(self, mapping, axis: "DSSAxis", axis_type: str):
@@ -973,11 +1007,12 @@ class DSSValidator:
 
             # If user_value differs significantly from standard, warn about override
             if abs(user_value - expected_user_value) > 0.1:
-                self.warnings.append(
+                self._warning(
                     f"Axis '{axis.name}': label '{label}' typically maps to user_value {expected_user_value}, "
                     f"but {user_value} is explicitly specified. "
                     f"This is allowed but may cause confusion. "
-                    f"Consider using a custom label or the standard value."
+                    f"Consider using a custom label or the standard value.",
+                    at=mapping,
                 )
 
         # Check if user_value matches a standard value
@@ -994,10 +1029,11 @@ class DSSValidator:
 
         if is_standard_name and expected_label != label and not is_alias_of_expected:
             # User_value matches a standard value but label is different
-            self.warnings.append(
+            self._warning(
                 f"Axis '{axis.name}': user_value {user_value} typically uses "
                 f"label '{expected_label}', but '{label}' is specified. "
-                f"Consider using the standard label for better consistency."
+                f"Consider using the standard label for better consistency.",
+                at=mapping,
             )
 
     def _coordinates_equal(self, val1: float, val2: float) -> bool:

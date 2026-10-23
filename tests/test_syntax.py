@@ -330,9 +330,9 @@ def test_unknown_label_points_at_the_label_not_the_source():
 
 def test_all_failing_lines_are_reported():
     text = VALID.replace("Black > 900", "Black > abc").replace("Test-Thin [Thin]", "Test-Thin [Bolt]")
-    errors = [d for d in diagnose(text) if d.severity == "error" and d.line]
-    assert [d.line for d in errors][:2] == [6, 8]
-    assert _at(text, errors[0]) == "abc"
+    errors = {d.line: d for d in diagnose(text) if d.severity == "error" and d.line}
+    assert {6, 8} <= set(errors)
+    assert _at(text, errors[6]) == "abc"
 
 
 def test_document_level_messages_have_no_line():
@@ -359,3 +359,101 @@ def test_diagnose_never_raises(text):
 def test_parse_still_raises_by_default():
     with pytest.raises(ValueError, match="Error parsing line 6"):
         DSSParser().parse(VALID.replace("Black > 900", "Black > abc"))
+
+
+# -- document-level checks placed on the declaring line (2b) -----------------------
+
+from dssketch import DSSDocument  # noqa: E402
+from dssketch.core.models import DSSAxisMapping  # noqa: E402
+
+TWO_AXES = """\
+family Test
+axes
+    wght 100:400:700
+        Thin > 100
+        Regular > 400 @elidable
+        Bold > 700
+    wdth 75:100:125
+        Condensed > 75
+        Normal > 100 @elidable
+        Bold > 125
+sources [wght, wdth]
+    Test-Thin [Thin, Normal]
+    Test-Regular [Regular, Normal] @base
+    Test-Mid [550, Normal]
+    Test-Bold [Bold, Condensed]
+"""
+
+
+def _find(text, needle):
+    return [d for d in diagnose(text) if needle in d.message]
+
+
+def test_duplicate_label_points_at_second_use():
+    [d] = _find(TWO_AXES, "used in multiple axes")
+    assert (d.line, _at(TWO_AXES, d)) == (10, "Bold")
+
+
+def test_source_check_points_at_source():
+    [d] = _find(TWO_AXES, "does not sit on a mapped point")
+    assert (d.line, _at(TWO_AXES, d)) == (14, "Test-Mid")
+
+
+def test_mapping_out_of_range_points_at_label():
+    text = VALID.replace("Black > 900", "Black > 900\n        1000 Ultra > 1000")
+    [d] = _find(text, "outside the axis range")
+    assert (d.line, _at(text, d)) == (7, "Ultra")
+
+
+def test_axis_check_points_at_axis_tag():
+    text = VALID.replace("        Black > 900\n", "        Bold > 700\n")
+    [d] = _find(text, "missing mapping for maximum")
+    assert (d.line, _at(text, d)) == (3, "wght")
+
+
+def test_base_source_check_points_at_source():
+    text = VALID.replace("Test-Regular [Regular] @base", "Test-Regular [Regular]").replace(
+        "Test-Thin [Thin]", "Test-Thin [Thin] @base"
+    )
+    [d] = _find(text, "do not match default coordinates")
+    assert d.line == 8
+
+
+def test_diagnostics_are_in_text_order():
+    found = diagnose(TWO_AXES)
+    placed = [(d.line, d.column) for d in found if d.line is not None]
+    assert placed == sorted(placed)
+    assert all(d.line is None for d in found[len(placed):])
+
+
+@pytest.mark.parametrize("path", EXAMPLES, ids=os.path.basename)
+def test_parser_records_declaring_lines(path):
+    text = open(path, encoding="utf-8").read()
+    lines = text.split("\n")
+    doc = DSSParser().parse(text)
+    for axis in doc.axes + doc.hidden_axes:
+        assert axis.tag in lines[axis.line - 1] or axis.name in lines[axis.line - 1]
+        for mapping in axis.mappings:
+            assert str(int(mapping.design_value)) in lines[mapping.line - 1] or mapping.label in lines[mapping.line - 1]
+    for source in doc.sources:
+        assert source.name in lines[source.line - 1]
+    for rule in doc.rules:
+        assert ">" in lines[rule.line - 1]
+    for mapping in doc.avar2_mappings:
+        assert "[" in lines[mapping.line - 1]
+
+
+def test_avar2_block_belongs_to_its_opening_line():
+    text = (
+        "axes\n    wght 100:400:900\naxes hidden\n    XOUC 0:100:200\n"
+        "sources [wght]\n    A [400] @base\n"
+        "avar2\n    [wght=100] > {\n        XOUC=50\n    }\n"
+    )
+    [mapping] = DSSParser().parse(text).avar2_mappings
+    assert mapping.line == 8
+
+
+def test_line_is_not_part_of_equality():
+    a = DSSAxisMapping(user_value=400, design_value=400, label="Regular", line=5)
+    b = DSSAxisMapping(user_value=400, design_value=400, label="Regular")
+    assert a == b and "line" not in repr(a)

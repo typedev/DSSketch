@@ -1595,10 +1595,21 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - `diagnose(text) -> List[Diagnostic]` (`severity`, `message`, `line`,
   `column`, `end_column` exclusive); never raises. Runs
   `DSSParser(strict_mode=False, recover=True)`: a line that raises becomes an
-  error and parsing goes on. Line messages first, then document-level ones
-  with `line=None` (they have no position: models do not record lines yet)
-- Placing a message: a token whose text is quoted in it ('Bolt'), a SOURCE
-  token only if nothing else matches; otherwise the whole line
+  error and parsing goes on. Sorted in text order; `line=None` only for what
+  belongs to no line (no axes, no sources, no base source, no family)
+- **Document-level checks are placed too**: the parser stamps `line` on every
+  `DSSAxis`, `DSSAxisMapping`, `DSSSource`, `DSSRule`, `DSSAvar2Mapping` it
+  creates (`_stamp_line()`; an avar2 `{ }` block gets its opening line). The
+  validator reports through `_error(message, at=obj)` / `_warning(...)`, which
+  fill `document_error_lines` / `document_warning_lines` in step with the
+  messages. **Never append to `validator.errors/warnings` directly in
+  `DSSValidator`** — the lines would no longer line up. A message about two
+  objects points at the later one (duplicate label: its second use)
+- `line` is `field(compare=False, repr=False)`: equality and repr of models are
+  unchanged, and DS → DSS leaves it `None`
+- Placing a message: a token whose text is quoted in it ('Bolt'; an axis
+  name also matches the tag the line writes), a SOURCE token only if nothing
+  else matches; otherwise the whole line
 - **Token types are a contract** (`TOKEN_TYPES`): append-only, editors key
   styles on them
 - **The tokenizer mirrors the parser, not an ideal grammar**: comment from the
