@@ -1428,10 +1428,24 @@ value), standard weight/width labels in an axis's mappings, flags after a
 source, unused axes, avar2 axes and variables. `text` replaces columns
 `column`..`end_column` of the cursor line.
 
+**GtkSourceView**: DSSketch ships a language definition, generated from the same
+tables, for instant highlighting without calling Python. Its style ids are the
+token types (`dssketch:axis-tag`, `dssketch:label` …), so one style scheme styles
+both; `tokenize()` then refines what a static definition cannot know.
+
+```python
+from dssketch.gtksourceview import language_spec_path
+import os
+
+manager = GtkSource.LanguageManager.get_default()
+manager.set_search_path([os.path.dirname(language_spec_path())] + manager.get_search_path())
+buffer.set_language(manager.get_language("dssketch"))
+```
+
 Token types (`dssketch.syntax.TOKEN_TYPES`) are only ever added, never renamed:
 `keyword`, `axis-name`, `axis-tag`, `label`, `number`, `source`, `glyph`, `text`,
 `string`, `flag`, `variable`, `operator`, `punctuation`, `comment`, `unknown`.
-All three load only the standard library and PyYAML.
+All of it loads only the standard library and PyYAML.
 
 ### Intelligent Typo Detection
 

@@ -67,7 +67,7 @@ include = ["dssketch*"]
 exclude = ["tests*", "docs*", "*.egg-info*"]
 
 [tool.setuptools.package-data]
-dssketch = ["data/*.json", "data/*.yaml", "data/*.yml"]
+dssketch = ["data/*.json", "data/*.yaml", "data/*.yml", "data/*.lang"]
 
 [tool.setuptools.exclude-package-data]
 "*" = [

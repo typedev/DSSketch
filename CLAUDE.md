@@ -1636,6 +1636,23 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   (`validate_document()` keeps them first, in order)
 - Light (stdlib + PyYAML), pinned in `tests/test_light_imports.py`
 
+**`gtksourceview.py`** - GtkSourceView language definition
+- `language_spec()` builds it from DSSketch's tables (keywords, flags,
+  registered axes, standard labels via `syntax._standard_labels`); it ships as
+  `data/dssketch.lang` (packaged: `data/*.lang` in pyproject and MANIFEST.in).
+  **Regenerate after changing the tables**: `python -m dssketch.gtksourceview --write`;
+  `tests/test_gtksourceview.py` fails if the file is stale
+- Style ids = token types, so a scheme styles static and `tokenize()` alike
+- Static regexes, section containers ending at the next column-0 line
+  (`^(?=[^\s#])`; a comment does not end a section, as in the parser). Inner
+  contexts win over a container's end at the same position, so **no inner
+  context may match at column 0** (that is why `skip-label` needs `(?<=\s)`);
+  a bracket context must not include a pattern that eats its closing `]`/`)`
+- On every example and the every-form sketch in the test, the static colours
+  agree with `tokenize()` token for token. The comparison runs where
+  GtkSourceView 5 is (it looks for a Python with PyGObject, the system one
+  here); CI skips it
+
 **`api.py`** - High-level API for DSSketch integration
 - `convert_to_dss(designspace, dss_path, optimize=True, vars_threshold=3, avar2_format="matrix")` - Convert DesignSpace object to DSSketch file
 - `convert_to_designspace(dss_path)` - Convert DSSketch file to DesignSpace object

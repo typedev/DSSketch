@@ -5,6 +5,9 @@ All notable changes to DSSketch will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **GtkSourceView language definition** (`data/dssketch.lang`, path from `dssketch.gtksourceview.language_spec_path()`): instant highlighting in a GTK editor without calling Python. It is generated from DSSketch's own tables — keywords, flags, registered axes, the standard labels — by `python -m dssketch.gtksourceview --write`, and a test fails when the shipped file is stale. Its style ids are the token types (`dssketch:axis-tag`, `dssketch:label` …), so one style scheme styles it and `tokenize()` alike. It reads the sections the way the parser does (a comment does not end one; brackets after a source hold labels, after `sources` axes), and on every example its colours agree with `tokenize()` token for token, checked in GtkSourceView 5
+
+### Added
 - **`complete(text, line, column)` — completion for editors**: suggestions for the word at the cursor, each with the token type it becomes, a detail and the columns it replaces. It knows the place: section keywords at the start of a line; in a source's coordinates the labels of the axis at that position, with their design value; in an axis's mappings the standard weight/width (or Upright/Italic) labels not used yet, and `@elidable` after the design value; unused registered axes on a new axis line, `discrete`, label ranges; in a rule condition the axes, and after `weight >=` that axis's labels; all labels on a `skip` line; `lang` codes; in avar2 the axes (hidden ones for outputs), user-space labels for inputs, `$` and the declared variables; `outputs` in a matrix. Never raises. Glyph and UFO file names are not suggested: that needs the UFOs
 
 ## [1.4.5] - 2026-10-22
