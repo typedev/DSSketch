@@ -35,6 +35,7 @@ def _loaded_after(code: str) -> list:
         "import dssketch.parsers.dss_parser",
         "from dssketch.parsers import DSSParser",
         "from dssketch import DSSParser, DSSWriter, DSSDocument, ConversionReport",
+        "from dssketch.syntax import tokenize, diagnose",
     ],
 )
 def test_import_is_light(code):
@@ -62,6 +63,15 @@ def test_parse_and_write_is_light():
         doc = DSSParser().parse({SKETCH!r})
         assert len(doc.axes) == 1 and len(doc.sources) == 3
         DSSWriter().write(doc)
+    """
+    assert _loaded_after(code) == []
+
+
+def test_editor_calls_are_light():
+    code = f"""
+        from dssketch import tokenize, diagnose
+        assert tokenize({SKETCH!r})
+        assert not [d for d in diagnose({SKETCH!r}) if d.severity == "error"]
     """
     assert _loaded_after(code) == []
 

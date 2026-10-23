@@ -1400,6 +1400,28 @@ for warning in parser.validator.warnings:
     print(f"WARNING: {warning}")
 ```
 
+### Editor Support (highlighting and positioned errors)
+
+For a code editor that edits `.dssketch` — the syntax knowledge stays in DSSketch,
+the editor only maps token types to styles:
+
+```python
+import dssketch
+
+for token in dssketch.tokenize(text):      # every non-blank character, in order
+    print(token.line, token.column, token.length, token.type, token.text)
+    # e.g. 3 4 4 axis-tag wght
+
+for d in dssketch.diagnose(text):          # never raises; all problems at once
+    print(d.severity, d.line, d.column, d.end_column, d.message)
+    # line=None: about the whole document (no base source, duplicate labels …)
+```
+
+Token types (`dssketch.syntax.TOKEN_TYPES`) are only ever added, never renamed:
+`keyword`, `axis-name`, `axis-tag`, `label`, `number`, `source`, `glyph`, `text`,
+`string`, `flag`, `variable`, `operator`, `punctuation`, `comment`, `unknown`.
+Both functions load only the standard library and PyYAML.
+
 ### Intelligent Typo Detection
 
 DSSketch uses advanced **Levenshtein distance algorithm** to detect typos and suggest corrections, similar to how git, npm, and bash help users. Three severity levels ensure robust validation:

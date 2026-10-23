@@ -1589,6 +1589,27 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   happens only on the way to DesignSpace). `DSSWriter._format_rule()` writes
   such a rule back verbatim. Tests: `tests/test_dss_to_dss.py`
 
+**`syntax.py`** - Editor support (highlighting, positioned diagnostics)
+- `tokenize(text) -> List[Token]` (`line` from 1, `column` from 0, `length`,
+  `type`, `text`); every non-blank character in exactly one token, sorted
+- `diagnose(text) -> List[Diagnostic]` (`severity`, `message`, `line`,
+  `column`, `end_column` exclusive); never raises. Runs
+  `DSSParser(strict_mode=False, recover=True)`: a line that raises becomes an
+  error and parsing goes on. Line messages first, then document-level ones
+  with `line=None` (they have no position: models do not record lines yet)
+- Placing a message: a token whose text is quoted in it ('Bolt'), a SOURCE
+  token only if nothing else matches; otherwise the whole line
+- **Token types are a contract** (`TOKEN_TYPES`): append-only, editors key
+  styles on them
+- **The tokenizer mirrors the parser, not an ideal grammar**: comment from the
+  first `#` (quotes too), section keywords only at column 0, section checks in
+  `_parse_line` order. A parser change to line syntax needs the same change
+  here; `tests/test_syntax.py` checks coverage and agreement on every example
+- `DSSParser.line_messages` = (severity, message, line) per line;
+  `line_phase_counts` = how many of `validator.errors/warnings` came from lines
+  (`validate_document()` keeps them first, in order)
+- Light (stdlib + PyYAML), pinned in `tests/test_light_imports.py`
+
 **`api.py`** - High-level API for DSSketch integration
 - `convert_to_dss(designspace, dss_path, optimize=True, vars_threshold=3, avar2_format="matrix")` - Convert DesignSpace object to DSSketch file
 - `convert_to_designspace(dss_path)` - Convert DSSketch file to DesignSpace object

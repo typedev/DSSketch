@@ -28,7 +28,12 @@ class DSSParser:
         "wght": "weight",
     }
 
-    def __init__(self, strict_mode: bool = True):
+    def __init__(self, strict_mode: bool = True, recover: bool = False):
+        """recover: a line that raises becomes an error message and parsing goes on
+        (for editors, which want every error at once); off, it stops the parse"""
+        self.recover = recover
+        self.line_messages = []
+        self.line_phase_counts = (0, 0)
         self.document = DSSDocument(family="")
         self.current_section = None
         self.current_axis = None
@@ -78,34 +83,27 @@ class DSSParser:
     def parse(self, content: str) -> DSSDocument:
         """Parse DSS content"""
         lines = content.split("\n")
+        # (severity, message, line_no) for every message a line produced, in order
+        self.line_messages = []
 
         for line_no, line in enumerate(lines, 1):
             original_line = line.rstrip()  # Keep leading spaces but remove trailing
-
-            # Handle comments before removing them
-            if "#" in line:
-                comment_part = line[line.index("#") :]
-                line = line[: line.index("#")]
-
-                # If line is only a comment, process it separately
-                if not line.strip():
-                    try:
-                        self._parse_line(comment_part.strip(), original_line)
-                    except Exception as e:
-                        raise ValueError(
-                            f"Error parsing line {line_no}: {original_line}\n{e}"
-                        ) from e
-                    continue
-
-            line = line.rstrip()  # Remove only trailing whitespace
-
-            if not line.strip():  # Check if line is effectively empty
-                continue
+            n_errors, n_warnings = len(self.validator.errors), len(self.validator.warnings)
 
             try:
-                self._parse_line(line, original_line)
+                self._parse_text_line(line, original_line)
             except Exception as e:
-                raise ValueError(f"Error parsing line {line_no}: {original_line}\n{e}") from e
+                if not self.recover:
+                    raise ValueError(f"Error parsing line {line_no}: {original_line}\n{e}") from e
+                self.validator.errors.append(str(e))
+
+            for message in self.validator.errors[n_errors:]:
+                self.line_messages.append(("error", message, line_no))
+            for message in self.validator.warnings[n_warnings:]:
+                self.line_messages.append(("warning", message, line_no))
+
+        # validate_document() keeps these first and in order; what follows is document-level
+        self.line_phase_counts = (len(self.validator.errors), len(self.validator.warnings))
 
         # A discrete axis declared without labels ("ital discrete") keeps its 0/1 values
         for axis in self.document.axes:
@@ -140,6 +138,25 @@ class DSSParser:
             raise ValueError(str(e)) from e
 
         return self.document
+
+    def _parse_text_line(self, line: str, original_line: str):
+        """Parse one line of the file as read: split off the comment, skip blanks"""
+        # Handle comments before removing them
+        if "#" in line:
+            comment_part = line[line.index("#") :]
+            line = line[: line.index("#")]
+
+            # If line is only a comment, process it separately
+            if not line.strip():
+                self._parse_line(comment_part.strip(), original_line)
+                return
+
+        line = line.rstrip()  # Remove only trailing whitespace
+
+        if not line.strip():  # Check if line is effectively empty
+            return
+
+        self._parse_line(line, original_line)
 
     def _parse_line(self, line: str, original_line: str = None):
         """Parse a single line based on context"""
