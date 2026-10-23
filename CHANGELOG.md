@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-10-22
+
 ### Added
 - **Editor support: `tokenize()` and `diagnose()`** (`dssketch.syntax`, also at the package root), so an editor can highlight `.dssketch` and underline problems without its own copy of the grammar. `tokenize(text)` splits the text into typed tokens (line, column, length, type) — every non-blank character in exactly one token, following the parser's own decisions (comment from the first `#`, section keywords at the start of a line). The 15 token types (`keyword`, `axis-tag`, `label`, `number`, `source`, `glyph`, `flag`, `variable`, `comment` …) are only ever added to. `diagnose(text)` returns every parser error and warning with its position and never raises: a line that fails no longer stops the parse, so all problems come at once. A message that names something ('Bolt') points at that word, otherwise at the line; document-level messages (no base source, duplicate labels …) come last without a position. Both load only the standard library and PyYAML
 - `DSSParser(recover=True)` turns a line that raises into an error and goes on; `DSSParser.line_messages` lists each message with its line. Default behaviour is unchanged
