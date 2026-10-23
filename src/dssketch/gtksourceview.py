@@ -217,8 +217,8 @@ def language_spec() -> str:
     # sources [wght, CONTRAST]: brackets right after the keyword list axes
     match("any-axis", r"\b[A-Za-z_][A-Za-z0-9_]*\b", "axis-tag")
     w('    <context id="axis-order" end-at-line-end="true">')
-    w(f"      <start>{escape(r'(?<=^sources)\s*\[')}</start>")
-    w(f"      <end>{escape(r'\]')}</end>")
+    w("      <start>" + escape(r"(?<=^sources)\s*\[") + "</start>")
+    w("      <end>" + escape(r"\]") + "</end>")
     w("      <include>")
     w('        <context sub-pattern="0" where="start" style-ref="punctuation"/>')
     w('        <context sub-pattern="0" where="end" style-ref="punctuation"/>')
