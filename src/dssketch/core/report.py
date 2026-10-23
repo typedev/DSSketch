@@ -119,6 +119,10 @@ AVAR2_UNKNOWN_AXIS = 2
 #: overrides, localized family names, muted info/kerning/glyphs).
 SOURCE_FIELDS_DROPPED = 0
 
+#: DSS -> DS: different UFOs give their sources the same family + style name
+#: (the style name comes from the UFO). FontLab merges such masters on save.
+SOURCE_STYLE_NAME_DUPLICATE = 1
+
 # =============================================================================
 # Issue codes — CATEGORY_RULES
 # =============================================================================

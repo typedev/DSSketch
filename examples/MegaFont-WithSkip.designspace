@@ -77,7 +77,7 @@
     </rule>
   </rules>
   <sources>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Slant.ufo" name="source.1" familyname="MegaFont" stylename="HighContrast Normal Black Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Slant.ufo" name="MegaFont_HighContrast-Normal-Black-Slant" familyname="MegaFont" stylename="HighContrast Normal Black Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -85,7 +85,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Reverse.ufo" name="source.2" familyname="MegaFont" stylename="HighContrast Normal Black Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Reverse.ufo" name="MegaFont_HighContrast-Normal-Black-Reverse" familyname="MegaFont" stylename="HighContrast Normal Black Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -93,7 +93,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Neutral.ufo" name="source.3" familyname="MegaFont" stylename="HighContrast Normal Black Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Black-Neutral.ufo" name="MegaFont_HighContrast-Normal-Black-Neutral" familyname="MegaFont" stylename="HighContrast Normal Black Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -101,7 +101,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Slant.ufo" name="source.4" familyname="MegaFont" stylename="HighContrast Normal Bold Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Slant.ufo" name="MegaFont_HighContrast-Normal-Bold-Slant" familyname="MegaFont" stylename="HighContrast Normal Bold Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -109,7 +109,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Reverse.ufo" name="source.5" familyname="MegaFont" stylename="HighContrast Normal Bold Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Reverse.ufo" name="MegaFont_HighContrast-Normal-Bold-Reverse" familyname="MegaFont" stylename="HighContrast Normal Bold Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -117,7 +117,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Neutral.ufo" name="source.6" familyname="MegaFont" stylename="HighContrast Normal Bold Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Bold-Neutral.ufo" name="MegaFont_HighContrast-Normal-Bold-Neutral" familyname="MegaFont" stylename="HighContrast Normal Bold Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -125,7 +125,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Slant.ufo" name="source.7" familyname="MegaFont" stylename="HighContrast Normal Thin Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Slant.ufo" name="MegaFont_HighContrast-Normal-Thin-Slant" familyname="MegaFont" stylename="HighContrast Normal Thin Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -133,7 +133,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Reverse.ufo" name="source.8" familyname="MegaFont" stylename="HighContrast Normal Thin Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Reverse.ufo" name="MegaFont_HighContrast-Normal-Thin-Reverse" familyname="MegaFont" stylename="HighContrast Normal Thin Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -141,7 +141,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Neutral.ufo" name="source.9" familyname="MegaFont" stylename="HighContrast Normal Thin Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Thin-Neutral.ufo" name="MegaFont_HighContrast-Normal-Thin-Neutral" familyname="MegaFont" stylename="HighContrast Normal Thin Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -149,7 +149,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Slant.ufo" name="source.10" familyname="MegaFont" stylename="NonContrast Normal Black Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Slant.ufo" name="MegaFont_NonContrast-Normal-Black-Slant" familyname="MegaFont" stylename="NonContrast Normal Black Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -157,7 +157,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Reverse.ufo" name="source.11" familyname="MegaFont" stylename="NonContrast Normal Black Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Reverse.ufo" name="MegaFont_NonContrast-Normal-Black-Reverse" familyname="MegaFont" stylename="NonContrast Normal Black Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -165,7 +165,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Neutral.ufo" name="source.12" familyname="MegaFont" stylename="NonContrast Normal Black Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Black-Neutral.ufo" name="MegaFont_NonContrast-Normal-Black-Neutral" familyname="MegaFont" stylename="NonContrast Normal Black Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -173,7 +173,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Slant.ufo" name="source.13" familyname="MegaFont" stylename="NonContrast Normal Bold Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Slant.ufo" name="MegaFont_NonContrast-Normal-Bold-Slant" familyname="MegaFont" stylename="NonContrast Normal Bold Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -181,7 +181,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Reverse.ufo" name="source.14" familyname="MegaFont" stylename="NonContrast Normal Bold Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Reverse.ufo" name="MegaFont_NonContrast-Normal-Bold-Reverse" familyname="MegaFont" stylename="NonContrast Normal Bold Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -189,7 +189,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Neutral.ufo" name="source.15" familyname="MegaFont" stylename="NonContrast Normal Bold Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Bold-Neutral.ufo" name="MegaFont_NonContrast-Normal-Bold-Neutral" familyname="MegaFont" stylename="NonContrast Normal Bold Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -197,7 +197,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Slant.ufo" name="source.16" familyname="MegaFont" stylename="NonContrast Normal Thin Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Slant.ufo" name="MegaFont_NonContrast-Normal-Thin-Slant" familyname="MegaFont" stylename="NonContrast Normal Thin Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -205,7 +205,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Reverse.ufo" name="source.17" familyname="MegaFont" stylename="NonContrast Normal Thin Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Reverse.ufo" name="MegaFont_NonContrast-Normal-Thin-Reverse" familyname="MegaFont" stylename="NonContrast Normal Thin Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -213,7 +213,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Neutral.ufo" name="source.18" familyname="MegaFont" stylename="NonContrast Normal Thin Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Thin-Neutral.ufo" name="MegaFont_NonContrast-Normal-Thin-Neutral" familyname="MegaFont" stylename="NonContrast Normal Thin Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -221,7 +221,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Slant.ufo" name="source.19" familyname="MegaFont" stylename="HighContrast Compressed Black Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Slant.ufo" name="MegaFont_HighContrast-Compressed-Black-Slant" familyname="MegaFont" stylename="HighContrast Compressed Black Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -229,7 +229,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Reverse.ufo" name="source.20" familyname="MegaFont" stylename="HighContrast Compressed Black Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Reverse.ufo" name="MegaFont_HighContrast-Compressed-Black-Reverse" familyname="MegaFont" stylename="HighContrast Compressed Black Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -237,7 +237,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Neutral.ufo" name="source.21" familyname="MegaFont" stylename="HighContrast Compressed Black Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Black-Neutral.ufo" name="MegaFont_HighContrast-Compressed-Black-Neutral" familyname="MegaFont" stylename="HighContrast Compressed Black Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -245,7 +245,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Slant.ufo" name="source.22" familyname="MegaFont" stylename="HighContrast Compressed Bold Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Slant.ufo" name="MegaFont_HighContrast-Compressed-Bold-Slant" familyname="MegaFont" stylename="HighContrast Compressed Bold Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -253,7 +253,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Reverse.ufo" name="source.23" familyname="MegaFont" stylename="HighContrast Compressed Bold Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Reverse.ufo" name="MegaFont_HighContrast-Compressed-Bold-Reverse" familyname="MegaFont" stylename="HighContrast Compressed Bold Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -261,7 +261,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Neutral.ufo" name="source.24" familyname="MegaFont" stylename="HighContrast Compressed Bold Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Bold-Neutral.ufo" name="MegaFont_HighContrast-Compressed-Bold-Neutral" familyname="MegaFont" stylename="HighContrast Compressed Bold Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -269,7 +269,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Slant.ufo" name="source.25" familyname="MegaFont" stylename="HighContrast Compressed Thin Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Slant.ufo" name="MegaFont_HighContrast-Compressed-Thin-Slant" familyname="MegaFont" stylename="HighContrast Compressed Thin Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -277,7 +277,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Reverse.ufo" name="source.26" familyname="MegaFont" stylename="HighContrast Compressed Thin Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Reverse.ufo" name="MegaFont_HighContrast-Compressed-Thin-Reverse" familyname="MegaFont" stylename="HighContrast Compressed Thin Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -285,7 +285,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Neutral.ufo" name="source.27" familyname="MegaFont" stylename="HighContrast Compressed Thin Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Thin-Neutral.ufo" name="MegaFont_HighContrast-Compressed-Thin-Neutral" familyname="MegaFont" stylename="HighContrast Compressed Thin Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -293,7 +293,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Slant.ufo" name="source.28" familyname="MegaFont" stylename="NonContrast Compressed Black Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Slant.ufo" name="MegaFont_NonContrast-Compressed-Black-Slant" familyname="MegaFont" stylename="NonContrast Compressed Black Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -301,7 +301,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Reverse.ufo" name="source.29" familyname="MegaFont" stylename="NonContrast Compressed Black Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Reverse.ufo" name="MegaFont_NonContrast-Compressed-Black-Reverse" familyname="MegaFont" stylename="NonContrast Compressed Black Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -309,7 +309,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Neutral.ufo" name="source.30" familyname="MegaFont" stylename="NonContrast Compressed Black Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Black-Neutral.ufo" name="MegaFont_NonContrast-Compressed-Black-Neutral" familyname="MegaFont" stylename="NonContrast Compressed Black Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -317,7 +317,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Slant.ufo" name="source.31" familyname="MegaFont" stylename="NonContrast Compressed Bold Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Slant.ufo" name="MegaFont_NonContrast-Compressed-Bold-Slant" familyname="MegaFont" stylename="NonContrast Compressed Bold Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -325,7 +325,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Reverse.ufo" name="source.32" familyname="MegaFont" stylename="NonContrast Compressed Bold Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Reverse.ufo" name="MegaFont_NonContrast-Compressed-Bold-Reverse" familyname="MegaFont" stylename="NonContrast Compressed Bold Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -333,7 +333,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Neutral.ufo" name="source.33" familyname="MegaFont" stylename="NonContrast Compressed Bold Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Bold-Neutral.ufo" name="MegaFont_NonContrast-Compressed-Bold-Neutral" familyname="MegaFont" stylename="NonContrast Compressed Bold Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -341,7 +341,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Slant.ufo" name="source.34" familyname="MegaFont" stylename="NonContrast Compressed Thin Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Slant.ufo" name="MegaFont_NonContrast-Compressed-Thin-Slant" familyname="MegaFont" stylename="NonContrast Compressed Thin Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -349,7 +349,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Reverse.ufo" name="source.35" familyname="MegaFont" stylename="NonContrast Compressed Thin Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Reverse.ufo" name="MegaFont_NonContrast-Compressed-Thin-Reverse" familyname="MegaFont" stylename="NonContrast Compressed Thin Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -357,7 +357,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Neutral.ufo" name="source.36" familyname="MegaFont" stylename="NonContrast Compressed Thin Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Thin-Neutral.ufo" name="MegaFont_NonContrast-Compressed-Thin-Neutral" familyname="MegaFont" stylename="NonContrast Compressed Thin Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -365,7 +365,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Neutral.ufo" name="source.37" familyname="MegaFont" stylename="NonContrast Extended Thin Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Neutral.ufo" name="MegaFont_NonContrast-Extended-Thin-Neutral" familyname="MegaFont" stylename="NonContrast Extended Thin Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -373,7 +373,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Slant.ufo" name="source.38" familyname="MegaFont" stylename="HighContrast Extended Black Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Slant.ufo" name="MegaFont_HighContrast-Extended-Black-Slant" familyname="MegaFont" stylename="HighContrast Extended Black Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -381,7 +381,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Reverse.ufo" name="source.39" familyname="MegaFont" stylename="HighContrast Extended Black Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Reverse.ufo" name="MegaFont_HighContrast-Extended-Black-Reverse" familyname="MegaFont" stylename="HighContrast Extended Black Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -389,7 +389,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Neutral.ufo" name="source.40" familyname="MegaFont" stylename="HighContrast Extended Black Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Black-Neutral.ufo" name="MegaFont_HighContrast-Extended-Black-Neutral" familyname="MegaFont" stylename="HighContrast Extended Black Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -397,7 +397,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Slant.ufo" name="source.41" familyname="MegaFont" stylename="HighContrast Extended Thin Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Slant.ufo" name="MegaFont_HighContrast-Extended-Thin-Slant" familyname="MegaFont" stylename="HighContrast Extended Thin Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -405,7 +405,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Reverse.ufo" name="source.42" familyname="MegaFont" stylename="HighContrast Extended Thin Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Reverse.ufo" name="MegaFont_HighContrast-Extended-Thin-Reverse" familyname="MegaFont" stylename="HighContrast Extended Thin Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -413,7 +413,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Neutral.ufo" name="source.43" familyname="MegaFont" stylename="HighContrast Extended Thin Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Thin-Neutral.ufo" name="MegaFont_HighContrast-Extended-Thin-Neutral" familyname="MegaFont" stylename="HighContrast Extended Thin Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -421,7 +421,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Slant.ufo" name="source.44" familyname="MegaFont" stylename="NonContrast Extended Black Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Slant.ufo" name="MegaFont_NonContrast-Extended-Black-Slant" familyname="MegaFont" stylename="NonContrast Extended Black Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -429,7 +429,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Reverse.ufo" name="source.45" familyname="MegaFont" stylename="NonContrast Extended Black Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Reverse.ufo" name="MegaFont_NonContrast-Extended-Black-Reverse" familyname="MegaFont" stylename="NonContrast Extended Black Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -437,7 +437,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Neutral.ufo" name="source.46" familyname="MegaFont" stylename="NonContrast Extended Black Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Black-Neutral.ufo" name="MegaFont_NonContrast-Extended-Black-Neutral" familyname="MegaFont" stylename="NonContrast Extended Black Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -445,7 +445,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Slant.ufo" name="source.47" familyname="MegaFont" stylename="NonContrast Extended Thin Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Slant.ufo" name="MegaFont_NonContrast-Extended-Thin-Slant" familyname="MegaFont" stylename="NonContrast Extended Thin Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -453,7 +453,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Reverse.ufo" name="source.48" familyname="MegaFont" stylename="NonContrast Extended Thin Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Thin-Reverse.ufo" name="MegaFont_NonContrast-Extended-Thin-Reverse" familyname="MegaFont" stylename="NonContrast Extended Thin Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -461,7 +461,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Slant.ufo" name="source.49" familyname="MegaFont" stylename="HighContrast Extended Bold Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Slant.ufo" name="MegaFont_HighContrast-Extended-Bold-Slant" familyname="MegaFont" stylename="HighContrast Extended Bold Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -469,7 +469,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Reverse.ufo" name="source.50" familyname="MegaFont" stylename="HighContrast Extended Bold Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Reverse.ufo" name="MegaFont_HighContrast-Extended-Bold-Reverse" familyname="MegaFont" stylename="HighContrast Extended Bold Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -477,7 +477,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Neutral.ufo" name="source.51" familyname="MegaFont" stylename="HighContrast Extended Bold Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Bold-Neutral.ufo" name="MegaFont_HighContrast-Extended-Bold-Neutral" familyname="MegaFont" stylename="HighContrast Extended Bold Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -485,7 +485,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Slant.ufo" name="source.52" familyname="MegaFont" stylename="NonContrast Extended Bold Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Slant.ufo" name="MegaFont_NonContrast-Extended-Bold-Slant" familyname="MegaFont" stylename="NonContrast Extended Bold Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -493,7 +493,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Reverse.ufo" name="source.53" familyname="MegaFont" stylename="NonContrast Extended Bold Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Reverse.ufo" name="MegaFont_NonContrast-Extended-Bold-Reverse" familyname="MegaFont" stylename="NonContrast Extended Bold Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -501,7 +501,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Neutral.ufo" name="source.54" familyname="MegaFont" stylename="NonContrast Extended Bold Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Bold-Neutral.ufo" name="MegaFont_NonContrast-Extended-Bold-Neutral" familyname="MegaFont" stylename="NonContrast Extended Bold Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -509,7 +509,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Neutral.ufo" name="source.55" familyname="MegaFont" stylename="NonContrast Compressed Regular Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Neutral.ufo" name="MegaFont_NonContrast-Compressed-Regular-Neutral" familyname="MegaFont" stylename="NonContrast Compressed Regular Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -517,7 +517,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Reverse.ufo" name="source.56" familyname="MegaFont" stylename="NonContrast Compressed Regular Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Reverse.ufo" name="MegaFont_NonContrast-Compressed-Regular-Reverse" familyname="MegaFont" stylename="NonContrast Compressed Regular Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -525,7 +525,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Slant.ufo" name="source.57" familyname="MegaFont" stylename="NonContrast Compressed Regular Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Compressed-Regular-Slant.ufo" name="MegaFont_NonContrast-Compressed-Regular-Slant" familyname="MegaFont" stylename="NonContrast Compressed Regular Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="0"/>
@@ -533,7 +533,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Neutral.ufo" name="source.58" familyname="MegaFont" stylename="NonContrast Extended Regular Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Neutral.ufo" name="MegaFont_NonContrast-Extended-Regular-Neutral" familyname="MegaFont" stylename="NonContrast Extended Regular Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -541,7 +541,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Reverse.ufo" name="source.59" familyname="MegaFont" stylename="NonContrast Extended Regular Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Reverse.ufo" name="MegaFont_NonContrast-Extended-Regular-Reverse" familyname="MegaFont" stylename="NonContrast Extended Regular Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -549,7 +549,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Slant.ufo" name="source.60" familyname="MegaFont" stylename="NonContrast Extended Regular Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Extended-Regular-Slant.ufo" name="MegaFont_NonContrast-Extended-Regular-Slant" familyname="MegaFont" stylename="NonContrast Extended Regular Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="1000"/>
@@ -557,7 +557,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Neutral.ufo" name="source.61" familyname="MegaFont" stylename="HighContrast Compressed Regular Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Neutral.ufo" name="MegaFont_HighContrast-Compressed-Regular-Neutral" familyname="MegaFont" stylename="HighContrast Compressed Regular Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -565,7 +565,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Reverse.ufo" name="source.62" familyname="MegaFont" stylename="HighContrast Compressed Regular Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Reverse.ufo" name="MegaFont_HighContrast-Compressed-Regular-Reverse" familyname="MegaFont" stylename="HighContrast Compressed Regular Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -573,7 +573,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Slant.ufo" name="source.63" familyname="MegaFont" stylename="HighContrast Compressed Regular Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Compressed-Regular-Slant.ufo" name="MegaFont_HighContrast-Compressed-Regular-Slant" familyname="MegaFont" stylename="HighContrast Compressed Regular Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="0"/>
@@ -581,7 +581,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Neutral.ufo" name="source.64" familyname="MegaFont" stylename="HighContrast Extended Regular Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Neutral.ufo" name="MegaFont_HighContrast-Extended-Regular-Neutral" familyname="MegaFont" stylename="HighContrast Extended Regular Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -589,7 +589,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Reverse.ufo" name="source.65" familyname="MegaFont" stylename="HighContrast Extended Regular Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Reverse.ufo" name="MegaFont_HighContrast-Extended-Regular-Reverse" familyname="MegaFont" stylename="HighContrast Extended Regular Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -597,7 +597,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Slant.ufo" name="source.66" familyname="MegaFont" stylename="HighContrast Extended Regular Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Extended-Regular-Slant.ufo" name="MegaFont_HighContrast-Extended-Regular-Slant" familyname="MegaFont" stylename="HighContrast Extended Regular Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="1000"/>
@@ -605,7 +605,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Neutral.ufo" name="source.67" familyname="MegaFont" stylename="HighContrast Normal Regular Neutral">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Neutral.ufo" name="MegaFont_HighContrast-Normal-Regular-Neutral" familyname="MegaFont" stylename="HighContrast Normal Regular Neutral">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -613,7 +613,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Reverse.ufo" name="source.68" familyname="MegaFont" stylename="HighContrast Normal Regular Reverse">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Reverse.ufo" name="MegaFont_HighContrast-Normal-Regular-Reverse" familyname="MegaFont" stylename="HighContrast Normal Regular Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -621,7 +621,7 @@
         <dimension name="slant" xvalue="-20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Slant.ufo" name="source.69" familyname="MegaFont" stylename="HighContrast Normal Regular Slant">
+    <source filename="MegaFont-sources/MegaFont_HighContrast-Normal-Regular-Slant.ufo" name="MegaFont_HighContrast-Normal-Regular-Slant" familyname="MegaFont" stylename="HighContrast Normal Regular Slant">
       <location>
         <dimension name="CONTRAST" xvalue="200"/>
         <dimension name="width" xvalue="560"/>
@@ -629,7 +629,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Slant.ufo" name="source.70" familyname="MegaFont" stylename="NonContrast Normal Regular Slant">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Slant.ufo" name="MegaFont_NonContrast-Normal-Regular-Slant" familyname="MegaFont" stylename="NonContrast Normal Regular Slant">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>
@@ -637,7 +637,7 @@
         <dimension name="slant" xvalue="20"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Neutral.ufo" name="source.71" familyname="MegaFont" stylename="NonContrast Normal Regular Neutral">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Neutral.ufo" name="MegaFont_NonContrast-Normal-Regular-Neutral" familyname="MegaFont" stylename="NonContrast Normal Regular Neutral">
       <lib copy="1"/>
       <groups copy="1"/>
       <features copy="1"/>
@@ -649,7 +649,7 @@
         <dimension name="slant" xvalue="0"/>
       </location>
     </source>
-    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Reverse.ufo" name="source.72" familyname="MegaFont" stylename="NonContrast Normal Regular Reverse">
+    <source filename="MegaFont-sources/MegaFont_NonContrast-Normal-Regular-Reverse.ufo" name="MegaFont_NonContrast-Normal-Regular-Reverse" familyname="MegaFont" stylename="NonContrast Normal Regular Reverse">
       <location>
         <dimension name="CONTRAST" xvalue="0"/>
         <dimension name="width" xvalue="560"/>

@@ -3,7 +3,7 @@
 Sparse masters are correction layers with reduced glyph coverage,
 used for interpolation correction without contributing a full set of glyphs.
 
-In DesignSpace XML, they're marked with name="sparse.*" prefix.
+In DesignSpace XML, they're marked with a name="sparse-*" prefix (older files: "sparse.*").
 In DSSketch, they're marked with the @sparse flag (analogous to @base).
 """
 
@@ -226,10 +226,10 @@ class TestSparseDetectionFromDesignSpace:
 
 
 class TestSparseNameGenerationToDesignSpace:
-    """Test DSS → DS generates sparse.N for sparse sources"""
+    """Test DSS → DS generates sparse-<file> for sparse sources"""
 
     def test_sparse_name_prefix(self):
-        """is_sparse=True → source.name starts with 'sparse.'"""
+        """is_sparse=True → source.name starts with 'sparse-'"""
         doc = DSSDocument(family="TestFont")
         doc.axes = [DSSAxis(name="weight", tag="wght", minimum=100, default=400, maximum=900)]
         doc.sources = [
@@ -242,16 +242,15 @@ class TestSparseNameGenerationToDesignSpace:
         converter = DSSToDesignSpace()
         ds = converter.convert(doc)
 
-        # Sparse source: name must start with "sparse."
+        # Sparse source: name must start with "sparse-"
         sparse_source = [s for s in ds.sources
                          if s.filename and "Correction-sparse" in s.filename][0]
-        assert sparse_source.name.startswith("sparse.")
+        assert sparse_source.name == "sparse-Font-Correction-sparse"
 
-        # Non-sparse source: name must NOT start with "sparse."
+        # Non-sparse source: named after its UFO
         regular_source = [s for s in ds.sources
                           if s.filename and "Regular" in s.filename][0]
-        assert not regular_source.name.startswith("sparse.")
-        assert regular_source.name.startswith("source.")
+        assert regular_source.name == "Font-Regular"
 
 
 class TestSparseFullRoundtrip:
@@ -295,8 +294,8 @@ class TestSparseFullRoundtrip:
         # DSS → DS
         ds2 = DSSToDesignSpace().convert(dss)
 
-        # All previously-sparse sources should have name starting with "sparse."
+        # All previously-sparse sources should have name starting with "sparse-"
         sparse_names = [s.name for s in ds2.sources
                         if s.filename and "sparse" in s.filename]
         assert len(sparse_names) == 2
-        assert all(n.startswith("sparse.") for n in sparse_names)
+        assert all(n.startswith("sparse-") for n in sparse_names)

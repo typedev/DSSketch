@@ -30,7 +30,7 @@
     </axis>
   </axes>
   <sources>
-    <source filename="NoContrast-Normal-Regular.ufo" name="source.1" familyname="TestFont" stylename="NoContrast-Normal-Regular">
+    <source filename="NoContrast-Normal-Regular.ufo" name="NoContrast-Normal-Regular" familyname="TestFont" stylename="NoContrast-Normal-Regular">
       <lib copy="1"/>
       <groups copy="1"/>
       <features copy="1"/>
@@ -41,7 +41,7 @@
         <dimension name="weight" xvalue="400"/>
       </location>
     </source>
-    <source filename="HighContrast-Extended-Bold.ufo" name="source.2" familyname="TestFont" stylename="HighContrast-Extended-Bold">
+    <source filename="HighContrast-Extended-Bold.ufo" name="HighContrast-Extended-Bold" familyname="TestFont" stylename="HighContrast-Extended-Bold">
       <location>
         <dimension name="CONTRAST" xvalue="100"/>
         <dimension name="width" xvalue="150"/>

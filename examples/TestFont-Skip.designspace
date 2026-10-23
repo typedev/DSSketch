@@ -27,13 +27,13 @@
     </axis>
   </axes>
   <sources>
-    <source filename="Thin-Upright.ufo" name="source.1" familyname="TestFont" stylename="Thin-Upright">
+    <source filename="Thin-Upright.ufo" name="Thin-Upright" familyname="TestFont" stylename="Thin-Upright">
       <location>
         <dimension name="weight" xvalue="100"/>
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="Regular-Upright.ufo" name="source.2" familyname="TestFont" stylename="Regular-Upright">
+    <source filename="Regular-Upright.ufo" name="Regular-Upright" familyname="TestFont" stylename="Regular-Upright">
       <lib copy="1"/>
       <groups copy="1"/>
       <features copy="1"/>
@@ -43,25 +43,25 @@
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="Black-Upright.ufo" name="source.3" familyname="TestFont" stylename="Black-Upright">
+    <source filename="Black-Upright.ufo" name="Black-Upright" familyname="TestFont" stylename="Black-Upright">
       <location>
         <dimension name="weight" xvalue="900"/>
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="Thin-Italic.ufo" name="source.4" familyname="TestFont" stylename="Thin-Italic">
+    <source filename="Thin-Italic.ufo" name="Thin-Italic" familyname="TestFont" stylename="Thin-Italic">
       <location>
         <dimension name="weight" xvalue="100"/>
         <dimension name="italic" xvalue="1"/>
       </location>
     </source>
-    <source filename="Regular-Italic.ufo" name="source.5" familyname="TestFont" stylename="Regular-Italic">
+    <source filename="Regular-Italic.ufo" name="Regular-Italic" familyname="TestFont" stylename="Regular-Italic">
       <location>
         <dimension name="weight" xvalue="400"/>
         <dimension name="italic" xvalue="1"/>
       </location>
     </source>
-    <source filename="Black-Italic.ufo" name="source.6" familyname="TestFont" stylename="Black-Italic">
+    <source filename="Black-Italic.ufo" name="Black-Italic" familyname="TestFont" stylename="Black-Italic">
       <location>
         <dimension name="weight" xvalue="900"/>
         <dimension name="italic" xvalue="1"/>

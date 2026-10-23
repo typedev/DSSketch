@@ -697,10 +697,10 @@ sources [wght]
 **Sparse Master Support:**
 - Sources can be marked as sparse masters with the `@sparse` flag
 - **Purpose**: Sparse masters are correction layers with reduced glyph coverage, used to fix interpolation in specific regions of the design space without contributing a full glyph set
-- **DesignSpace convention**: Marked by `name="sparse.*"` prefix in the `<source>` element
-- **DSSketch syntax**: `@sparse` flag, placed alongside `@base` / `@layer`
-- **Detection on DS → DSS**: Either `name="sparse.*"` prefix OR filename ending with `-sparse.ufo`
-- **Generation on DSS → DS**: Sparse sources get `name="sparse.N"` (N is source index), non-sparse get `name="source.N"` — the `sparse.` prefix is the semantic carrier preserved across roundtrips
+- **DesignSpace convention**: Marked by a `name="sparse-*"` prefix in the `<source>` element (`sparse.*` in files written before 1.4.2)
+- **Detection on DS → DSS**: `name` starting with `sparse-` or `sparse.`, OR filename ending with `-sparse.ufo`
+- **Generation on DSS → DS**: every source is named after its UFO file (`_source_names()`): `Font-Bold`, a layer adds its name (`Font-Master-wght500`), a sparse source gets `sparse-` in front (`sparse-Font-Fix`). Names are unique (`-2`, `-3`) and **never contain a dot**: FontLab 8 reads `a.b` as sublayer `b` of master `a`, so the old `source.N` names broke every component reference. The `sparse-` prefix is the semantic carrier preserved across roundtrips
+- **Duplicate names warned**: different UFOs whose sources get the same family + style name (style name comes from the UFO) → `SOURCE_STYLE_NAME_DUPLICATE` (1.1); FontLab saves such masters under one name. Layers of one UFO do not count. Tests: `tests/test_source_names.py`
 - **Instance generation**: Sparse masters participate in `instances auto` like regular sources (no special filtering)
 - Can combine with other flags: `@base @sparse`, `@sparse @layer="..."`
 

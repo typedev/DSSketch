@@ -4,6 +4,12 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **FontLab 8 lost every component of a DesignSpace from DSSketch**: sources were named `source.1`, `source.2` …, and FontLab reads a dot in a master name as "master.sublayer" — `source.1` became sublayer `1` of master `source`, so each component pointed to a layer that does not exist. Sources are now named after their UFO file, without dots: `Font-Bold`, `Font-Master-wght500` for a layer, `sparse-Font-Fix` for a sparse master, with `-2`, `-3` when two would collide. DS → DSS recognises sparse masters by both the new `sparse-` and the old `sparse.` prefix, so existing DesignSpaces keep working. The generated example DesignSpaces change only in these names
+
+### Added
+- **Warning when different sources share a family + style name** (`SOURCE_STYLE_NAME_DUPLICATE`): the style name comes from each UFO's `styleName`, and when two UFOs say the same — e.g. an italic whose UFO says only "Regular" — FontLab saves the masters under one name. Sources that are layers of one UFO are not reported
+
 ## [1.4.1] - 2026-09-28
 
 ### Added

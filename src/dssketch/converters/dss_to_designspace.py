@@ -41,6 +41,7 @@ from ..core.report import (
     CATEGORY_AXES,
     CATEGORY_DOCUMENT,
     CATEGORY_RULES,
+    CATEGORY_SOURCES,
     DOCUMENT_FAMILY_UNKNOWN,
     DOCUMENT_TRANSLATION_MISSING,
     CATEGORY_INSTANCES,
@@ -51,6 +52,7 @@ from ..core.report import (
     SEVERITY_ERROR,
     SEVERITY_INFO,
     SEVERITY_WARNING,
+    SOURCE_STYLE_NAME_DUPLICATE,
     ConversionIssue,
     ConversionReport,
 )
@@ -161,9 +163,10 @@ class DSSToDesignSpace:
                 doc.axisMappings.append(mapping)
 
         # Convert sources
-        for source_index, dss_source in enumerate(dss_doc.sources, 1):
-            source = self._convert_source(dss_source, dss_doc, source_index)
+        for dss_source, name in zip(dss_doc.sources, self._source_names(dss_doc)):
+            source = self._convert_source(dss_source, dss_doc, name)
             doc.addSource(source)
+        self._report_duplicate_style_names(doc)
 
         # Convert instances (skip if instances_off is set)
         if not dss_doc.instances_off:
@@ -514,8 +517,60 @@ class DSSToDesignSpace:
         )
         return axis_key
 
+    @staticmethod
+    def _source_names(dss_doc: DSSDocument) -> List[str]:
+        """Unique source names, made from the UFO file name (and layer).
+
+        No dots: FontLab reads a dot as "master.sublayer", so `source.1` became
+        sublayer `1` of master `source` and every component lost its layer.
+        Sparse masters get the `sparse-` prefix, which DS -> DSS reads back.
+        """
+        names = []
+        taken = set()
+        for dss_source in dss_doc.sources:
+            stem = Path(dss_source.filename).name
+            for ext in (".ufo", ".ufoz"):
+                if stem.lower().endswith(ext):
+                    stem = stem[: -len(ext)]
+                    break
+            name = stem or "source"
+            if dss_source.layer:
+                name += f"-{dss_source.layer}"
+            if dss_source.is_sparse:
+                name = f"sparse-{name}"
+            name = name.replace(".", "-")
+            unique, n = name, 2
+            while unique in taken:
+                unique, n = f"{name}-{n}", n + 1
+            taken.add(unique)
+            names.append(unique)
+        return names
+
+    def _report_duplicate_style_names(self, doc: DesignSpaceDocument) -> None:
+        """Warn when different UFOs give their sources the same family + style.
+
+        Sources from one UFO (layers) necessarily share the name; only
+        different files count.
+        """
+        files_by_name = {}
+        for source in doc.sources:
+            key = (source.familyName, source.styleName)
+            files_by_name.setdefault(key, []).append(source.filename)
+        for (family, style), files in files_by_name.items():
+            distinct = sorted(set(files))
+            if len(distinct) < 2:
+                continue
+            self._report(
+                CATEGORY_SOURCES, SOURCE_STYLE_NAME_DUPLICATE, SEVERITY_WARNING,
+                f"Sources {', '.join(distinct)} all have the name '{family} {style}'",
+                details="The style name comes from each UFO's styleName. FontLab "
+                "saves such masters under one name.",
+                suggested_fix="Give each UFO its own styleName (e.g. add 'Italic').",
+                raw_data={"family": family, "style": style, "files": distinct},
+            )
+
     def _convert_source(
-        self, dss_source: DSSSource, dss_doc: DSSDocument, source_index: int
+        self, dss_source: DSSSource, dss_doc: DSSDocument, name: str
     ) -> SourceDescriptor:
         """Convert DSS source to DesignSpace source"""
         source = SourceDescriptor()
@@ -530,11 +585,7 @@ class DSSToDesignSpace:
         else:
             source.filename = dss_source.filename
 
-        # Assign automatic name (sparse masters get "sparse." prefix for round-trip preservation)
-        if dss_source.is_sparse:
-            source.name = f"sparse.{source_index}"
-        else:
-            source.name = f"source.{source_index}"
+        source.name = name
 
         # Always use familyName from DSS document (prioritize DSS over UFO)
         source.familyName = dss_doc.family

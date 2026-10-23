@@ -23,13 +23,13 @@
     </axis>
   </axes>
   <sources>
-    <source filename="TestFont-Thin.ufo" name="source.1" familyname="TestFont" stylename="TestFont-Thin">
+    <source filename="TestFont-Thin.ufo" name="TestFont-Thin" familyname="TestFont" stylename="TestFont-Thin">
       <location>
         <dimension name="weight" xvalue="100"/>
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="TestFont-Regular.ufo" name="source.2" familyname="TestFont" stylename="TestFont-Regular">
+    <source filename="TestFont-Regular.ufo" name="TestFont-Regular" familyname="TestFont" stylename="TestFont-Regular">
       <lib copy="1"/>
       <groups copy="1"/>
       <features copy="1"/>
@@ -39,37 +39,37 @@
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="TestFont-Bold.ufo" name="source.3" familyname="TestFont" stylename="TestFont-Bold">
+    <source filename="TestFont-Bold.ufo" name="TestFont-Bold" familyname="TestFont" stylename="TestFont-Bold">
       <location>
         <dimension name="weight" xvalue="700"/>
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="TestFont-Black.ufo" name="source.4" familyname="TestFont" stylename="TestFont-Black">
+    <source filename="TestFont-Black.ufo" name="TestFont-Black" familyname="TestFont" stylename="TestFont-Black">
       <location>
         <dimension name="weight" xvalue="900"/>
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="TestFont-ThinItalic.ufo" name="source.5" familyname="TestFont" stylename="TestFont-ThinItalic">
+    <source filename="TestFont-ThinItalic.ufo" name="TestFont-ThinItalic" familyname="TestFont" stylename="TestFont-ThinItalic">
       <location>
         <dimension name="weight" xvalue="100"/>
         <dimension name="italic" xvalue="1"/>
       </location>
     </source>
-    <source filename="TestFont-Italic.ufo" name="source.6" familyname="TestFont" stylename="TestFont-Italic">
+    <source filename="TestFont-Italic.ufo" name="TestFont-Italic" familyname="TestFont" stylename="TestFont-Italic">
       <location>
         <dimension name="weight" xvalue="400"/>
         <dimension name="italic" xvalue="1"/>
       </location>
     </source>
-    <source filename="TestFont-BoldItalic.ufo" name="source.7" familyname="TestFont" stylename="TestFont-BoldItalic">
+    <source filename="TestFont-BoldItalic.ufo" name="TestFont-BoldItalic" familyname="TestFont" stylename="TestFont-BoldItalic">
       <location>
         <dimension name="weight" xvalue="700"/>
         <dimension name="italic" xvalue="1"/>
       </location>
     </source>
-    <source filename="TestFont-BlackItalic.ufo" name="source.8" familyname="TestFont" stylename="TestFont-BlackItalic">
+    <source filename="TestFont-BlackItalic.ufo" name="TestFont-BlackItalic" familyname="TestFont" stylename="TestFont-BlackItalic">
       <location>
         <dimension name="weight" xvalue="900"/>
         <dimension name="italic" xvalue="1"/>

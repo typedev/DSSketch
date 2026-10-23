@@ -32,14 +32,14 @@
     </axis>
   </axes>
   <sources>
-    <source filename="Condensed-Light-Upright.ufo" name="source.1" familyname="TestFont" stylename="Condensed-Light-Upright">
+    <source filename="Condensed-Light-Upright.ufo" name="Condensed-Light-Upright" familyname="TestFont" stylename="Condensed-Light-Upright">
       <location>
         <dimension name="width" xvalue="75"/>
         <dimension name="weight" xvalue="300"/>
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="Normal-Regular-Upright.ufo" name="source.2" familyname="TestFont" stylename="Normal-Regular-Upright">
+    <source filename="Normal-Regular-Upright.ufo" name="Normal-Regular-Upright" familyname="TestFont" stylename="Normal-Regular-Upright">
       <lib copy="1"/>
       <groups copy="1"/>
       <features copy="1"/>
@@ -50,7 +50,7 @@
         <dimension name="italic" xvalue="0"/>
       </location>
     </source>
-    <source filename="Extended-Bold-Italic.ufo" name="source.3" familyname="TestFont" stylename="Extended-Bold-Italic">
+    <source filename="Extended-Bold-Italic.ufo" name="Extended-Bold-Italic" familyname="TestFont" stylename="Extended-Bold-Italic">
       <location>
         <dimension name="width" xvalue="150"/>
         <dimension name="weight" xvalue="700"/>
