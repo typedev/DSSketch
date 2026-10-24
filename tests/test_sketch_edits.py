@@ -398,6 +398,13 @@ def test_set_base_off_default_is_rejected(sk):
     refused("rejected", lambda: sk.set_base("Demo-Black"))
 
 
+def test_edit_error_text_has_no_critical_prefix(sk):
+    with pytest.raises(EditError) as caught:
+        sk.set_base("Demo-Black")
+    assert caught.value.messages and not caught.value.message.startswith("CRITICAL")
+    assert not any(m.startswith("CRITICAL") for m in caught.value.messages)
+
+
 def test_set_base_moves_flag():
     text = DEMO.replace("Demo-Regular [Regular, Upright] @base", "Demo-Regular [Regular, Upright]")
     text = text.replace("    Demo-Black [Black, Upright]   # heavy", "    Demo-Regular2 [Regular, Upright] @base")

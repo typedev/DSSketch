@@ -18,7 +18,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
-from .codes import code_id
+from .codes import code_id, plain_message
 from .utils.comments import comment_start, strip_comment
 from .utils.dss_validator import DSSValidator
 
@@ -548,6 +548,7 @@ def _diagnostics_for(text: str, parser, crash, structure, sketch=None) -> List[D
 
     def placed(severity: str, message: str, line_no: Optional[int]) -> Diagnostic:
         code = code_id(message)
+        message = plain_message(message)
         if line_no is None or not 1 <= line_no <= len(lines):
             return Diagnostic(severity, message, None, code=code)
         column, end = _span(message, by_line.get(line_no, []), lines[line_no - 1])
@@ -581,7 +582,7 @@ def _diagnostics_for(text: str, parser, crash, structure, sketch=None) -> List[D
     # In text order; what has no place (no base source, no axes …) comes last
     result.sort(key=lambda d: (d.line is None, d.line or 0, d.column))
     if crash is not None:
-        result.append(Diagnostic("error", str(crash), None, code=code_id(str(crash))))
+        result.append(Diagnostic("error", plain_message(str(crash)), None, code=code_id(str(crash))))
     if sketch is not None:
         from dataclasses import replace
 

@@ -4,6 +4,24 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **What a sketch means, in numbers** — `Sketch` methods for an editor's panels, without UFOs and without a conversion (`dssketch.queries`; free functions at the package root take a `Sketch` or a text). Axes are keyed by their DesignSpace name (display name, else name) and accepted by that name, the tag or the sketch's name. Never raise:
+  - `instances()` / `expand_instances(text)`: what `instances auto` generates — `InstanceInfo` with `index` (position among the DesignSpace's instances), `name` / `style_name`, `family_name`, `user_location`, `design_location`, `skipped`, `skip_entry` and `skip_span` (the `skip` entry that removed it) and `group` (its labels on discrete axes). The same generator as DSS → DS, so names, order and locations match the conversion
+  - `source_locations()`: `SourceLocation` per source — `SourceKey`, name, user and design location on every axis, base flag, line
+  - `user_to_design(axis, value)` / `design_to_user(axis, value)`: the axis map, a label or a number
+  - `rule_regions()`: each rule's design-space interval per axis (an open end is the axis's end)
+  - `substitutions_at(location, glyph_names, space="design")`: `{glyph: replacement}` the rules make at a location, in order as fontTools' `processRules`; pattern rules expand against the glyph names or the font data's default master
+  - `hover(line, column)`: a line about the word under the cursor — a label's user and design value, an axis's ranges, a number in the other space, a source's location, what a `skip` entry removes, where a rule applies and, with font data, which glyphs a pattern swaps
+
+### Changed
+- **Messages no longer start with `CRITICAL: `** in `Diagnostic.message` and `EditError` (`message`, `messages`): the severity says it. Codes are unchanged; `codes.classify()` reads both forms, `codes.plain_message()` drops the prefix
+- **A scale of your own is one warning per axis**: standard labels at other user values than the standard table's (`0 Light > 0` … `1000 Bold > 1000`) were one `MAPPING_NONSTANDARD_USER` warning per mapping; now one per axis lists them (same for standard user values under other labels). A single case keeps the old message
+- `convert_designspace_to_dss_string()` and `convert_to_dss()` accept a path to a `.designspace` file as well as a `DesignSpaceDocument`; anything else raises `TypeError` (it failed with `AttributeError`)
+- `core/instances.py` no longer imports fontTools at module level: the generator works on light `AxisSpec`s, from a DesignSpace or straight from a sketch. Generated DesignSpaces are unchanged
+
+### Fixed
+- **False "Bracket issues" warnings**: brackets and commas in a comment (`# "A B" -> "A" (A, B elided)`) or in a quoted rule name (`"heavy, dollar"`, `"[x]"`) were taken for coordinates. The check now reads the code only; three examples lost their bogus warnings
+
 ## [1.5.0] - 2026-10-24
 
 ### Added

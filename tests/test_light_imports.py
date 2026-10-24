@@ -9,10 +9,12 @@ a fresh interpreter: sys.modules in the test process is already polluted.
 import subprocess
 import sys
 import textwrap
+from pathlib import Path
 
 import pytest
 
 HEAVY = ("defcon", "fontParts", "fontTools")
+MEGAFONT = str(Path(__file__).parent.parent / "examples" / "MegaFont-WithSkip.dssketch")
 
 
 def _loaded_after(code: str) -> list:
@@ -42,6 +44,8 @@ def _loaded_after(code: str) -> list:
         "import dssketch.codes, dssketch.structure, dssketch.fixes, dssketch.fontdata",
         "from dssketch import diagnose, FontData, DefconFontData; diagnose('sources\\n    A @base', font_data=FontData()); DefconFontData('.').glyph_names('nope.ufo')",
         "from dssketch import diagnose; diagnose('familly T\\naxes\\n    wgjt 1:2:3')",
+        "import dssketch.queries, dssketch.core.instances",
+        f"from dssketch import Sketch; s = Sketch.parse(open({MEGAFONT!r}).read()); s.instances(); s.source_locations(); s.rule_regions(); s.substitutions_at({{'weight': 900}}, ['dollar', 'dollar.rvrn']); s.user_to_design('wght', 700)",
     ],
 )
 def test_import_is_light(code):

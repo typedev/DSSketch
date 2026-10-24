@@ -1084,9 +1084,13 @@ class DSSValidator:
             # Check 1: Verify axis extremes (min/default/max) have mappings
             self._check_axis_extremes_coverage(axis, axis_type)
 
-            # Check 2: Validate label consistency with standard mappings
+            # Check 2: Validate label consistency with standard mappings, one
+            # message per kind and axis: a designer's own scale (MutatorSans,
+            # 0..1000) is one decision, not one per label
+            moved, renamed = [], []
             for mapping in axis.mappings:
-                self._check_mapping_label_consistency(mapping, axis, axis_type)
+                self._check_mapping_label_consistency(mapping, axis, axis_type, moved, renamed)
+            self._report_label_consistency(axis, moved, renamed)
 
     def _check_axis_extremes_coverage(self, axis: "DSSAxis", axis_type: str):
         """
@@ -1122,13 +1126,15 @@ class DSSValidator:
                     at=axis,
                 )
 
-    def _check_mapping_label_consistency(self, mapping, axis: "DSSAxis", axis_type: str):
+    def _check_mapping_label_consistency(self, mapping, axis: "DSSAxis", axis_type: str, moved, renamed):
         """
         Check if mapping label is consistent with standard naming conventions.
 
-        Handles two cases:
+        Collects two cases for _report_label_consistency():
         1. Label with standard name but non-standard user_value (e.g., "200 Light > 122")
+           -> `moved` gets (mapping, standard user value)
         2. User_value with standard value but non-standard label
+           -> `renamed` gets (mapping, standard label)
         """
         label = mapping.label
         user_value = mapping.user_value
@@ -1148,13 +1154,7 @@ class DSSValidator:
 
             # If user_value differs significantly from standard, warn about override
             if abs(user_value - expected_user_value) > 0.1:
-                self._warning(
-                    f"Axis '{axis.name}': label '{label}' typically maps to user_value {expected_user_value}, "
-                    f"but {user_value} is explicitly specified. "
-                    f"This is allowed but may cause confusion. "
-                    f"Consider using a custom label or the standard value.",
-                    at=mapping,
-                )
+                moved.append((mapping, expected_user_value))
 
         # Check if user_value matches a standard value
         expected_label = Standards.get_name_by_user_space(user_value, axis_type)
@@ -1169,12 +1169,42 @@ class DSSValidator:
         )
 
         if is_standard_name and expected_label != label and not is_alias_of_expected:
-            # User_value matches a standard value but label is different
+            renamed.append((mapping, expected_label))
+
+    def _report_label_consistency(self, axis: "DSSAxis", moved, renamed):
+        """One warning per kind and axis, placed at the first mapping it names"""
+        if len(moved) == 1:
+            mapping, expected = moved[0]
             self._warning(
-                f"Axis '{axis.name}': user_value {user_value} typically uses "
-                f"label '{expected_label}', but '{label}' is specified. "
+                f"Axis '{axis.name}': label '{mapping.label}' typically maps to user_value {expected}, "
+                f"but {mapping.user_value} is explicitly specified. "
+                f"This is allowed but may cause confusion. "
+                f"Consider using a custom label or the standard value.",
+                at=mapping,
+            )
+        elif moved:
+            listed = ", ".join(
+                f"'{m.label}' {m.user_value:g} (usually {expected:g})" for m, expected in moved
+            )
+            self._warning(
+                f"Axis '{axis.name}': {len(moved)} standard labels are at other user values than usual: "
+                f"{listed}. This is allowed (a scale of your own) but may cause confusion.",
+                at=moved[0][0],
+            )
+        if len(renamed) == 1:
+            mapping, expected = renamed[0]
+            self._warning(
+                f"Axis '{axis.name}': user_value {mapping.user_value} typically uses "
+                f"label '{expected}', but '{mapping.label}' is specified. "
                 f"Consider using the standard label for better consistency.",
                 at=mapping,
+            )
+        elif renamed:
+            listed = ", ".join(f"{m.user_value:g} '{m.label}' (usually '{expected}')" for m, expected in renamed)
+            self._warning(
+                f"Axis '{axis.name}': {len(renamed)} user values have other labels than usual: "
+                f"{listed}. Consider the standard labels for better consistency.",
+                at=renamed[0][0],
             )
 
     def _coordinates_equal(self, val1: float, val2: float) -> bool:

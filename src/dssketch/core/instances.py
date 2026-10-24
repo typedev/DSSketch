@@ -1,12 +1,13 @@
 import itertools
+from dataclasses import dataclass, field
 
 # Import DSSDocument for type hints
-from typing import TYPE_CHECKING
-
-from fontTools.designspaceLib import DesignSpaceDocument, InstanceDescriptor
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 if TYPE_CHECKING:
-    from .models import DSSDocument
+    from fontTools.designspaceLib import DesignSpaceDocument
+
+    from .models import DSSAxis, DSSDocument
 
 from ..utils.logging import DSSketchLogger
 
@@ -33,6 +34,97 @@ DEFAULT_AXIS_ORDER = [
     "slant",
 ]
 DEFAULT_INSTANCE_FOLDER = "instances"
+
+
+# =============================================================================
+# Axes as the generator sees them (light: no fontTools)
+#
+# The generator runs on AxisSpecs, so that it gives the same instances whether
+# the axes come from a DesignSpace (createInstances, the DS -> DSS fit report)
+# or straight from a sketch (Sketch.instances(), no UFOs, no fontTools).
+# =============================================================================
+
+
+@dataclass
+class AxisSpec:
+    """An axis as a DesignSpace holds it: its name (display name or name),
+    tag, range, user -> design map and STAT labels (name, user value, elidable)"""
+
+    name: str
+    tag: str
+    minimum: float
+    default: float
+    maximum: float
+    map: List[Tuple[float, float]] = field(default_factory=list)
+    labels: List[Tuple[str, float, bool]] = field(default_factory=list)
+    discrete: bool = False
+
+
+def spec_from_descriptor(axis) -> AxisSpec:
+    """An AxisSpec of a fontTools AxisDescriptor / DiscreteAxisDescriptor"""
+    values = getattr(axis, "values", None)
+    discrete = values is not None
+    minimum = min(values) if discrete and values else getattr(axis, "minimum", axis.default)
+    maximum = max(values) if discrete and values else getattr(axis, "maximum", axis.default)
+    return AxisSpec(
+        name=axis.name,
+        tag=getattr(axis, "tag", axis.name),
+        minimum=minimum,
+        default=axis.default,
+        maximum=maximum,
+        map=list(axis.map or []),
+        labels=[(label.name, label.userValue, label.elidable) for label in axis.axisLabels],
+        discrete=discrete,
+    )
+
+
+def dss_axis_name(dss_axis: "DSSAxis") -> str:
+    """The axis name a DesignSpace gets: the display name, else the name"""
+    return dss_axis.display_name if dss_axis.display_name else dss_axis.name
+
+
+def dss_axis_labels(dss_axis: "DSSAxis") -> List[Tuple[str, float, bool]]:
+    """The STAT labels DSS -> DS writes for an axis: (name, user value, elidable)
+
+    A labelled mapping gives one; an unnamed map point names nothing. A
+    discrete axis written without labels ("ital discrete") gets the standard
+    ones for its tag, if it has any; a custom tag gets none.
+    """
+    if dss_axis.is_discrete and not dss_axis.mappings:
+        from ..utils.discrete import DiscreteAxisHandler
+
+        standard = DiscreteAxisHandler.load_discrete_labels().get(dss_axis.tag, {})
+        labels = []
+        for value in list(dss_axis.values or [dss_axis.minimum, dss_axis.maximum]):
+            names = standard.get(int(value))
+            if names:
+                labels.append((names[0], value, value == dss_axis.default))
+        return labels
+    return [(m.label, m.user_value, m.elidable) for m in dss_axis.mappings if m.label]
+
+
+def dss_axis_map(dss_axis: "DSSAxis") -> List[Tuple[float, float]]:
+    """The user -> design map DSS -> DS writes (a discrete axis only when it
+    differs from identity)"""
+    pairs = [(m.user_value, m.design_value) for m in dss_axis.mappings]
+    if dss_axis.is_discrete and all(u == d for u, d in pairs):
+        return []
+    return pairs
+
+
+def spec_from_dss_axis(dss_axis: "DSSAxis") -> AxisSpec:
+    """The AxisSpec of the axis DSS -> DS would write"""
+    values = dss_axis.values if dss_axis.is_discrete else None
+    return AxisSpec(
+        name=dss_axis_name(dss_axis),
+        tag=dss_axis.tag,
+        minimum=min(values) if values else dss_axis.minimum,
+        default=dss_axis.default,
+        maximum=max(values) if values else dss_axis.maximum,
+        map=dss_axis_map(dss_axis),
+        labels=dss_axis_labels(dss_axis),
+        discrete=dss_axis.is_discrete,
+    )
 
 """
 tdInstancesMapper - Type Design Instances Mapper Module
@@ -122,69 +214,40 @@ def _format_axis_value_label(axis_tag: str, value: float) -> str:
     return f"{axis_tag.lower()}{value_str}"
 
 
-def getInstancesMapping(
-    designSpaceDocument: DesignSpaceDocument,
-    axisName: str = "weight",
-    dss_doc: "DSSDocument" = None,
-):
+def _spec_mapping(spec: AxisSpec, dss_doc: "DSSDocument" = None) -> dict:
+    """{"reverseMap": {design: user}, "axisLabels": {label: user}} of an axis
+
+    Labels follow the map: a map point with a label names an instance, one
+    without names nothing. An axis without labels gets fallback points (see
+    _spec_fallback_mapping).
     """
-    Extracts the mapping of the axis values to the user values from the designspace document.
-
-    If the axis has no labels, generates fallback points from:
-    1. min, default, max values
-    2. Unique input points from avar2 mappings (if dss_doc provided)
-
-    Args:
-        designSpaceDocument: The DesignSpace document
-        axisName: Name of the axis to get mapping for
-        dss_doc: Optional DSS document for avar2 points extraction
-    """
-    axisDescriptor = designSpaceDocument.getAxis(axisName)
-    if not axisDescriptor:
-        axisNames = [axis.name for axis in designSpaceDocument.axes]
-        axisDescriptor = designSpaceDocument.getAxis(axisNames[0])
-        DSSketchLogger.warning(
-            f"Axis {axisName} not found in the designspace, using {axisNames[0]} instead"
-        )
-
-    axisMap = axisDescriptor.map
-    has_labels = bool(axisDescriptor.axisLabels)
-
-    # If no labels, always use fallback (even if map exists)
-    # This handles avar2 cases where map exists but labels don't
-    if not has_labels:
+    if not spec.labels:
         DSSketchLogger.info(
-            f"Axis '{axisName}' has no labels, generating instances from range + avar2"
+            f"Axis '{spec.name}' has no labels, generating instances from range + avar2"
         )
-        return _generate_fallback_mapping(axisDescriptor, dss_doc)
+        return _spec_fallback_mapping(spec, dss_doc)
 
+    axisMap = spec.map
     if not axisMap:
         # For discrete axes (like italic), no map is normal - user space = design space
-        # Check if this is a discrete axis by looking for the 'values' attribute
-        is_discrete = hasattr(axisDescriptor, 'values') and axisDescriptor.values is not None
-
-        if not is_discrete:
-            axis_labels_info = [(label.userValue, label.name) for label in axisDescriptor.axisLabels]
+        if not spec.discrete:
+            axis_labels_info = [(user, name) for name, user, _ in spec.labels]
             DSSketchLogger.warning(
-                f"Axis '{axisName}' has no map, using axis labels and their user values {axis_labels_info}"
+                f"Axis '{spec.name}' has no map, using axis labels and their user values {axis_labels_info}"
             )
         else:
             DSSketchLogger.debug(
-                f"Discrete axis '{axisName}' has no map (expected for discrete axes)"
+                f"Discrete axis '{spec.name}' has no map (expected for discrete axes)"
             )
-
-        axisMap = []
-        for axisLabel in axisDescriptor.axisLabels:
-            axisMap.append((axisLabel.userValue, axisLabel.userValue))
+        axisMap = [(user, user) for _, user, _ in spec.labels]
 
     reverseMap = {}
     axisLabelsList = {}
-    for item in axisMap:
-        uservalue, axisvalue = item
+    for uservalue, axisvalue in axisMap:
         labelName = None
-        for axisLabel in axisDescriptor.axisLabels:
-            if axisLabel.userValue == uservalue:
-                labelName = axisLabel.name
+        for name, user, _ in spec.labels:
+            if user == uservalue:
+                labelName = name
                 axisLabelsList[labelName] = uservalue
                 break
         if not labelName:
@@ -194,63 +257,75 @@ def getInstancesMapping(
                 f"Map point {uservalue} -> {axisvalue} has no label; "
                 f"it will not produce an instance"
             )
-
         reverseMap[axisvalue] = uservalue
     return {"reverseMap": reverseMap, "axisLabels": axisLabelsList}
 
 
-def _generate_fallback_mapping(axisDescriptor, dss_doc: "DSSDocument" = None) -> dict:
+def _spec_fallback_mapping(spec: AxisSpec, dss_doc: "DSSDocument" = None) -> dict:
     """
     Generate fallback mapping for axes without labels.
 
     Uses min:def:max as base points, plus unique avar2 input points.
     Labels are generated as tag+value (e.g., 'wght400').
-
-    Args:
-        axisDescriptor: The axis descriptor from DesignSpace
-        dss_doc: Optional DSS document for avar2 points
-
-    Returns:
-        Dict with 'reverseMap' and 'axisLabels'
     """
-    axis_tag = axisDescriptor.tag
-
-    # Start with min, default, max
-    points = {
-        axisDescriptor.minimum,
-        axisDescriptor.default,
-        axisDescriptor.maximum,
-    }
-
-    # Add avar2 input points
+    points = {spec.minimum, spec.default, spec.maximum}
     if dss_doc:
-        avar2_points = _extract_avar2_points_for_axis(dss_doc, axis_tag)
+        avar2_points = _extract_avar2_points_for_axis(dss_doc, spec.tag)
         if avar2_points:
             DSSketchLogger.debug(
-                f"Adding {len(avar2_points)} avar2 points for axis '{axis_tag}': {sorted(avar2_points)}"
+                f"Adding {len(avar2_points)} avar2 points for axis '{spec.tag}': {sorted(avar2_points)}"
             )
             points.update(avar2_points)
 
-    # Sort points
     sorted_points = sorted(points)
-
     DSSketchLogger.info(
-        f"Axis '{axisDescriptor.name}' ({axis_tag}): generated {len(sorted_points)} instance points: {sorted_points}"
+        f"Axis '{spec.name}' ({spec.tag}): generated {len(sorted_points)} instance points: {sorted_points}"
     )
 
-    # Generate mapping with tag+value labels
     reverseMap = {}
     axisLabelsList = {}
     for value in sorted_points:
-        label = _format_axis_value_label(axis_tag, value)
+        label = _format_axis_value_label(spec.tag, value)
         # For no-map axes, user value = design value
         reverseMap[value] = value
         axisLabelsList[label] = value
-
     return {"reverseMap": reverseMap, "axisLabels": axisLabelsList}
 
 
+def getInstancesMapping(
+    designSpaceDocument: "DesignSpaceDocument",
+    axisName: str = "weight",
+    dss_doc: "DSSDocument" = None,
+):
+    """
+    Extracts the mapping of the axis values to the user values from the designspace document.
+
+    If the axis has no labels, generates fallback points from:
+    1. min, default, max values
+    2. Unique input points from avar2 mappings (if dss_doc provided)
+    """
+    specs = [spec_from_descriptor(axis) for axis in designSpaceDocument.axes]
+    return _spec_mapping(_find_spec(specs, axisName), dss_doc)
+
+
+def _generate_fallback_mapping(axisDescriptor, dss_doc: "DSSDocument" = None) -> dict:
+    """Fallback mapping of a fontTools axis without labels (see _spec_fallback_mapping)"""
+    return _spec_fallback_mapping(spec_from_descriptor(axisDescriptor), dss_doc)
+
+
+def _find_spec(specs: List[AxisSpec], axisName: str) -> AxisSpec:
+    for spec in specs:
+        if spec.name == axisName:
+            return spec
+    DSSketchLogger.warning(
+        f"Axis {axisName} not found in the designspace, using {specs[0].name} instead"
+    )
+    return specs[0]
+
+
 def createInstance(location: dict, familyName: str, styleName: str, defaultFolder="instances"):
+    from fontTools.designspaceLib import InstanceDescriptor
+
     instance = InstanceDescriptor()
     instance.familyName = familyName
     instance.styleName = styleName
@@ -305,8 +380,87 @@ def _validate_skip_labels(skipList: list, labelsmap: list, axisOrder: list) -> l
     return errors
 
 
+@dataclass
+class PlannedInstance:
+    """One combination of axis labels, as the generator names and places it"""
+
+    style_name: str
+    labels: Tuple[str, ...]  # one per axis, in axis order
+    user_location: Dict[str, float]  # axis name -> user value
+    design_location: Dict[str, float]  # axis name -> design value
+    skipped: bool = False  # removed by a skip entry (its text = style_name)
+
+
+def plan_instances(
+    specs: List[AxisSpec],
+    axisOrder: List[str],
+    skip: Optional[List[str]] = None,
+    dss_doc: "DSSDocument" = None,
+) -> Tuple[List[dict], List[PlannedInstance]]:
+    """Every combination of the axes' labels, named and placed: the core of
+    `instances auto`, shared by createInstances() and Sketch.instances()
+
+    `specs` are all axes (elidable labels are looked up on every one), `axisOrder`
+    the names of those that make instances, in order. Returns the labels of
+    each ordered axis ({label: user value}, for checking skip entries) and the
+    instances in generation order, those a `skip` entry removes marked skipped.
+    """
+    elidableStyleNames = _spec_elidable_names(specs, axisOrder, ignoreAxis=["weight"])
+    by_name = {spec.name: spec for spec in specs}
+    labelsmap = []
+    for axisname in axisOrder:
+        labelsmap.append(_spec_mapping(_find_spec(specs, axisname), dss_doc)["axisLabels"])
+
+    skipped_names = set(skip or ())
+    planned = []
+    for combination in itertools.product(*[d.items() for d in labelsmap]):
+        itemlist = list(combination)
+
+        styleNameInstance = " ".join([name for name, _ in itemlist])
+
+        # Apply elidable name cleanup BEFORE checking skip rules
+        # Only elide from compound names — never remove the last remaining word
+        if elidableStyleNames:
+            words = styleNameInstance.split()
+            if len(words) > 1:
+                for removeStyleName in elidableStyleNames:
+                    if removeStyleName in styleNameInstance:
+                        cleaned = styleNameInstance.replace(removeStyleName, "").strip()
+                        cleaned = " ".join(cleaned.split())
+                        if cleaned:  # Don't elide if result would be empty
+                            styleNameInstance = cleaned
+        styleNameInstance = " ".join(styleNameInstance.split())
+        if "Regular Italic" in styleNameInstance:  # just replace -Regular Italic- to -Italic-
+            # TODO need check Slants, Obliques, etc.
+            styleNameInstance = styleNameInstance.replace("Regular Italic", "Italic")
+
+        user_location = {}
+        design_location = {}
+        for i, (_, uservalue) in enumerate(itemlist):
+            axisName = axisOrder[i]
+            spec = by_name.get(axisName)
+            user_location[axisName] = uservalue
+            if spec is not None and spec.map:
+                # Use forward map (user → design) for instance locations
+                forwardMap = dict(spec.map)
+                design_location[axisName] = forwardMap.get(uservalue, uservalue)
+            else:
+                # No map: user value = design value (discrete axes, etc.)
+                design_location[axisName] = uservalue
+
+        planned.append(PlannedInstance(
+            style_name=styleNameInstance,
+            labels=tuple(name for name, _ in itemlist),
+            user_location=user_location,
+            design_location=design_location,
+            # Check skip rules AFTER applying elidable cleanup
+            skipped=styleNameInstance in skipped_names,
+        ))
+    return labelsmap, planned
+
+
 def createInstances(
-    dssource: DesignSpaceDocument,
+    dssource: "DesignSpaceDocument",
     dss_doc: "DSSDocument" = None,
     defaultFolder="instances",
     skipFilter: dict = {},
@@ -328,12 +482,12 @@ def createInstances(
         DesignSpaceDocument: Designspace document with instances
         list: Report of created instances with their locations and style names
     """
+    from fontTools.designspaceLib import DesignSpaceDocument
 
     ds = DesignSpaceDocument()
     copyDS(dssource, ds, copyInstances=False)
 
     axisOrder = sortAxisOrder(ds, dss_doc)
-    elidableStyleNames = getElidabledNames(ds, axisOrder, ignoreAxis=["weight"])
 
     defaultSource = ds.findDefault()
     if not defaultSource and ds.sources:
@@ -342,23 +496,17 @@ def createInstances(
 
     # Fallback to document family name if no sources
     defaultFamilyName = defaultSource.familyName if defaultSource else "UnknownFamily"
-    locations = {}
-    labelsmap = []
-    report = []
-    for axisname in axisOrder:
-        mapAxis = getInstancesMapping(ds, axisname, dss_doc=dss_doc)
-        locations[axisname] = mapAxis["reverseMap"]
-        labelsmap.append(mapAxis["axisLabels"])
-
-    combinations = [
-        {key: value for key, value in combination}
-        for combination in itertools.product(*[d.items() for d in labelsmap])
-    ]
 
     skippedInstances = []
     # Support both skipFilter (dict) and skipList (list)
     if skipFilter:
         skippedInstances = combineFilters(skipFilter)
+    if skipList:
+        skippedInstances.extend(skipList)
+
+    specs = [spec_from_descriptor(axis) for axis in ds.axes]
+    labelsmap, planned = plan_instances(specs, axisOrder, skippedInstances, dss_doc)
+
     if skipList:
         # Validate skip labels BEFORE processing
         validation_errors = _validate_skip_labels(skipList, labelsmap, axisOrder)
@@ -369,7 +517,6 @@ def createInstances(
                 f"Skip rule validation failed: {len(validation_errors)} error(s) found. "
                 "Check that all labels in skip rules are defined in axes section."
             )
-        skippedInstances.extend(skipList)
 
     # Log skip information
     if skippedInstances:
@@ -379,56 +526,18 @@ def createInstances(
 
     # Track which skip rules were actually used
     used_skip_rules = set()
-
-    for item in combinations:
-        itemlist = list(item.items())
-
-        styleNameInstance = " ".join([name for name, _ in itemlist])
-
-        # Apply elidable name cleanup BEFORE checking skip rules
-        # Only elide from compound names — never remove the last remaining word
-        if elidableStyleNames:
-            words = styleNameInstance.split()
-            if len(words) > 1:
-                for removeStyleName in elidableStyleNames:
-                    if removeStyleName in styleNameInstance:
-                        cleaned = styleNameInstance.replace(removeStyleName, "").strip()
-                        cleaned = " ".join(cleaned.split())
-                        if cleaned:  # Don't elide if result would be empty
-                            styleNameInstance = cleaned
-        styleNameInstance = " ".join(styleNameInstance.split())
-        if "Regular Italic" in styleNameInstance:  # just replace -Regular Italic- to -Italic-
-            # TODO need check Slants, Obliques, etc.
-            styleNameInstance = styleNameInstance.replace("Regular Italic", "Italic")
-
-        # Check skip rules AFTER applying elidable cleanup
-        if skippedInstances and styleNameInstance in skippedInstances:
-            DSSketchLogger.info(f"Skipping instance: {styleNameInstance}")
-            used_skip_rules.add(styleNameInstance)  # Track that this rule was used
+    report = []
+    for item in planned:
+        if item.skipped:
+            DSSketchLogger.info(f"Skipping instance: {item.style_name}")
+            used_skip_rules.add(item.style_name)  # Track that this rule was used
             continue
-
-        locationsInstance = {}
-        mapUserValues = [uservalue for _, uservalue in itemlist]
-        for i, uservalue in enumerate(mapUserValues):
-            axisName = axisOrder[i]
-            axisDescriptor = ds.getAxis(axisName)
-            if axisDescriptor and axisDescriptor.map:
-                # Use forward map (user → design) for instance locations
-                forwardMap = dict(axisDescriptor.map)
-                if uservalue in forwardMap:
-                    locationsInstance[axisName] = forwardMap[uservalue]
-                else:
-                    locationsInstance[axisName] = uservalue
-            else:
-                # No map: user value = design value (discrete axes, etc.)
-                locationsInstance[axisName] = uservalue
-        report.append({"styleName": styleNameInstance, "location": locationsInstance})
-
+        report.append({"styleName": item.style_name, "location": item.design_location})
         ds.addInstance(
             createInstance(
-                location=locationsInstance,
+                location=item.design_location,
                 familyName=defaultFamilyName,
-                styleName=styleNameInstance,
+                styleName=item.style_name,
                 defaultFolder=defaultFolder,
             )
         )
@@ -447,7 +556,22 @@ def createInstances(
     return ds, report
 
 
-def sortAxisOrder(ds: DesignSpaceDocument, dss_doc: "DSSDocument" = None):
+def instance_axis_order(dss_doc: "DSSDocument" = None, axisNames: List[str] = ()) -> List[str]:
+    """The axes that make instances, in order: the sketch's visible axes as
+    written (hidden axes never take part), else DEFAULT_AXIS_ORDER on `axisNames`"""
+    if dss_doc and dss_doc.axes:
+        return [dss_axis_name(dss_axis) for dss_axis in dss_doc.axes]
+    orderAxis = []
+    for axisname in DEFAULT_AXIS_ORDER:
+        if axisname in axisNames:
+            orderAxis.append(axisname)
+    for axisname in axisNames:
+        if axisname not in orderAxis:
+            orderAxis.append(axisname)  # Add missing to end, not beginning
+    return orderAxis
+
+
+def sortAxisOrder(ds: "DesignSpaceDocument", dss_doc: "DSSDocument" = None):
     """
     Sorts axes using order from DSS axes section or fallback to DEFAULT_AXIS_ORDER.
     Updates axisOrdering values in the designspace document.
@@ -459,27 +583,7 @@ def sortAxisOrder(ds: DesignSpaceDocument, dss_doc: "DSSDocument" = None):
     Returns:
         list: Sorted list of axis names
     """
-    if dss_doc and dss_doc.axes:
-        # Use the exact order from DSS axes section (PUBLIC axes only)
-        # Hidden axes are excluded from instance generation
-        orderAxis = []
-        for dss_axis in dss_doc.axes:
-            # DesignSpace axis.name is set from display_name or name
-            ds_name = dss_axis.display_name if dss_axis.display_name else dss_axis.name
-            orderAxis.append(ds_name)
-
-        # NOTE: We intentionally do NOT add hidden axes from ds.axes
-        # Hidden axes (from dss_doc.hidden_axes) should not participate in instance generation
-    else:
-        # Fallback to DEFAULT_AXIS_ORDER logic for backward compatibility
-        axisNames = [axis.name for axis in ds.axes]
-        orderAxis = []
-        for axisname in DEFAULT_AXIS_ORDER:
-            if axisname in axisNames:
-                orderAxis.append(axisname)
-        for axisname in axisNames:
-            if axisname not in orderAxis:
-                orderAxis.append(axisname)  # Add missing to end, not beginning
+    orderAxis = instance_axis_order(dss_doc, [axis.name for axis in ds.axes])
 
     # Update axisOrdering values
     for idx, axisname in enumerate(orderAxis):
@@ -496,7 +600,44 @@ def _resolve_axis_tag(name_or_tag: str) -> str:
     return NAME_TO_TAG.get(lower, lower)
 
 
-def getElidabledNames(ds: DesignSpaceDocument, axisOrder: list = [], ignoreAxis: list = []):
+def _spec_elidable_names(specs: List[AxisSpec], axisOrder: list = (), ignoreAxis: list = ()):
+    """Elidable style names, longest first (see getElidabledNames)"""
+    elidabledAxis = {}
+    ignoreTags = {_resolve_axis_tag(a) for a in ignoreAxis}
+    for spec in specs:
+        axis_tag = _resolve_axis_tag(spec.tag)
+        if axis_tag not in ignoreTags:
+            for name, _, elidable in spec.labels:
+                if elidable:
+                    elidabledAxis[spec.name] = name
+
+    # Full compound elidable name (all elidable labels joined)
+    elidabledNamesList = [
+        " ".join(
+            elidabledAxis[axisName] for axisName in axisOrder if axisName in elidabledAxis
+        ).strip()
+    ]
+
+    # Individual elidable names: weight axis LAST (survives when all are elidable)
+    weight_elidable = None
+    for axisName in axisOrder:
+        if axisName in elidabledAxis and elidabledAxis[axisName] not in elidabledNamesList:
+            axis_tag = _resolve_axis_tag(
+                next((spec.tag for spec in specs if spec.name == axisName), axisName)
+            )
+            if axis_tag == "wght":
+                weight_elidable = elidabledAxis[axisName]
+            else:
+                elidabledNamesList.append(elidabledAxis[axisName])
+
+    # Weight elidable goes last — last to be tried for removal, first to survive
+    if weight_elidable and weight_elidable not in elidabledNamesList:
+        elidabledNamesList.append(weight_elidable)
+
+    return elidabledNamesList
+
+
+def getElidabledNames(ds: "DesignSpaceDocument", axisOrder: list = [], ignoreAxis: list = []):
     """
     Generates variations of elidable style names for the designspace.
 
@@ -518,42 +659,11 @@ def getElidabledNames(ds: DesignSpaceDocument, axisOrder: list = [], ignoreAxis:
     Returns:
         list: List of elidable style name combinations
     """
-    elidabledAxis = {}
-    ignoreTags = {_resolve_axis_tag(a) for a in ignoreAxis}
-    for axisDescriptor in ds.axes:
-        axis_tag = _resolve_axis_tag(axisDescriptor.tag if hasattr(axisDescriptor, 'tag') else axisDescriptor.name)
-        if axis_tag not in ignoreTags:
-            for axisLabel in axisDescriptor.axisLabels:
-                if axisLabel.elidable:
-                    elidabledAxis[axisDescriptor.name] = axisLabel.name
-
-    # Full compound elidable name (all elidable labels joined)
-    elidabledNamesList = [
-        " ".join(
-            elidabledAxis[axisName] for axisName in axisOrder if axisName in elidabledAxis
-        ).strip()
-    ]
-
-    # Individual elidable names: weight axis LAST (survives when all are elidable)
-    weight_elidable = None
-    for axisName in axisOrder:
-        if axisName in elidabledAxis and elidabledAxis[axisName] not in elidabledNamesList:
-            axis_tag = _resolve_axis_tag(
-                next((a.tag for a in ds.axes if a.name == axisName), axisName)
-            )
-            if axis_tag == "wght":
-                weight_elidable = elidabledAxis[axisName]
-            else:
-                elidabledNamesList.append(elidabledAxis[axisName])
-
-    # Weight elidable goes last — last to be tried for removal, first to survive
-    if weight_elidable and weight_elidable not in elidabledNamesList:
-        elidabledNamesList.append(weight_elidable)
-
-    return elidabledNamesList
+    specs = [spec_from_descriptor(axis) for axis in ds.axes]
+    return _spec_elidable_names(specs, axisOrder, ignoreAxis)
 
 
-def removeInstances(ds: DesignSpaceDocument):
+def removeInstances(ds: "DesignSpaceDocument"):
     """
     remove instances from the designspace by the given filter
     """

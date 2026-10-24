@@ -342,8 +342,10 @@ def test_all_failing_lines_are_reported():
 
 def test_document_level_messages_have_no_line():
     text = "family Test\nsources\n    Test-Regular @base\n"
-    critical = [d for d in diagnose(text) if d.message.startswith("CRITICAL:")]
-    assert critical and all(d.line is None for d in critical)
+    found = [d for d in diagnose(text) if d.code in ("5.1", "5.3")]  # no axes, no base
+    assert found and all(d.line is None for d in found)
+    # the severity says it is critical; the message does not repeat it (1.5.1)
+    assert not any(d.message.startswith("CRITICAL") for d in diagnose(text))
 
 
 def test_document_messages_come_after_line_messages():

@@ -26,7 +26,7 @@ from fontTools.designspaceLib import (
 )
 
 # Import instances module
-from ..core.instances import createInstances
+from ..core.instances import createInstances, dss_axis_labels, dss_axis_map
 
 # Import models from core
 from ..core.translations import Translations
@@ -35,7 +35,6 @@ from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 
 # Import validation components
 from ..fontdata import DefconFontData, _call, source_path
-from ..utils.discrete import DiscreteAxisHandler
 from ..core.report import (
     AVAR2_UNKNOWN_AXIS,
     CATEGORY_AXES,
@@ -328,35 +327,16 @@ class DSSToDesignSpace:
             axis.values = list(dss_axis.values or [dss_axis.minimum, dss_axis.maximum])
             axis.default = dss_axis.default
 
-            # Add discrete labels
-            axis.axisLabels = []
-
-            if not dss_axis.mappings:
-                # No labels written ("ital discrete"): the standard ones for this tag,
-                # if it has any. A custom tag gets none rather than invented names
-                standard = DiscreteAxisHandler.load_discrete_labels().get(dss_axis.tag, {})
-                for value in axis.values:
-                    names = standard.get(int(value))
-                    if names:
-                        axis.axisLabels.append(
-                            AxisLabelDescriptor(
-                                name=names[0], userValue=value, elidable=value == axis.default
-                            )
-                        )
-            else:
-                # Use custom mappings for discrete axis labels. An unnamed point
-                # ("2 > 2") only declares a value; it names nothing
-                for mapping in dss_axis.mappings:
-                    if not mapping.label:
-                        continue
-                    label_desc = AxisLabelDescriptor(
-                        name=mapping.label,
-                        userValue=mapping.user_value,
-                        elidable=mapping.elidable,
-                    )
-                    axis.axisLabels.append(label_desc)
-                if any(m.user_value != m.design_value for m in dss_axis.mappings):
-                    axis.map = [(m.user_value, m.design_value) for m in dss_axis.mappings]
+            # Labels written, or the standard ones of a known tag ("ital discrete");
+            # an unnamed point ("2 > 2") only declares a value. Shared with
+            # Sketch.instances() (core/instances.py), so both name alike
+            axis.axisLabels = [
+                AxisLabelDescriptor(name=name, userValue=user, elidable=elidable)
+                for name, user, elidable in dss_axis_labels(dss_axis)
+            ]
+            mapped = dss_axis_map(dss_axis)
+            if mapped:
+                axis.map = mapped
         else:
             # Create regular AxisDescriptor for continuous axes
             axis = AxisDescriptor()
@@ -374,23 +354,13 @@ class DSSToDesignSpace:
             axis.default = dss_axis.default
             axis.maximum = dss_axis.maximum
 
-            # Continuous axis - add mappings and labels
-            axis.map = []
-            axis.axisLabels = []
-
-            for mapping in dss_axis.mappings:
-                # Add mapping as tuple (older format)
-                axis.map.append((mapping.user_value, mapping.design_value))
-
-                # Add label only if it's not empty
-                # (pure numeric mappings like opsz don't have labels)
-                if mapping.label:
-                    label_desc = AxisLabelDescriptor(
-                        name=mapping.label,
-                        userValue=mapping.user_value,
-                        elidable=mapping.elidable,
-                    )
-                    axis.axisLabels.append(label_desc)
+            # Continuous axis: every mapping is a map point; labelled ones are
+            # STAT labels too (pure numeric mappings like opsz have none)
+            axis.map = dss_axis_map(dss_axis)
+            axis.axisLabels = [
+                AxisLabelDescriptor(name=name, userValue=user, elidable=elidable)
+                for name, user, elidable in dss_axis_labels(dss_axis)
+            ]
 
         return axis
 

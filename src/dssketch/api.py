@@ -5,6 +5,7 @@ High-level API functions for integrating DSSketch into other projects.
 Provides simple conversion functions that accept DesignSpace objects and DSS file paths.
 """
 
+import os
 from pathlib import Path
 from typing import Union
 
@@ -24,8 +25,20 @@ from .parsers.dss_parser import DSSParser
 from .writers.dss_writer import DSSWriter
 
 
+def _as_designspace(designspace) -> DesignSpaceDocument:
+    """A DesignSpaceDocument, or one read from a path"""
+    if isinstance(designspace, DesignSpaceDocument):
+        return designspace
+    if isinstance(designspace, (str, os.PathLike)):
+        return DesignSpaceDocument.fromfile(os.fspath(designspace))
+    raise TypeError(
+        f"expected a DesignSpaceDocument or a path to a .designspace file, "
+        f"got {type(designspace).__name__}"
+    )
+
+
 def convert_to_dss(
-    designspace: DesignSpaceDocument,
+    designspace: Union[DesignSpaceDocument, str, os.PathLike],
     dss_path: str,
     optimize: bool = True,
     vars_threshold: int = 3,
@@ -36,7 +49,7 @@ def convert_to_dss(
     Convert a DesignSpace object to DSSketch format and save to file.
 
     Args:
-        designspace: DesignSpaceDocument object to convert
+        designspace: DesignSpaceDocument object to convert, or a path to a .designspace file
         dss_path: Path where the .dssketch file should be saved
         optimize: Whether to optimize the output (default True)
         vars_threshold: Minimum frequency for auto-generating avar2 variables.
@@ -68,7 +81,7 @@ def convert_to_dss(
     """
     # Convert DesignSpace to DSS document
     converter = DesignSpaceToDSS(vars_threshold=vars_threshold)
-    dss_doc = converter.convert(designspace)
+    dss_doc = converter.convert(_as_designspace(designspace))
 
     # Write DSS document to file
     writer = DSSWriter(optimize=optimize, avar2_format=avar2_format)
@@ -195,7 +208,7 @@ def convert_dss_string_to_designspace(
 
 
 def convert_designspace_to_dss_string(
-    designspace: DesignSpaceDocument,
+    designspace: Union[DesignSpaceDocument, str, os.PathLike],
     optimize: bool = True,
     vars_threshold: int = 3,
     avar2_format: str = "matrix",
@@ -205,7 +218,7 @@ def convert_designspace_to_dss_string(
     Convert a DesignSpace object to DSSketch format string.
 
     Args:
-        designspace: DesignSpaceDocument object to convert
+        designspace: DesignSpaceDocument object to convert, or a path to a .designspace file
         optimize: Whether to optimize the output (default True)
         vars_threshold: Minimum frequency for auto-generating avar2 variables.
                        0 = disabled, 3 = default (values appearing 3+ times)
@@ -236,7 +249,7 @@ def convert_designspace_to_dss_string(
     """
     # Convert DesignSpace to DSS document
     converter = DesignSpaceToDSS(vars_threshold=vars_threshold)
-    dss_doc = converter.convert(designspace)
+    dss_doc = converter.convert(_as_designspace(designspace))
 
     # Write DSS document to string
     writer = DSSWriter(optimize=optimize, avar2_format=avar2_format)

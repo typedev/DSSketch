@@ -1562,6 +1562,34 @@ dssketch.expand_rule(rule, glyph_names)    # [(glyph, target, target_exists), ..
 
 Without a provider, `diagnose()` and `complete()` never read the disk.
 
+**What the sketch means, in numbers** (1.5.1): for rulers, a map of sources, an
+instance list and a preview — without UFOs and without a conversion. Axes are
+keyed by their DesignSpace name (`"Weight"`, `"opsz"`), as fontTools and an
+interpolator see them, and accepted by that name, the tag or the sketch's name:
+
+```python
+sk.user_to_design("wght", "Bold")      # 625.0 (axis: Regular > 400, 700 Bold > 625)
+sk.design_to_user("wght", 512.5)       # 550.0
+
+for s in sk.source_locations():        # SourceKey, name, user and design location
+    print(s.key, s.design_location)    # {'Weight': 625.0, 'italic': 0.0}
+
+for i in sk.instances():               # what `instances auto` generates, and what `skip` removed
+    print(i.index, i.style_name, i.design_location, i.skipped, i.skip_span)
+
+sk.rule_regions()                      # RuleRegion(index, name, {'Weight': (625.0, 1000.0)})
+sk.substitutions_at({"Weight": 700}, glyph_names, space="user")   # {'dollar': 'dollar.alt'}
+sk.hover(line, col)                    # "Bold (Weight): user 700, design 625"
+```
+
+`instances()` gives the same names, order and locations as DSS → DS (one
+generator serves both); a skipped instance has `index=None` and the span of the
+`skip` entry that removed it. `substitutions_at()` applies the rules in order,
+as fontTools does; pattern rules expand against `glyph_names`, or the font
+data's default master. The free functions `dssketch.expand_instances(text)`,
+`source_locations`, `rule_regions`, `substitutions_at`, `user_to_design`,
+`design_to_user` and `hover` take a `Sketch` or a text. None of them raises.
+
 **Comments**: a comment starts at the first `#` outside quotes (`"Sans #1"` is a
 name). When a line is removed, the comments directly above it (no blank line
 between) go with it; a comment followed by a blank line stays.

@@ -213,6 +213,8 @@ def _errors(parser, crash) -> Counter:
 
 def _new_errors(old, new) -> List[str]:
     """The messages of `new` (parser, crash) whose errors `old` did not have"""
+    from .codes import plain_message
+
     added = _errors(*new) - _errors(*old)
     out = []
     messages = list(new[0].validator.errors) + ([str(new[1])] if new[1] is not None else [])
@@ -220,7 +222,7 @@ def _new_errors(old, new) -> List[str]:
         key = _error_key(message)
         if added.get(key, 0) > 0:
             added[key] -= 1
-            out.append(message)
+            out.append(plain_message(message))
     return out
 
 
@@ -536,6 +538,78 @@ class Sketch:
             if " ".join(line.values.get("value", "").split()) == wanted:
                 return line
         return None
+
+    # -- what it means, in numbers (queries.py, 1.5.1) ----------------------------
+    # Never raise; axes are keyed by their DesignSpace name (display name, else
+    # name) and accepted by that name, the tag or the sketch's own name
+
+    def user_to_design(self, axis: str, value) -> Optional[float]:
+        """A user value or label on an axis, in design space (None: unknown)"""
+        from . import queries
+
+        return queries._user_to_design(self.document, axis, value)
+
+    def design_to_user(self, axis: str, value) -> Optional[float]:
+        """A design value or label on an axis, in user space (None: unknown)"""
+        from . import queries
+
+        return queries._design_to_user(self.document, axis, value)
+
+    def source_locations(self) -> list:
+        """queries.SourceLocation per source: SourceKey, name, user and
+        design location on every axis (an unwritten one at its default)"""
+        from . import queries
+
+        return queries._source_locations(self.document)
+
+    def rule_regions(self) -> list:
+        """queries.RuleRegion per rule: design-space (min, max) per axis it names"""
+        from . import queries
+
+        return queries._rule_regions(self.document)
+
+    def substitutions_at(self, location, glyph_names=None, space: str = "design") -> Dict[str, str]:
+        """{glyph: replacement} the rules make at `location` (axis -> value;
+        a missing axis at its default; `space="user"` for user values).
+        Pattern rules expand against `glyph_names`, or the default master's
+        glyphs from the font data when not given"""
+        from . import queries
+
+        if glyph_names is None and self.font_data is not None:
+            from .fontdata import default_master_glyphs
+
+            try:
+                glyph_names = default_master_glyphs(self.font_data, self.document)
+            except Exception:
+                glyph_names = None
+        return queries._substitutions_at(self.document, location, glyph_names, space)
+
+    def instances(self) -> list:
+        """queries.InstanceInfo per instance `instances auto` generates (the
+        DesignSpace's order and locations) and per one a `skip` entry removes"""
+        from . import queries
+
+        if getattr(self, "_instances", None) is None:
+            family = None
+            if not self.document.family and self.font_data is not None:
+                from .fontdata import _call
+
+                family = _call(self.font_data, "family_name")
+            self._instances = queries._instances(self.document, self.structure, family)
+        return list(self._instances)
+
+    def hover(self, line: int, col: int) -> Optional[str]:
+        """A line of explanation for the word under the cursor (1-based line,
+        0-based column), or None: a label's user and design value, an axis's
+        ranges, a number in the other space, a source's location, what a skip
+        entry removes, where a rule applies and — with font data — which glyphs
+        a pattern swaps. Never raises"""
+        from . import queries
+
+        try:
+            return queries._hover(self, line, col)
+        except Exception:
+            return None
 
     def item_at(self, line: int, col: int) -> Optional[tuple]:
         """The object and field under a cursor, as a path; None outside any

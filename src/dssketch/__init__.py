@@ -54,6 +54,18 @@ from .fontdata import DefconFontData, FontData, FontDataProvider, expand_rule
 from .fixes import Fix
 from .sketch import EditError, EditResult, Sketch, SourceKey, TextEdit, apply_edits
 from .structure import Span
+from .queries import (
+    InstanceInfo,
+    RuleRegion,
+    SourceLocation,
+    design_to_user,
+    expand_instances,
+    hover,
+    rule_regions,
+    source_locations,
+    substitutions_at,
+    user_to_design,
+)
 from .syntax import Completion, Diagnostic, Token, complete, diagnose, tokenize
 from .writers.dss_writer import DSSWriter
 

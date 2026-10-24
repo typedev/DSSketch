@@ -11,10 +11,13 @@ from typing import List, Optional
 from ..core.mappings import Standards
 from ..core.translations import LANGUAGE_CODE
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
-from ..utils.comments import comment_start
+from ..utils.comments import comment_start, strip_comment
 from ..utils.discrete import DiscreteAxisHandler
 from ..utils.dss_validator import DSSValidationError, DSSValidator
 from ..utils.logging import DSSketchLogger
+
+# A closed quoted string, removed before the bracket check
+_QUOTED = re.compile(r'"[^"]*"|\'[^\']*\'')
 
 
 class DSSParser:
@@ -185,8 +188,10 @@ class DSSParser:
         # Normalize whitespace for processing but keep original for detection
         line = DSSValidator.normalize_whitespace(line)
 
-        # Check for bracket mismatches
-        bracket_issues = DSSValidator.detect_bracket_mismatch(line)
+        # Check for bracket mismatches in the code only: brackets and commas in a
+        # comment or a quoted name ("heavy, dollar") are text, not coordinates
+        code = _QUOTED.sub("", strip_comment(line))
+        bracket_issues = DSSValidator.detect_bracket_mismatch(code) if code.strip() else None
         if bracket_issues:
             self.validator.warnings.append(f"Bracket issues: {bracket_issues}")
 

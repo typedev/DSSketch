@@ -1744,6 +1744,30 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   pattern; wildcard ones `pattern` / `to_pattern`. `expand_rule()` handles both
 - Tests: `tests/test_font_data.py`
 
+**`queries.py`** - What a sketch means, in numbers (1.5.1, for Font-Rover's panels)
+- `Sketch.user_to_design / design_to_user / source_locations / rule_regions /
+  substitutions_at / instances / hover`, and free functions taking a Sketch or
+  a text (`expand_instances(text)` = `Sketch.instances()`). Doc-level work is in
+  the `_name(doc, ...)` functions. Never raise; light
+- **Axes are keyed by their DesignSpace name** (`dss_axis_name`: display name,
+  else name) — what fontTools and Font-Rover's interpolator use; `find_axis`
+  also takes the tag or the sketch's name, case-insensitive
+- `instances()` runs the **same generator as DSS → DS** (`core/instances.py`
+  `plan_instances` on `AxisSpec`s) and is checked against the converter on
+  every example with `instances auto` (`tests/test_queries.py`)
+- `substitutions_at()` mirrors fontTools' `processRules` (rules in order, each
+  on the result of the earlier ones); checked against it on MegaFont
+- Tests: `tests/test_queries.py`
+
+**`core/instances.py` is light since 1.5.1**: the generator works on
+`AxisSpec(name, tag, min, default, max, map, labels, discrete)`, built from a
+fontTools axis (`spec_from_descriptor`; `createInstances`, the DS → DSS fit
+report) or from a DSSAxis (`spec_from_dss_axis`; `Sketch.instances()`).
+`dss_axis_labels()` / `dss_axis_map()` are also what `DSSToDesignSpace.
+_convert_axis` writes, so the two cannot drift. fontTools is imported only
+inside `createInstance(s)`. Example DesignSpaces were byte-identical before
+and after the refactor
+
 **`codes.py`** - Stable diagnostic codes (1.5.0)
 - `"5.N"` (category 5 = Sketch of the report scheme). Messages are recognised
   by wording (`classify()`), first match wins, `_FIRST` for messages that

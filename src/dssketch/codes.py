@@ -37,14 +37,14 @@ class Code:
 _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (0, "UNCLASSIFIED", r"", "A message without a code of its own"),
     # -- document structure ----------------------------------------------------
-    (1, "NO_AXES", r"^CRITICAL: No axes found", "The sketch declares no axis"),
+    (1, "NO_AXES", r"^(?:CRITICAL: )?No axes found", "The sketch declares no axis"),
     (2, "NO_SOURCES", r"^No sources found", "The sketch declares no source"),
-    (3, "NO_BASE", r"^CRITICAL: No base source found", "No source has @base"),
-    (4, "MULTIPLE_BASE", r"^CRITICAL: Multiple base sources", "More than one source has @base"),
-    (5, "BASE_NOT_AT_DEFAULT", r"^CRITICAL: Base source '.*' coordinates", "The base source is not at the axis defaults"),
-    (6, "AXIS_RANGE_EMPTY", r"^CRITICAL: Axis '.*' has invalid range", "An axis with min = max"),
-    (7, "AXIS_INCOMPLETE", r"^CRITICAL: Axis \d+ missing name or tag", "An axis without name or tag"),
-    (8, "DUPLICATE_LABEL", r"^CRITICAL: Mapping label '.*' is used in multiple axes", "A label used on two axes"),
+    (3, "NO_BASE", r"^(?:CRITICAL: )?No base source found", "No source has @base"),
+    (4, "MULTIPLE_BASE", r"^(?:CRITICAL: )?Multiple base sources", "More than one source has @base"),
+    (5, "BASE_NOT_AT_DEFAULT", r"^(?:CRITICAL: )?Base source '.*' coordinates", "The base source is not at the axis defaults"),
+    (6, "AXIS_RANGE_EMPTY", r"^(?:CRITICAL: )?Axis '.*' has invalid range", "An axis with min = max"),
+    (7, "AXIS_INCOMPLETE", r"^(?:CRITICAL: )?Axis \d+ missing name or tag", "An axis without name or tag"),
+    (8, "DUPLICATE_LABEL", r"^(?:CRITICAL: )?Mapping label '.*' is used in multiple axes", "A label used on two axes"),
     (9, "BASE_AUTO_DETECTED", r"^Auto-detected base source", "No @base; the source at the defaults was taken"),
     # -- header lines ----------------------------------------------------------
     (10, "FAMILY_EMPTY", r"^Family name is empty|^No family name specified", "No family name"),
@@ -66,7 +66,7 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (24, "MAPPING_EXTREME_MISSING", r"missing mapping for (minimum|maximum) value", "No mapping at an end of the axis"),
     (25, "NO_ELIDABLE", r"has no @elidable mapping", "An axis without an @elidable label"),
     (26, "MAPPING_INCOMPLETE", r"has incomplete mapping", "A mapping without values"),
-    (27, "MAPPING_NONSTANDARD_USER", r"typically maps to user_value|typically uses", "A standard label at another user value"),
+    (27, "MAPPING_NONSTANDARD_USER", r"typically maps to user_value|typically uses|standard labels are at other user values|user values have other labels than usual", "A standard label at another user value"),
     (28, "MAPPING_USER_TWICE", r"is mapped twice", "One user value mapped twice"),
     (29, "BARE_LABEL_CONTINUOUS", r"^Simplified label format only supported", "A bare label on a continuous axis"),
     (30, "HIDDEN_AXIS_INVALID", r"^Invalid hidden axis|^Non-numeric value in hidden axis", "A hidden axis line that does not parse"),
@@ -134,6 +134,12 @@ def classify(message: str) -> Code:
 
 def code_id(message: str) -> str:
     return classify(message).id
+
+
+def plain_message(message: str) -> str:
+    """A message as an editor shows it: without the validator's "CRITICAL: "
+    prefix, which the severity already says (classify() reads both forms)"""
+    return message[len("CRITICAL: "):] if message.startswith("CRITICAL: ") else message
 
 
 def lookup(code: str) -> Optional[Code]:
