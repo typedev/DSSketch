@@ -1165,6 +1165,36 @@ avar2
 
 **The axis mapping `Regular > 435` defines the DEFAULT design value.** avar2 can OVERRIDE it for specific axis combinations.
 
+#### How avar2 mappings combine
+
+An avar2 row reads like an assignment, and at its own input location it is one:
+the output axes land exactly on the values written. Everywhere else fontTools
+builds the result from all the rows, and a few consequences surprise people:
+
+- **Between rows, values are interpolated; at a combination nobody wrote, changes add up.**
+  `[wght=Bold] > XOPQ=120` and `[wdth=Condensed] > XOPQ=60` each move XOPQ away from
+  its default; at Bold Condensed both changes apply on top of each other. If the sum
+  is not what you want, write the corner: `[wght=Bold, wdth=Condensed] > XOPQ=90`.
+- **The default location is the base.** A row whose inputs all sit at their defaults
+  must leave every output at its default (`$`): fontTools takes that row as the
+  starting point of the axis's changes, so a different value there is lost and
+  offsets that axis in every other row. DSSketch warns about it.
+- **Mappings do not chain.** Inputs are the location the user asked for, never the
+  output of another row. A row whose input is a hidden axis applies only when
+  something outside the font sets that axis directly. DSSketch warns about it.
+- **Values outside an axis's range are clamped**: an input to the axis's user range,
+  an output to its design range. Two rows that end up at the same input location
+  cannot be built at all.
+
+`diagnose()` reports all of these with codes (`AVAR2_DEFAULT_INPUT` 5.54,
+`AVAR2_OUTPUT_OUT_OF_RANGE` 5.55, `AVAR2_DUPLICATE_INPUT` 5.56, `AVAR2_HIDDEN_INPUT`
+5.58, `AVAR2_INPUT_OUT_OF_RANGE` 5.45), plus an axis name no axis has
+(`AVAR2_UNKNOWN_AXIS` 5.42, an error that stops conversion) and a visible axis that only
+avar2 outputs drive (`AVAR2_OUTPUT_ONLY_VISIBLE` 5.57; a parametric axis usually
+belongs under `axes hidden`). Only the unknown axis, two rows at one location and an
+input that looks like a design value from an old sketch are errors; the rest are
+warnings, because fontTools builds such a font, just not the one the rows describe.
+
 #### Basic avar2 Syntax
 
 **Mapping structure: `[input] > output`**

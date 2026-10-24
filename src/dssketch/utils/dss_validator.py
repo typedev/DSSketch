@@ -195,40 +195,159 @@ class DSSValidator:
                         at=base_source,
                     )
 
-    def _validate_avar2_input_space(self, document: DSSDocument):
-        """Catch avar2 inputs written in design space.
+    def _validate_avar2(self, document: DSSDocument):
+        """What fontTools would build differently from what the avar2 rows say
 
-        avar2 inputs are user space. DSSketch 1.2.1 and earlier converted a
-        DesignSpace's inputs without mapping them back, so a sketch it wrote can
-        hold design values on an axis that has a map (RobotoDelta: `opsz=-1` for
-        user 8). Read as user space they would silently build a different font.
-        A value outside the axis's user range but inside its design range can
-        only be one of those; say so and give the user value. (A design value that
-        also lies inside the user range cannot be told apart.)
+        Inputs are user space, outputs design space. Per row: an axis that is
+        not defined (error: varLib fails on it); an input outside the axis
+        range (fontTools clamps it; an error when it looks like a design value
+        from DSSketch 1.2.1, see below); an output outside the axis's design
+        range (clamped); a row at the default location that moves an output
+        (fontTools takes it as the base and drops it, shifting every other
+        delta of that axis); two rows at one location (varLib fails). Per axis:
+        a hidden axis used as an input (mappings do not chain, so only
+        something outside the font sets it) and a visible axis that only
+        outputs drive (likely a parametric axis meant to be hidden).
         """
         axes = {}
         for axis in document.axes + document.hidden_axes:
             axes[axis.name] = axes[axis.tag] = axis
+        hidden = {id(axis) for axis in document.hidden_axes}
+        unknown = set()
+        hidden_inputs = set()
+        locations = {}
+        input_axes = set()
+        output_axes = set()
+
+        def design_range(axis):
+            ends = axis.get_design_value(axis.minimum), axis.get_design_value(axis.maximum)
+            return min(ends), max(ends)
+
         for mapping in document.avar2_mappings:
+            location = []
             for axis_key, value in mapping.input.items():
                 axis = axes.get(axis_key)
-                if axis is None or not axis.mappings:
+                if axis is None:
+                    if axis_key not in unknown:
+                        unknown.add(axis_key)
+                        self._unknown_avar2_axis(axis_key, axes, mapping)
+                    location.append((axis_key, value))
                     continue
-                if all(m.user_value == m.design_value for m in axis.mappings):
-                    continue
-                if axis.minimum <= value <= axis.maximum:
-                    continue
-                designs = [m.design_value for m in axis.mappings]
-                if min(designs) <= value <= max(designs):
-                    user = axis.get_user_value(value)
-                    self._error(
-                        f"avar2 input {axis_key}={value:g} is outside the axis range "
-                        f"[{axis.minimum:g}, {axis.maximum:g}]. avar2 inputs are user space; "
-                        f"{value:g} looks like a design-space value, as DSSketch 1.2.1 and "
-                        f"earlier wrote when converting a DesignSpace. The user value is "
-                        f"{axis_key}={user:g} - write that (or reconvert from the DesignSpace).",
+                input_axes.add(id(axis))
+                if id(axis) in hidden and axis.tag not in hidden_inputs:
+                    hidden_inputs.add(axis.tag)
+                    self._warning(
+                        f"avar2 input uses hidden axis '{axis_key}'. A hidden axis is not set by "
+                        f"users or instances, and avar2 mappings do not chain (an output never feeds "
+                        f"another row's input): this row only applies when something outside the "
+                        f"font sets {axis_key} directly.",
                         at=mapping,
                     )
+                if not axis.minimum <= value <= axis.maximum:
+                    self._avar2_input_out_of_range(axis_key, value, axis, mapping)
+                clamped = min(max(value, axis.minimum), axis.maximum)
+                if clamped != axis.default:
+                    location.append((axis.tag, clamped))
+
+            for axis_key, value in mapping.output.items():
+                axis = axes.get(axis_key)
+                if axis is None:
+                    if axis_key not in unknown:
+                        unknown.add(axis_key)
+                        self._unknown_avar2_axis(axis_key, axes, mapping)
+                    continue
+                output_axes.add(id(axis))
+                low, high = design_range(axis)
+                if not low <= value <= high:
+                    self._warning(
+                        f"avar2 output {axis_key}={value:g} is outside the axis range "
+                        f"[{low:g}, {high:g}] (design space); fontTools clamps it to "
+                        f"{min(max(value, low), high):g}.",
+                        at=mapping,
+                    )
+
+            key = tuple(sorted(location, key=lambda item: (item[0], item[1])))
+            if not key:
+                self._avar2_default_input(mapping, axes)
+                continue
+            if key in locations:
+                shown = ", ".join(f"{tag}={value:g}" for tag, value in key)
+                first = locations[key]
+                where = f" (line {first.line})" if first.line else ""
+                self._error(
+                    f"avar2 mapping [{shown}] has the same input location as an earlier "
+                    f"one{where}. Axes at their default count as left out, and inputs outside "
+                    f"the axis range as its end. fontTools cannot build two mappings at one "
+                    f"location; merge them.",
+                    at=mapping,
+                )
+            else:
+                locations[key] = mapping
+
+        for axis in document.axes:
+            if id(axis) in output_axes and id(axis) not in input_axes:
+                self._warning(
+                    f"Axis '{axis.tag}' is visible but only avar2 outputs drive it. A parametric "
+                    f"axis is usually declared under `axes hidden`, so that apps do not offer "
+                    f"it as a slider.",
+                    at=axis,
+                )
+
+    def _unknown_avar2_axis(self, axis_key: str, axes, mapping):
+        from difflib import get_close_matches
+
+        close = get_close_matches(axis_key, sorted({a.tag for a in axes.values()}), n=1)
+        hint = f" Did you mean '{close[0]}'?" if close else " Hidden axes go in `axes hidden`."
+        self._error(
+            f"avar2 mapping names axis '{axis_key}', which is not defined.{hint} "
+            f"fontTools cannot build a mapping on an unknown axis.",
+            at=mapping,
+        )
+
+    def _avar2_input_out_of_range(self, axis_key: str, value: float, axis, mapping):
+        """avar2 inputs are user space. DSSketch 1.2.1 and earlier converted a
+        DesignSpace's inputs without mapping them back, so a sketch it wrote can
+        hold design values on an axis that has a map (RobotoDelta: `opsz=-1` for
+        user 8). A value outside the user range but inside the design range can
+        only be one of those: an error that gives the user value. (A design value
+        that also lies inside the user range cannot be told apart.) Anything else
+        outside the range is clamped by fontTools: a warning."""
+        if axis.mappings and any(m.user_value != m.design_value for m in axis.mappings):
+            designs = [m.design_value for m in axis.mappings]
+            if min(designs) <= value <= max(designs):
+                user = axis.get_user_value(value)
+                self._error(
+                    f"avar2 input {axis_key}={value:g} is outside the axis range "
+                    f"[{axis.minimum:g}, {axis.maximum:g}]. avar2 inputs are user space; "
+                    f"{value:g} looks like a design-space value, as DSSketch 1.2.1 and "
+                    f"earlier wrote when converting a DesignSpace. The user value is "
+                    f"{axis_key}={user:g} - write that (or reconvert from the DesignSpace).",
+                    at=mapping,
+                )
+                return
+        self._warning(
+            f"avar2 input {axis_key}={value:g} is outside the axis range "
+            f"[{axis.minimum:g}, {axis.maximum:g}]; fontTools clamps it to "
+            f"{min(max(value, axis.minimum), axis.maximum):g}.",
+            at=mapping,
+        )
+
+    def _avar2_default_input(self, mapping, axes):
+        """A row at the default location must leave every output at its default:
+        fontTools stores that row as the base of each output axis's deltas, so a
+        change there is dropped and subtracted from every other row of that axis"""
+        for axis_key, value in mapping.output.items():
+            axis = axes.get(axis_key)
+            if axis is None or abs(value - axis.design_default) < 1e-9:
+                continue
+            delta = value - axis.design_default
+            self._warning(
+                f"avar2 mapping at the default location sets '{axis_key}' to {value:g}, not its "
+                f"default {axis.design_default:g}. fontTools takes this row as the base of "
+                f"{axis_key}'s deltas: the change ({delta:+g}) is lost here and offsets {axis_key} "
+                f"in every other mapping. Leave {axis_key} at its default in this row ($).",
+                at=mapping,
+            )
 
     def _validate_skip_labels(self, document: DSSDocument):
         """Each word of a `skip` entry is an axis label (as instances.py checks
@@ -257,7 +376,7 @@ class DSSValidator:
         # CRITICAL: Check for duplicate mapping labels across axes
         self._validate_duplicate_mapping_labels(document)
 
-        self._validate_avar2_input_space(document)
+        self._validate_avar2(document)
         self._validate_skip_labels(document)
 
         # Validate axes content

@@ -1396,7 +1396,25 @@ space. DSS → DS maps each input through `DSSAxis.get_design_value()`
 (piecewise linear, like fontTools); DS → DSS maps DesignSpace's design-space
 inputs back with `axis.map_backward()`. Never pass a number through unmapped:
 that is how `[wght=550]` used to reach the font as 550 instead of 512.5.
-`_validate_avar2_input_space()` flags design values left in old sketches.
+`DSSValidator._validate_avar2()` flags design values left in old sketches
+(`_avar2_input_out_of_range`, error); any other input outside the range is a
+warning (clamped).
+
+**avar2 checks (1.5.x, `DSSValidator._validate_avar2()`)**, placed on the row:
+unknown axis in an input or output (error, once per name, with a close tag);
+input outside the user range (warning, or the design-value error above); output
+outside the axis's *design* range (warning); a row at the default location
+(every input at its default after clamping; omitted = default) that moves an
+output from its `design_default` (warning, `AVAR2_DEFAULT_INPUT` — the shipped
+AmstelvarA2 example has one, YTOS); two rows at one location after clamping and
+dropping default dimensions (error; varLib cannot build it; no-op rows at the
+default are skipped); hidden axis used as input (warning, once per axis);
+visible axis only in outputs (warning on the axis line). **Decided 2026-10-24**:
+AVAR2_DEFAULT_INPUT is a warning, not an error, so DesignSpaces that fontTools
+builds keep converting; no corner-completeness check (100 warnings on
+RobotoDelta, and some fonts rely on summing). Tests: `tests/test_avar2_checks.py`.
+Semantics for authors (exact at a row, sums at unwritten corners, default row
+is the base, no chaining, clamping) are in README "How avar2 mappings combine".
 
 **This creates clean semantics:**
 - Axis mapping `Regular > 435` = default design value

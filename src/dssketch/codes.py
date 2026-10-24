@@ -85,10 +85,10 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     # -- avar2 -----------------------------------------------------------------
     (40, "AVAR2_MATRIX_ROW_LENGTH", r"^avar2 matrix: expected \d+ values", "A matrix row with the wrong number of cells"),
     (41, "AVAR2_UNDEFINED_VAR", r"undefined variable", "A $variable not defined in `avar2 vars`"),
-    (42, "AVAR2_UNKNOWN_AXIS", r"cannot use \$ for unknown axis|^Axis '.*' not found in document", "An avar2 reference to no axis"),
+    (42, "AVAR2_UNKNOWN_AXIS", r"cannot use \$ for unknown axis|^Axis '.*' not found in document|^avar2 mapping names axis '.*', which is not defined", "An avar2 reference to no axis"),
     (43, "AVAR2_INVALID_VALUE", r"invalid numeric value|^Non-numeric variable value|requires numeric values", "An avar2 value that is not a number"),
     (44, "AVAR2_UNKNOWN_LABEL", r"^avar2: unknown label", "An avar2 input label the axis does not have"),
-    (45, "AVAR2_INPUT_OUT_OF_RANGE", r"^avar2 input .* is outside the axis range", "An avar2 input outside the user range"),
+    (45, "AVAR2_INPUT_OUT_OF_RANGE", r"^avar2 input .* is outside the axis range", "An avar2 input outside the user range (a design value: error; else clamped)"),
     (46, "AVAR2_SYNTAX", r"^avar2( matrix| vars| input| output)?: |^Variable name must start", "An avar2 line that does not parse"),
     # -- 1.5.x ------------------------------------------------------------------
     (47, "SKIP_UNKNOWN_LABEL", r"^Skip rule '.*' contains label", "A skip entry word that is no axis label"),
@@ -99,6 +99,12 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (51, "RULE_GLYPH_MISSING", r": glyph '.*' is not in the default master", "A rule glyph the default master lacks"),
     (52, "RULE_TARGET_MISSING", r": target glyph '.*' is not in the default master", "A rule target the default master lacks"),
     (53, "RULE_MATCHES_NOTHING", r"matches no glyph whose target exists", "A wildcard rule that substitutes nothing"),
+    # -- avar2 checks (1.5.x) ---------------------------------------------------
+    (54, "AVAR2_DEFAULT_INPUT", r"^avar2 mapping at the default location sets", "A row at the default location that moves an output"),
+    (55, "AVAR2_OUTPUT_OUT_OF_RANGE", r"^avar2 output .* is outside the axis range", "An avar2 output outside the axis's design range"),
+    (56, "AVAR2_DUPLICATE_INPUT", r"^avar2 mapping \[.*\] has the same input location", "Two avar2 rows at one input location"),
+    (57, "AVAR2_OUTPUT_ONLY_VISIBLE", r"^Axis '.*' is visible but only avar2 outputs drive it", "A visible axis driven only by avar2"),
+    (58, "AVAR2_HIDDEN_INPUT", r"^avar2 input uses hidden axis", "A hidden axis as an avar2 input"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition

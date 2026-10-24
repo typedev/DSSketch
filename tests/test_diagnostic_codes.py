@@ -22,6 +22,8 @@ PUBLISHED = {
     "AVAR2_INPUT_OUT_OF_RANGE": 45, "AVAR2_SYNTAX": 46, "SKIP_UNKNOWN_LABEL": 47,
     "ELIDED_FALLBACK_EMPTY": 48, "SOURCE_UFO_MISSING": 49, "SOURCE_LAYER_MISSING": 50,
     "RULE_GLYPH_MISSING": 51, "RULE_TARGET_MISSING": 52, "RULE_MATCHES_NOTHING": 53,
+    "AVAR2_DEFAULT_INPUT": 54, "AVAR2_OUTPUT_OUT_OF_RANGE": 55, "AVAR2_DUPLICATE_INPUT": 56,
+    "AVAR2_OUTPUT_ONLY_VISIBLE": 57, "AVAR2_HIDDEN_INPUT": 58,
 }
 
 
@@ -97,6 +99,13 @@ def variant(old, new):
         ("NO_AXES", "family T\nsources\n    A @base\n"),
         ("SKIP_UNKNOWN_LABEL", variant("instances auto", "instances auto\n    skip\n        Bolt Italic")),
         ("ELIDED_FALLBACK_EMPTY", variant("family T", "family T\nelidedfallback")),
+        ("AVAR2_UNKNOWN_AXIS", GOOD + "avar2\n    [wght=Black] > XHDI=80\n"),
+        ("AVAR2_INPUT_OUT_OF_RANGE", GOOD + "avar2\n    [wght=1200] > wght=700\n"),
+        ("AVAR2_DEFAULT_INPUT", GOOD + "avar2\n    [wght=Regular] > wght=500\n"),
+        ("AVAR2_OUTPUT_OUT_OF_RANGE", GOOD + "avar2\n    [wght=Black] > wght=1200\n"),
+        ("AVAR2_DUPLICATE_INPUT", GOOD + "avar2\n    [wght=Black] > wght=800\n    [wght=900] > wght=850\n"),
+        ("AVAR2_OUTPUT_ONLY_VISIBLE", variant("    ital discrete", "    XOPQ 0:50:100\n    ital discrete") + "avar2\n    [wght=Black] > XOPQ=80\n"),
+        ("AVAR2_HIDDEN_INPUT", GOOD + "axes hidden\n    XOPQ 0:50:100\navar2\n    [XOPQ=80] > wght=800\n"),
     ],
 )
 def test_message_gets_its_code(name, text):

@@ -223,8 +223,15 @@ def test_unknown_avar2_axis_is_an_error():
     text = SKETCH.format(rules="").replace("rules\n\n", "") .replace(
         "instances off", "avar2\n    [wght=Bold] > XHDI=80\ninstances off"
     )
-    _, report = _to_ds(text)
-    issue = report.find(CATEGORY_AXES, AVAR2_UNKNOWN_AXIS)
+    # the validator refuses it (1.5.x) ...
+    with pytest.raises(ValueError, match="XHDI"):
+        _to_ds(text)
+    # ... and a converter fed a non-strict parse still reports it
+    from dssketch.converters.dss_to_designspace import DSSToDesignSpace
+
+    converter = DSSToDesignSpace()
+    converter.convert(dssketch.DSSParser(strict_mode=False).parse(text))
+    issue = converter.report.find(CATEGORY_AXES, AVAR2_UNKNOWN_AXIS)
     assert issue.severity == SEVERITY_ERROR and issue.raw_data == {"axis": "XHDI"}
 
 
