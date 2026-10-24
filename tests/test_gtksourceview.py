@@ -52,10 +52,10 @@ sources [wght, opsz, CNTR, ital, slnt]
     upright/Font-Thin.ufo [Thin, Text, Flat, Upright, Neutral]
     "My Font Light.ufo" [100, 14, 0, 0, 0] @sparse
     Font-Regular @base
-    Font-Bold wght=900, CNTR=Sharp @layer 'bold'
+    Font-Bold wght=900, CNTR=Sharp @layer 'bold#2'
     Font-Bold.ufo [Black, Text, Sharp, Italic, Slant] @layer=fg
 rules
-    dollar cent* > .rvrn (Regular <= weight <= Black && CONTRAST >= 50) "heavy"
+    dollar cent* > .rvrn (Regular <= weight <= Black && CONTRAST >= 50) "heavy #1"  # note
     a > a.alt (ital == 1)
 instances auto
     skip

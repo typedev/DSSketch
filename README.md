@@ -1447,6 +1447,52 @@ Token types (`dssketch.syntax.TOKEN_TYPES`) are only ever added, never renamed:
 `string`, `flag`, `variable`, `operator`, `punctuation`, `comment`, `unknown`.
 All of it loads only the standard library and PyYAML.
 
+Every diagnostic has a stable `code` (`"5.31"` = `SOURCE_COORD_COUNT`; see
+`dssketch.codes`) to key quick fixes and documentation on. Codes are only ever
+added.
+
+### Editing a Sketch (minimal edits, comments kept)
+
+For tools whose panels change a hand-written `.dssketch` — an axis ruler, a map
+of sources, an instance list. `Sketch` is an immutable snapshot of the text;
+every operation returns the minimal text edits, so comments, blank lines,
+indentation and the spelling of everything else survive, and an unchanged
+sketch gives back its text byte for byte:
+
+```python
+from dssketch import Sketch, SourceKey, EditError
+
+sk = Sketch.parse(text)                       # never raises; sk.diagnostics
+result = sk.set_source_coordinate("Font-Bold", "wght", 700)
+result.edits     # [TextEdit(line=18, col=16, end_line=18, end_col=21, new_text='Bold')]
+result.text      # the new text
+sk = result.sketch
+
+sk.add_mapping("wght", "Bold", 700)           # "        Bold > 700", in user order
+sk.rename_label("wght", "Black", "Heavy")     # also in sources, rules, skip, avar2
+sk.add_axis("wdth", 75, 100, 125)             # adds the column to every source
+sk.add_skip("Thin Italic")
+
+sk.item_at(18, 20)   # ("source", SourceKey("Font-Bold.ufo"), "coord", "wght")
+sk.span(("mapping", "wght", "Bold", "design"))   # Span(line, col, end_line, end_col)
+```
+
+Objects are addressed by stable keys — an axis by its tag, a mapping by axis and
+label, a source by `SourceKey(filename, layer)` (or a name that is unique), a
+`skip` entry by its text. Values follow the document's own spelling
+(`prefer="keep"`: a label where the neighbouring lines write labels), or
+`prefer="label"` / `"number"`.
+
+An operation is all or nothing: one the parser would reject (a removed label
+still in use, a base source off the defaults, a value out of range) raises
+`EditError` with a `code` and changes nothing, and it works on text with errors
+elsewhere. Parsed models carry `span` and `spans` (their fields). Light:
+standard library and PyYAML only.
+
+**Comments**: a comment starts at the first `#` outside quotes (`"Sans #1"` is a
+name). When a line is removed, the comments directly above it (no blank line
+between) go with it; a comment followed by a blank line stays.
+
 ### Intelligent Typo Detection
 
 DSSketch uses advanced **Levenshtein distance algorithm** to detect typos and suggest corrections, similar to how git, npm, and bash help users. Three severity levels ensure robust validation:

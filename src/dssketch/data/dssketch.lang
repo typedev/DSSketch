@@ -30,7 +30,7 @@
       <start>#</start>
     </context>
     <context id="string" style-ref="string" class="string" class-disabled="no-spell-check">
-      <match>"[^"#]*"?|\'[^\'#]*\'?</match>
+      <match>"[^"]*"|"[^"#]*|(?&lt;![^\s\[\](){},:="@$&lt;&gt;&amp;])\'(?:[^\']*\'|[^\'#]*)</match>
     </context>
     <context id="document-line">
       <match>^(family|suffix|path)\b(?:\s+([^#"\s](?:[^#"]*[^#"\s])?))?</match>

@@ -21,7 +21,6 @@ from .core.report import (
     ConversionReport,
 )
 from .parsers.dss_parser import DSSParser
-from .utils.logging import DSSketchLogger
 from .writers.dss_writer import DSSWriter
 
 
@@ -128,10 +127,9 @@ def convert_to_designspace(dss_path: str, return_report: bool = False):
         # Save to file if needed
         ds.write("MyFont.designspace")
     """
+    # No setup_logger() here: a library call never writes files next to its
+    # input. File logging is the CLI's (cli.py)
     dss_file = Path(dss_path)
-
-    # Setup logger for conversion
-    DSSketchLogger.setup_logger(str(dss_file))
 
     # Parse DSS file
     parser = DSSParser()

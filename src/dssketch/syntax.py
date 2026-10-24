@@ -18,6 +18,8 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
+from .codes import code_id
+from .utils.comments import comment_start, strip_comment
 from .utils.dss_validator import DSSValidator
 
 # =============================================================================
@@ -71,6 +73,8 @@ class Diagnostic:
     line: Optional[int]
     column: int = 0
     end_column: int = 0
+    # Stable code ("5.31"), see codes.py; "5.0" for a message without one
+    code: str = "5.0"
 
 
 # =============================================================================
@@ -148,7 +152,7 @@ class _Tokenizer:
     # -- one line -------------------------------------------------------------
 
     def line(self, raw: str, line_no: int) -> List[Token]:
-        hash_at = raw.find("#")
+        hash_at = comment_start(raw)
         code = raw if hash_at < 0 else raw[:hash_at]
         out: List[Tuple[int, int, str]] = []  # (start, end, type)
 
@@ -517,27 +521,30 @@ def diagnose(text: str) -> List[Diagnostic]:
     the result is in text order. What belongs to no line (no base source, no
     axes, no family) comes last with `line=None`.
     """
-    from .parsers.dss_parser import DSSParser
-    from .utils.dss_validator import DSSValidationError
+    from .sketch import _parse
 
-    parser = DSSParser(strict_mode=False, recover=True)
-    crash = None
-    try:
-        parser.parse(text)
-    except Exception as e:  # critical errors are already in validator.errors
-        if not isinstance(e.__cause__, DSSValidationError):
-            crash = e
+    parser, crash = _parse(text)
+    return _diagnostics_for(text, parser, crash, None)
 
+
+def _diagnostics_for(text: str, parser, crash, structure) -> List[Diagnostic]:
+    """diagnose() on a parse already made (`structure`: its tokens, or None)"""
     lines = text.split("\n")
     by_line: Dict[int, List[Token]] = {}
-    for token in tokenize(text):
-        by_line.setdefault(token.line, []).append(token)
+    if structure is not None:
+        for line in structure.lines:
+            if line.tokens:
+                by_line[line.number] = line.tokens
+    else:
+        for token in tokenize(text):
+            by_line.setdefault(token.line, []).append(token)
 
     def placed(severity: str, message: str, line_no: Optional[int]) -> Diagnostic:
+        code = code_id(message)
         if line_no is None or not 1 <= line_no <= len(lines):
-            return Diagnostic(severity, message, None)
+            return Diagnostic(severity, message, None, code=code)
         column, end = _span(message, by_line.get(line_no, []), lines[line_no - 1])
-        return Diagnostic(severity, message, line_no, column, end)
+        return Diagnostic(severity, message, line_no, column, end, code)
 
     result = [placed(*entry) for entry in parser.line_messages]
 
@@ -560,7 +567,7 @@ def diagnose(text: str) -> List[Diagnostic]:
     # In text order; what has no place (no base source, no axes …) comes last
     result.sort(key=lambda d: (d.line is None, d.line or 0, d.column))
     if crash is not None:
-        result.append(Diagnostic("error", str(crash), None))
+        result.append(Diagnostic("error", str(crash), None, code=code_id(str(crash))))
     return result
 
 
@@ -707,7 +714,7 @@ def _complete(text: str, line: int, column: int) -> List[Completion]:
     raw = lines[line - 1]
     column = max(0, min(column, len(raw)))
     before = raw[:column]
-    if "#" in before or before.count('"') % 2 or before.count("'") % 2:
+    if comment_start(before) >= 0 or before.count('"') % 2 or before.count("'") % 2:
         return []  # in a comment or a string
 
     prefix = _WORD_TAIL.search(before).group()
@@ -904,6 +911,6 @@ def _open_block(ctx) -> bool:
     """Whether the cursor line sits inside an avar2 `{ }` block"""
     depth = 0
     for raw in ctx.lines[: ctx.line - 1]:
-        code = raw.split("#", 1)[0]
+        code = strip_comment(raw)
         depth += code.count("{") - code.count("}")
     return depth > 0

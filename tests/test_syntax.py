@@ -116,11 +116,16 @@ def test_family_path_lang():
     ]
 
 
-def test_comment_starts_at_first_hash_like_the_parser():
+def test_hash_inside_a_closed_string_is_not_a_comment():
     tokens = tokenize('family "A#B"  # note')
     assert [(t.text, t.type) for t in tokens] == [
-        ("family", KEYWORD), ('"A', STRING), ("#B\"  # note", COMMENT),
+        ("family", KEYWORD), ('"A#B"', STRING), ("# note", COMMENT),
     ]
+
+
+def test_hash_after_an_unclosed_quote_starts_a_comment():
+    tokens = tokenize('family "A # note')
+    assert tokens[-1].text == "# note" and tokens[-1].type == COMMENT
 
 
 def test_indented_keyword_is_not_a_section():

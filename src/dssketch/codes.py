@@ -1,0 +1,126 @@
+"""Stable codes for the parser's and validator's messages
+
+Every `syntax.Diagnostic` carries a `code` from this table, so an editor can
+key quick fixes and documentation on it instead of on the wording. A code is
+`"5.N"`: category 5 (Sketch) of the `ConversionReport` scheme, and N its
+number here. `"5.0"` is a message without a code of its own.
+
+**Codes are append-only**: never renumber or reuse one, callers switch on
+them. A new message gets a new entry at the end; its pattern must match it
+(`tests/test_diagnostic_codes.py` produces each one).
+
+The messages come from many places (`DSSParser`, `DSSValidator`), so the
+table recognises them by their wording; the first entry that matches wins.
+
+Light: stdlib only.
+"""
+
+import re
+from dataclasses import dataclass
+from typing import Dict, Optional, Tuple
+
+CATEGORY = 5  # core.report.CATEGORY_SKETCH
+
+
+@dataclass(frozen=True)
+class Code:
+    number: int
+    name: str
+    description: str
+
+    @property
+    def id(self) -> str:
+        return f"{CATEGORY}.{self.number}"
+
+
+# (number, name, pattern, description). Patterns are searched (re.search)
+_TABLE: Tuple[Tuple[int, str, str, str], ...] = (
+    (0, "UNCLASSIFIED", r"", "A message without a code of its own"),
+    # -- document structure ----------------------------------------------------
+    (1, "NO_AXES", r"^CRITICAL: No axes found", "The sketch declares no axis"),
+    (2, "NO_SOURCES", r"^No sources found", "The sketch declares no source"),
+    (3, "NO_BASE", r"^CRITICAL: No base source found", "No source has @base"),
+    (4, "MULTIPLE_BASE", r"^CRITICAL: Multiple base sources", "More than one source has @base"),
+    (5, "BASE_NOT_AT_DEFAULT", r"^CRITICAL: Base source '.*' coordinates", "The base source is not at the axis defaults"),
+    (6, "AXIS_RANGE_EMPTY", r"^CRITICAL: Axis '.*' has invalid range", "An axis with min = max"),
+    (7, "AXIS_INCOMPLETE", r"^CRITICAL: Axis \d+ missing name or tag", "An axis without name or tag"),
+    (8, "DUPLICATE_LABEL", r"^CRITICAL: Mapping label '.*' is used in multiple axes", "A label used on two axes"),
+    (9, "BASE_AUTO_DETECTED", r"^Auto-detected base source", "No @base; the source at the defaults was taken"),
+    # -- header lines ----------------------------------------------------------
+    (10, "FAMILY_EMPTY", r"^Family name is empty|^No family name specified", "No family name"),
+    (11, "PATH_EMPTY", r"^Path value is empty", "`path` without a value"),
+    (12, "LANG_INVALID", r"^lang: '.*' is not a language code|^lang: no language given", "A bad `lang` code"),
+    (13, "LANG_EN", r"^lang: 'en' is always written", "`en` listed in `lang`"),
+    # -- keywords and lines ----------------------------------------------------
+    (14, "KEYWORD_TYPO", r"^Unknown keyword '.*'\. Did you mean", "A misspelt keyword"),
+    (15, "KEYWORD_NON_ASCII", r"^Invalid section keyword", "A keyword with non-ASCII characters"),
+    (16, "KEYWORD_UNPROCESSED", r"^Possible section keyword", "A keyword where it is not read"),
+    (17, "UNRECOGNIZED_LINE", r"^Unrecognized line", "A line outside any section"),
+    (18, "BRACKETS", r"^Bracket issues", "Unbalanced or wrong brackets"),
+    # -- axes ------------------------------------------------------------------
+    (19, "AXIS_TAG_TYPO", r"^Axis tag '.*' looks like a typo", "A misspelt registered axis tag"),
+    (20, "AXIS_RANGE_INVALID", r"^Invalid axis range for", "A range that does not parse or is not ordered"),
+    (21, "AXIS_RANGE_LABEL", r"Label '.*' not found in standard .* mappings|Label-based ranges only supported", "A range label that is not standard"),
+    (22, "MAPPING_LABEL_TYPO", r"mapping label '.*' looks like a typo", "A label close to a standard one"),
+    (23, "MAPPING_OUT_OF_RANGE", r"^Axis '.*': mapping '.*' has user_value .* outside the axis range", "A mapping outside the axis range"),
+    (24, "MAPPING_EXTREME_MISSING", r"missing mapping for (minimum|maximum) value", "No mapping at an end of the axis"),
+    (25, "NO_ELIDABLE", r"has no @elidable mapping", "An axis without an @elidable label"),
+    (26, "MAPPING_INCOMPLETE", r"has incomplete mapping", "A mapping without values"),
+    (27, "MAPPING_NONSTANDARD_USER", r"typically maps to user_value|typically uses", "A standard label at another user value"),
+    (28, "MAPPING_USER_TWICE", r"is mapped twice", "One user value mapped twice"),
+    (29, "BARE_LABEL_CONTINUOUS", r"^Simplified label format only supported", "A bare label on a continuous axis"),
+    (30, "HIDDEN_AXIS_INVALID", r"^Invalid hidden axis|^Non-numeric value in hidden axis", "A hidden axis line that does not parse"),
+    # -- sources ---------------------------------------------------------------
+    (31, "SOURCE_COORD_COUNT", r"^Source '.*' has \d+ coordinates, expected", "Too few or too many coordinates"),
+    (32, "SOURCE_UNKNOWN_LABEL", r"Label '.*' not found in axis '.*' mappings|^Unknown label '.*' for axis", "A coordinate label the axis does not have"),
+    (33, "SOURCE_UNKNOWN_AXIS", r"^Unknown axis '.*' in source|^Invalid named coordinate format", "A named coordinate for no axis"),
+    (34, "SOURCE_COORD_INVALID", r"^Invalid coordinates? in source|^Invalid coordinate value|^Invalid value '.*' for axis|^Coordinate index", "A coordinate that does not parse"),
+    (35, "SOURCE_OFF_MAPPING", r"does not sit on a mapped point", "A master between mapped points (legal)"),
+    (36, "SOURCE_EXTREME_MISSING", r"^No source at (minimum|maximum) mapping", "No master at an end of the axis"),
+    # -- rules -----------------------------------------------------------------
+    (37, "RULE_SYNTAX", r"^Invalid rule syntax", "A rule that does not parse"),
+    (38, "RULE_CONDITION", r"^Invalid condition value", "A condition with an unknown axis or label"),
+    # -- instances -------------------------------------------------------------
+    (39, "INSTANCE_LINE_IGNORED", r"^Instance line ignored", "An explicit instance line"),
+    # -- avar2 -----------------------------------------------------------------
+    (40, "AVAR2_MATRIX_ROW_LENGTH", r"^avar2 matrix: expected \d+ values", "A matrix row with the wrong number of cells"),
+    (41, "AVAR2_UNDEFINED_VAR", r"undefined variable", "A $variable not defined in `avar2 vars`"),
+    (42, "AVAR2_UNKNOWN_AXIS", r"cannot use \$ for unknown axis|^Axis '.*' not found in document", "An avar2 reference to no axis"),
+    (43, "AVAR2_INVALID_VALUE", r"invalid numeric value|^Non-numeric variable value|requires numeric values", "An avar2 value that is not a number"),
+    (44, "AVAR2_UNKNOWN_LABEL", r"^avar2: unknown label", "An avar2 input label the axis does not have"),
+    (45, "AVAR2_INPUT_OUT_OF_RANGE", r"^avar2 input .* is outside the axis range", "An avar2 input outside the user range"),
+    (46, "AVAR2_SYNTAX", r"^avar2( matrix| vars| input| output)?: |^Variable name must start", "An avar2 line that does not parse"),
+)
+
+# Checked before the rest: messages that wrap another one ("Invalid condition
+# value: Label 'X' not found …" is about a rule, not a source)
+_FIRST = ("RULE_CONDITION", "AXIS_RANGE_LABEL")
+
+CODES: Dict[str, Code] = {}
+_PATTERNS = []
+for number, name, pattern, description in _TABLE:
+    code = Code(number, name, description)
+    CODES[name] = code
+    if pattern:
+        _PATTERNS.append((re.compile(pattern), code))
+_PATTERNS.sort(key=lambda entry: entry[1].name not in _FIRST)
+
+UNCLASSIFIED = CODES["UNCLASSIFIED"]
+BY_ID: Dict[str, Code] = {code.id: code for code in CODES.values()}
+
+
+def classify(message: str) -> Code:
+    """The code of a parser or validator message"""
+    for pattern, code in _PATTERNS:
+        if pattern.search(message):
+            return code
+    return UNCLASSIFIED
+
+
+def code_id(message: str) -> str:
+    return classify(message).id
+
+
+def lookup(code: str) -> Optional[Code]:
+    """A code by id ("5.31") or name ("SOURCE_COORD_COUNT")"""
+    return BY_ID.get(code) or CODES.get(code)

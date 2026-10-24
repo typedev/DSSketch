@@ -417,14 +417,12 @@ class DesignSpaceToDSS:
         if not source_paths:
             return None
 
-        # Find common directory
-        directories = set()
-        for path in source_paths:
-            if path.parent != Path("."):
-                directories.add(path.parent)
+        # Find common directory. A root-level source counts as Path("."): leaving
+        # it out made 68 root masters + 7 in instances/ look like "all in instances/"
+        directories = {path.parent for path in source_paths}
 
         # If all sources are in root directory (no parent path)
-        if not directories:
+        if directories == {Path(".")}:
             return None
 
         # If all sources are in the same directory
@@ -448,9 +446,10 @@ class DesignSpaceToDSS:
             maximum = getattr(axis, "maximum", 1000)
             default = getattr(axis, "default", minimum)
 
-        # Store original axis.name as display_name for UI preservation
-        # Use tag as the internal name (will be normalized later)
-        display_name = axis.name if axis.name != axis.tag else None
+        # Store original axis.name as display_name for UI preservation, also
+        # when it equals the tag: dropping it made name="opsz" come back as
+        # "optical". The writer decides whether it has to be written
+        display_name = axis.name
 
         dss_axis = DSSAxis(
             name=axis.name, tag=axis.tag, minimum=minimum, default=default, maximum=maximum,

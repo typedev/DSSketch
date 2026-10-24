@@ -50,6 +50,8 @@ from .core.report import (
 )
 from .core.validation import UFOValidator, ValidationReport
 from .parsers.dss_parser import DSSParser
+from .sketch import EditError, EditResult, Sketch, SourceKey, TextEdit, apply_edits
+from .structure import Span
 from .syntax import Completion, Diagnostic, Token, complete, diagnose, tokenize
 from .writers.dss_writer import DSSWriter
 
@@ -101,6 +103,14 @@ __all__ = [
     "Token",
     "Diagnostic",
     "Completion",
+    # Editing a text with minimal edits (1.5.0)
+    "Sketch",
+    "SourceKey",
+    "TextEdit",
+    "EditResult",
+    "EditError",
+    "Span",
+    "apply_edits",
     # Structured conversion diagnostics
     "ConversionReport",
     "ConversionIssue",

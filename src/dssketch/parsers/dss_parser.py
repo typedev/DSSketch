@@ -11,6 +11,7 @@ from typing import List, Optional
 from ..core.mappings import Standards
 from ..core.translations import LANGUAGE_CODE
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
+from ..utils.comments import comment_start
 from ..utils.discrete import DiscreteAxisHandler
 from ..utils.dss_validator import DSSValidationError, DSSValidator
 from ..utils.logging import DSSketchLogger
@@ -157,9 +158,10 @@ class DSSParser:
     def _parse_text_line(self, line: str, original_line: str):
         """Parse one line of the file as read: split off the comment, skip blanks"""
         # Handle comments before removing them
-        if "#" in line:
-            comment_part = line[line.index("#") :]
-            line = line[: line.index("#")]
+        hash_at = comment_start(line)
+        if hash_at >= 0:
+            comment_part = line[hash_at:]
+            line = line[:hash_at]
 
             # If line is only a comment, process it separately
             if not line.strip():

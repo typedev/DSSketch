@@ -22,6 +22,10 @@ class DSSAxisMapping:
     # Line of the .dssketch that declared it (from 1), for editors; None when
     # there is no source text (DS -> DSS). Not part of equality or repr
     line: Optional[int] = field(default=None, compare=False, repr=False)
+    # Where it is written (structure.Span) and where its fields are, set by
+    # sketch.Sketch; None / empty otherwise. Not part of equality or repr
+    span: Optional[Any] = field(default=None, compare=False, repr=False)
+    spans: Dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
 
 
 @dataclass
@@ -42,6 +46,10 @@ class DSSAxis:
     # Line of the .dssketch that declared it (from 1), for editors; None when
     # there is no source text (DS -> DSS). Not part of equality or repr
     line: Optional[int] = field(default=None, compare=False, repr=False)
+    # Where it is written (structure.Span) and where its fields are, set by
+    # sketch.Sketch; None / empty otherwise. Not part of equality or repr
+    span: Optional[Any] = field(default=None, compare=False, repr=False)
+    spans: Dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
 
     @property
     def is_discrete(self) -> bool:
@@ -111,6 +119,10 @@ class DSSSource:
     # Line of the .dssketch that declared it (from 1), for editors; None when
     # there is no source text (DS -> DSS). Not part of equality or repr
     line: Optional[int] = field(default=None, compare=False, repr=False)
+    # Where it is written (structure.Span) and where its fields are, set by
+    # sketch.Sketch; None / empty otherwise. Not part of equality or repr
+    span: Optional[Any] = field(default=None, compare=False, repr=False)
+    spans: Dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
 
 
 @dataclass
@@ -134,6 +146,10 @@ class DSSRule:
     # Line of the .dssketch that declared it (from 1), for editors; None when
     # there is no source text (DS -> DSS). Not part of equality or repr
     line: Optional[int] = field(default=None, compare=False, repr=False)
+    # Where it is written (structure.Span) and where its fields are, set by
+    # sketch.Sketch; None / empty otherwise. Not part of equality or repr
+    span: Optional[Any] = field(default=None, compare=False, repr=False)
+    spans: Dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
 
 
 @dataclass
@@ -154,6 +170,10 @@ class DSSAvar2Mapping:
     # Line of the .dssketch that declared it (from 1), for editors; None when
     # there is no source text (DS -> DSS). Not part of equality or repr
     line: Optional[int] = field(default=None, compare=False, repr=False)
+    # Where it is written (structure.Span) and where its fields are, set by
+    # sketch.Sketch; None / empty otherwise. Not part of equality or repr
+    span: Optional[Any] = field(default=None, compare=False, repr=False)
+    spans: Dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
 
 
 @dataclass

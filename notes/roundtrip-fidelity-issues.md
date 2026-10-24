@@ -48,6 +48,9 @@ diagnostic, not a transformation.
 
 ## 1. Mixed source paths collapse into a bogus common directory
 
+**Status: fixed 2026-10-24 (1.5.0)** with the candidate fix below;
+`tests/test_roundtrip_fixes.py`.
+
 **Severity: high — produces unusable paths.**
 
 ### Symptom
@@ -219,6 +222,11 @@ state for no semantic gain.
 ---
 
 ## 4. An axis name is lost when it equals the tag
+
+**Status: fixed 2026-10-24 (1.5.0), candidate (a)**, chosen by the maintainer:
+the name is always kept. The writer emits it in quotes when the fallback would
+not give it back (`opsz 8:14:144 "opsz"`); a custom axis named after its tag
+needs nothing (`XOUC 0:100:200`). `tests/test_roundtrip_fixes.py`.
 
 **Severity: medium — rewrites the file, builds the same font.**
 
@@ -461,8 +469,8 @@ they arrived from the fontTools test data.
 
 | # | issue | verdict | needs a decision |
 |---|---|---|---|
-| 1 | mixed paths → `instances/` prefix | defect | no |
-| 2 | `hidden` heuristic rewrites input | defect, by design | **yes** — derived or declared? |
+| 1 | mixed paths → `instances/` prefix | defect | **fixed 2026-10-24** (1.5.0) |
+| 2 | `hidden` heuristic rewrites input | defect, by design | **resolved 2026-09-28**: declared |
 | 3 | Amstelvar master locations | not a bug | close it |
-| 4 | axis name lost when `name == tag` | defect, deviates from plan | **yes** — which fallback? |
+| 4 | axis name lost when `name == tag` | defect, deviates from plan | **fixed 2026-10-24** (1.5.0): candidate (a) |
 | 5 | `instances auto` written unchecked | build the analyser | **yes** — what about the dead branch? |

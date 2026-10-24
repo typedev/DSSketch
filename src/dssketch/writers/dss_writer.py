@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 from ..core.mappings import Standards
 
 # Import models from core
+from ..parsers.dss_parser import DSSParser
 from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 from ..core.validation import UFOGlyphExtractor
 from ..utils.patterns import PatternMatcher
@@ -228,8 +229,7 @@ class DSSWriter:
                 axis_line = f"    {use_axis_name} {axis.tag} discrete"
             else:
                 axis_line = f"    {axis.tag} discrete"
-            # Add display_name if present and different from tag
-            if axis.display_name and axis.display_name != axis.tag:
+            if self._needs_display_name(axis, use_axis_name):
                 axis_line += f' "{axis.display_name}"'
             lines.append(axis_line)
         else:
@@ -279,8 +279,7 @@ class DSSWriter:
                 axis_line = f"    {use_axis_name} {axis.tag} {range_str}"
             else:
                 axis_line = f"    {axis.tag} {range_str}"
-            # Add display_name if present and different from tag
-            if axis.display_name and axis.display_name != axis.tag:
+            if self._needs_display_name(axis, use_axis_name):
                 axis_line += f' "{axis.display_name}"'
             lines.append(axis_line)
 
@@ -365,6 +364,22 @@ class DSSWriter:
         if Standards.has_mapping(mapping.label, axis.name):
             return Standards.get_user_value_for_name(mapping.label, axis.name) == mapping.user_value
         return float(index) == mapping.user_value
+
+    @staticmethod
+    def _needs_display_name(axis: DSSAxis, written_name: str) -> bool:
+        """Whether the DesignSpace name must be written in quotes
+
+        Without one, DSS -> DS names the axis after the name the line writes,
+        or for a bare tag the parser's fallback (`opsz` -> "optical", `XOUC` ->
+        "XOUC"). A name other than the tag is always written, as before; a name
+        equal to the tag only when the fallback would not give it back, so it
+        survives (`opsz 8:14:144 "opsz"`)
+        """
+        if not axis.display_name:
+            return False
+        if axis.display_name != axis.tag:
+            return True
+        return axis.display_name != (written_name or DSSParser.TAG_TO_NAME.get(axis.tag, axis.tag.upper()))
 
     def _get_axis_display_name(self, axis_name: str, axis_tag: str) -> str:
         """Get the display name for an axis - omit registered names, use uppercase for custom"""

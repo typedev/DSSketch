@@ -37,6 +37,9 @@ def _loaded_after(code: str) -> list:
         "from dssketch import DSSParser, DSSWriter, DSSDocument, ConversionReport",
         "from dssketch.syntax import tokenize, diagnose",
         "from dssketch.gtksourceview import language_spec",
+        "from dssketch import Sketch; Sketch.parse('family T\\naxes\\n    wght 1:2:3\\nsources\\n    A @base').diagnostics",
+        "from dssketch import Sketch; Sketch.parse('family T').set_family('U')",
+        "import dssketch.codes, dssketch.structure",
     ],
 )
 def test_import_is_light(code):

@@ -763,7 +763,9 @@ sources [wght, wdth]
   absent instance cannot be recovered from the file. See
   `notes/roundtrip-fidelity-issues.md`.
 - **Silent unless logging is set up** — `DSSketchLogger` is a no-op until
-  `setup_logger()` runs, which the CLI does and the plain API does not.
+  `setup_logger()` runs, which only the CLI does. The library never writes
+  files next to its input (`convert_to_designspace()` stopped calling it in
+  1.5.0; `tests/test_library_no_files.py`).
 - **Failure is contained**: the report is wrapped so a diagnostic can never
   break a conversion.
 - **Structured report**: findings are recorded in `DesignSpaceToDSS.report`
@@ -1628,9 +1630,11 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - **Token types are a contract** (`TOKEN_TYPES`): append-only, editors key
   styles on them
 - **The tokenizer mirrors the parser, not an ideal grammar**: comment from the
-  first `#` (quotes too), section keywords only at column 0, section checks in
+  first `#` outside a closed string (`utils/comments.py`, shared by parser,
+  tokenizer, `complete()` and the .lang), section keywords only at column 0, section checks in
   `_parse_line` order. A parser change to line syntax needs the same change
   here; `tests/test_syntax.py` checks coverage and agreement on every example
+- Every `Diagnostic` has a stable `code` from `codes.py` (below)
 - `DSSParser.line_messages` = (severity, message, line) per line;
   `line_phase_counts` = how many of `validator.errors/warnings` came from lines
   (`validate_document()` keeps them first, in order)
@@ -1652,6 +1656,51 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   agree with `tokenize()` token for token. The comparison runs where
   GtkSourceView 5 is (it looks for a Python with PyGObject, the system one
   here); CI skips it
+
+**`structure.py`** - What each line of a text is (1.5.0)
+- `build(text) -> Structure`: one `Line` per text line with `kind` (axis,
+  mapping, source, rule, skip-entry, avar2-row/-block/-header, family …),
+  `section`, `indent`, `span` (the code, without indent and comment),
+  `comment`, `fields` (name -> `Span`) and `values` (as written). Built from
+  `tokenize()`'s tokens, so it agrees with the parser; never raises
+- Field names are listed in the `Line` docstring (`coord.0` positional,
+  `coord.<axis as written>` named, `flag.base`, `layer` …)
+- **Comment ownership**: full-line comments directly above an item (no blank
+  line between) are its `leading` comments and go with it on removal/move; a
+  trailing comment is its line's; anything else stays (section).
+  `Structure.owned_lines(n)` = first..last line an item occupies with its
+  comments and, for an axis, its mappings
+
+**`sketch.py`** - `Sketch`: editing with minimal edits (1.5.0)
+- Immutable snapshot: `Sketch.parse(text)`; `.text` (byte-identical),
+  `.structure`, `.document` (recover-mode parse; models get `span` / `spans`
+  keyed by axis **tag**: `coord.wght`, `input.wght`), `.diagnostics`,
+  `item_at(line, col)` -> path tuple, `span(path)`
+- Ops return `EditResult(edits, text, sketch)`. Keys: axis tag; (tag, label)
+  or an unnamed point's user value; `SourceKey(filename, layer)` or a unique
+  string; skip entry text. Never line numbers
+- **All or nothing via a re-parse**: `_result()` parses the new text and
+  refuses (`EditError("rejected")`) any error the old text did not have.
+  Errors are compared by `(code, quoted names)` (`_error_key`), not wording,
+  because messages list context ("Available labels: …") that edits change.
+  So an op needs no validation of its own beyond keys; the parser decides
+- New lines follow the document: indent of sibling lines, `prefer="keep"`
+  (a label where most of that column writes labels)
+- A label rename keeps the point: `_relabel()` writes the user value
+  explicitly when the new label would infer another one (`900 Heavy > 900`)
+- Visible axes only in positional coordinates without `sources [order]` (as
+  the parser reads them); `add_axis` adds the column, `remove_axis` drops it,
+  `move_axis` writes the old order into `sources [..]`
+- Light: stdlib + PyYAML. Tests: `tests/test_sketch_edits.py`,
+  `tests/test_sketch_structure.py` (spans, item_at, comments in every position,
+  benchmark)
+
+**`codes.py`** - Stable diagnostic codes (1.5.0)
+- `"5.N"` (category 5 = Sketch of the report scheme). Messages are recognised
+  by wording (`classify()`), first match wins, `_FIRST` for messages that
+  wrap others. **Append-only**: a new message gets a new number at the end
+  and a sample in `tests/test_diagnostic_codes.py` (`PUBLISHED` pins the
+  numbers); every example's messages must be classified
 
 **`api.py`** - High-level API for DSSketch integration
 - `convert_to_dss(designspace, dss_path, optimize=True, vars_threshold=3, avar2_format="matrix")` - Convert DesignSpace object to DSSketch file

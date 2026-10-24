@@ -99,12 +99,16 @@ def language_spec() -> str:
             w("      </include>")
         w("    </context>")
 
-    # The parser cuts a comment at the first # of a line, quotes included, so a
-    # string never runs over one
+    # A comment starts at the first # outside a closed string
+    # (utils/comments.py): a closed string may hold a #, an unclosed one stops
+    # before it. ' opens a string only where a word cannot continue
     w('    <context id="comment" style-ref="comment" end-at-line-end="true" class="comment" class-disabled="no-spell-check">')
     w("      <start>#</start>")
     w("    </context>")
-    match("string", r'"[^"#]*"?|\'[^\'#]*\'?', "string", extra=' class="string" class-disabled="no-spell-check"')
+    match(
+        "string", r'"[^"]*"|"[^"#]*|(?<![^\s\[\](){},:="@$<>&])\'(?:[^\']*\'|[^\'#]*)', "string",
+        extra=' class="string" class-disabled="no-spell-check"',
+    )
 
     # Document lines: keyword and value
     match(
