@@ -1511,6 +1511,27 @@ still in use, a base source off the defaults, a value out of range) raises
 elsewhere. Parsed models carry `span` and `spans` (their fields). Light:
 standard library and PyYAML only.
 
+**Font data from the host**: DSSketch reads family, style, glyph and layer names
+from the UFOs on disk. An application with the fonts open passes a provider
+instead — to the conversion, `diagnose()`, `complete()` and `Sketch.parse()`:
+
+```python
+from dssketch import FontData
+
+class OpenFonts(FontData):                  # every method may return None: unknown
+    def glyph_names(self, source):          # source: "sources/Font-Bold.ufo"
+        font = app.font_for(source)
+        return font.keys() if font else None
+    # family_name(), style_name(source), layer_names(source), source_exists(source)
+
+ds = dssketch.convert_dss_string_to_designspace(text, font_data=OpenFonts())
+dssketch.diagnose(text, font_data=OpenFonts())   # + missing UFO / layer, rule glyphs
+dssketch.complete(text, line, col, font_data=OpenFonts())  # + glyph and layer names
+dssketch.expand_rule(rule, glyph_names)    # [(glyph, target, target_exists), ...]
+```
+
+Without a provider, `diagnose()` and `complete()` never read the disk.
+
 **Comments**: a comment starts at the first `#` outside quotes (`"Sans #1"` is a
 name). When a line is removed, the comments directly above it (no blank line
 between) go with it; a comment followed by a blank line stays.

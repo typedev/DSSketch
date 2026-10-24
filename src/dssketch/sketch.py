@@ -76,12 +76,13 @@ class EditResult:
     edits: List[TextEdit]
     text: str
     _sketch: Optional["Sketch"] = field(default=None, repr=False)
+    _font_data: Any = field(default=None, repr=False)
 
     @property
     def sketch(self) -> "Sketch":
         """The new text, parsed (shares the parse the operation verified)"""
         if self._sketch is None:
-            self._sketch = Sketch.parse(self.text)
+            self._sketch = Sketch.parse(self.text, font_data=self._font_data)
         return self._sketch
 
 
@@ -231,8 +232,9 @@ def _new_errors(old, new) -> List[str]:
 class Sketch:
     """An immutable, parsed .dssketch text with editing operations"""
 
-    def __init__(self, text: str, _parsed=None):
+    def __init__(self, text: str, _parsed=None, font_data=None):
         self._text = text
+        self.font_data = font_data  # fontdata.FontDataProvider, or None
         self._parsed = _parsed  # (parser, crash) when the caller already parsed it
         self._structure: Optional[st.Structure] = None
         self._diagnostics = None
@@ -240,9 +242,13 @@ class Sketch:
         self._verify = True  # False: a fixer clone, see _unverified()
 
     @classmethod
-    def parse(cls, text: str) -> "Sketch":
-        """Read a text. Never raises: errors are in `diagnostics`"""
-        return cls(text)
+    def parse(cls, text: str, font_data=None) -> "Sketch":
+        """Read a text. Never raises: errors are in `diagnostics`
+
+        font_data: a fontdata.FontDataProvider; with it the diagnostics also
+        check what the fonts say (missing UFO or layer, rule glyphs)
+        """
+        return cls(text, font_data=font_data)
 
     # -- what it holds ----------------------------------------------------------
 
@@ -294,7 +300,7 @@ class Sketch:
         """This sketch, sharing its parse, whose operations skip the re-parse
         (quick fixes are suggestions; fixes.py)"""
         self.document  # spans attached once, on the shared models
-        clone = Sketch(self._text, _parsed=self._parsed)
+        clone = Sketch(self._text, _parsed=self._parsed, font_data=self.font_data)
         clone._structure = self.structure
         clone._spans_done = True
         clone._verify = False
@@ -647,12 +653,12 @@ class Sketch:
                 raise EditError("rejected", "internal: overlapping edits")  # never
         new_text = apply_edits(self._text, edits)
         if not self._verify:
-            return EditResult(edits, new_text)
+            return EditResult(edits, new_text, _font_data=self.font_data)
         parsed = _parse(new_text)
         messages = _new_errors((self._parser, self._parsed[1]), parsed)
         if messages:
             raise EditError("rejected", messages[0], messages)
-        return EditResult(edits, new_text, Sketch(new_text, _parsed=parsed))
+        return EditResult(edits, new_text, Sketch(new_text, _parsed=parsed, font_data=self.font_data), self.font_data)
 
     def _check_target(self, line: Optional[st.Line]) -> None:
         if line is None or not self._verify:  # a fix targets the faulty line itself

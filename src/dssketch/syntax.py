@@ -515,7 +515,7 @@ def _span(message: str, line_tokens: List[Token], raw: str) -> Tuple[int, int]:
     return start, start + len(stripped)
 
 
-def diagnose(text: str) -> List[Diagnostic]:
+def diagnose(text: str, font_data=None) -> List[Diagnostic]:
     """Every error and warning the parser finds in a .dssketch text.
 
     Never raises: a line that fails becomes an error and parsing goes on, so an
@@ -523,10 +523,14 @@ def diagnose(text: str) -> List[Diagnostic]:
     source, rule or avar2 mapping is placed on the line that declares it, and
     the result is in text order. What belongs to no line (no base source, no
     axes, no family) comes last with `line=None`.
+
+    font_data: a fontdata.FontDataProvider (the host's fonts). With it, a
+    missing source UFO or layer and rule glyphs the default master lacks are
+    reported too. Without it nothing is read from disk.
     """
     from .sketch import Sketch
 
-    return list(Sketch.parse(text).diagnostics)
+    return list(Sketch.parse(text, font_data=font_data).diagnostics)
 
 
 def _diagnostics_for(text: str, parser, crash, structure, sketch=None) -> List[Diagnostic]:
@@ -566,6 +570,13 @@ def _diagnostics_for(text: str, parser, crash, structure, sketch=None) -> List[D
         if len(at_lines) != len(found):
             at_lines = [None] * len(found)
         result.extend(placed(severity, m, line) for m, line in zip(found, at_lines))
+
+    # What the fonts say, when the host gave font data (fontdata.py)
+    provider = getattr(sketch, "font_data", None)
+    if provider is not None:
+        from .fontdata import check
+
+        result.extend(placed(*entry) for entry in check(parser.document, provider))
 
     # In text order; what has no place (no base source, no axes …) comes last
     result.sort(key=lambda d: (d.line is None, d.line or 0, d.column))
@@ -702,27 +713,37 @@ def _filter(items, prefix: str, kind: str, column: int, end: int) -> List[Comple
     return out
 
 
-def complete(text: str, line: int, column: int) -> List[Completion]:
+def complete(text: str, line: int, column: int, font_data=None) -> List[Completion]:
     """Suggestions for the word at a cursor (`line` from 1, `column` from 0).
 
     What fits the place: section keywords at the start of a line, the axis's
     own labels in source coordinates and rule conditions, standard weight and
     width labels in an axis's mappings, flags after a source, avar2 variables …
-    Never raises; an empty list where nothing fits (a comment, a glyph name).
+    Never raises; an empty list where nothing fits (a comment).
+
+    font_data: a fontdata.FontDataProvider; with it glyph names are offered in
+    rule patterns and targets (the default master's), and layer names after
+    `@layer` (the source's font). Without it nothing is read from disk.
     """
     try:
-        return _complete(text, line, column)
+        return _complete(text, line, column, font_data)
     except Exception:
         return []
 
 
-def _complete(text: str, line: int, column: int) -> List[Completion]:
+_LAYER_VALUE = re.compile(r"@layer\s*=?\s*([\"']?)([^\"'\s]*)$")
+
+
+def _complete(text: str, line: int, column: int, font_data=None) -> List[Completion]:
     lines = text.split("\n")
     if not 1 <= line <= len(lines):
         return []
     raw = lines[line - 1]
     column = max(0, min(column, len(raw)))
     before = raw[:column]
+    layer = _LAYER_VALUE.search(before) if font_data is not None else None
+    if layer is not None and comment_start(before) < 0:
+        return _complete_layer(text, line, raw, column, layer, font_data)
     if comment_start(before) >= 0 or before.count('"') % 2 or before.count("'") % 2:
         return []  # in a comment or a string
 
@@ -771,7 +792,7 @@ def _complete(text: str, line: int, column: int) -> List[Completion]:
     if section == "sources":
         return _complete_sources(ctx, atoms, words, last, offer)
     if section == "rules":
-        return _complete_rules(ctx, atoms, last, offer)
+        return _complete_rules(ctx, atoms, last, offer, font_data)
     if section == "instances":
         if not atoms and (not ctx.tokenizer.in_skip or indent < 8):
             return offer([("skip", "")], KEYWORD)
@@ -786,6 +807,21 @@ def _complete(text: str, line: int, column: int) -> List[Completion]:
     if section in ("avar2", "avar2_matrix"):
         return _complete_avar2(ctx, section, atoms, words, last, offer)
     return []
+
+
+def _complete_layer(text, line, raw, column, match, font_data) -> List[Completion]:
+    """Layer names of the source's font after `@layer`, `@layer=`, `@layer "`"""
+    from .fontdata import _call, source_path
+
+    ctx = _Context(text, line)
+    source = next((s for s in ctx.doc.sources if s.line == line), None)
+    if source is None:
+        return []
+    layers = _call(font_data, "layer_names", source_path(ctx.doc, source)) or ()
+    prefix = match.group(2)
+    start = column - len(prefix)
+    end = column + len(_WORD_HEAD.match(raw, column).group())
+    return _filter([(name, "layer") for name in layers], prefix, TEXT, start, end)
 
 
 def _complete_axes(ctx, atoms, words, last, indent, offer):
@@ -844,15 +880,28 @@ def _complete_sources(ctx, atoms, words, last, offer):
     return []
 
 
-def _complete_rules(ctx, atoms, last, offer):
+def _complete_rules(ctx, atoms, last, offer, font_data=None):
     depth = 0
+    closed = False
     for a in atoms:
         if a.kind == "punct" and a.text == "(":
             depth += 1
         elif a.kind == "punct" and a.text == ")":
             depth -= 1
-    if depth <= 0 or last is None:
-        return []  # glyph names: nothing to suggest without the UFOs
+            closed = closed or depth == 0
+    if depth <= 0:
+        if closed or font_data is None:
+            return []  # after the conditions; glyph names need font data
+        from .fontdata import default_master_glyphs
+
+        glyphs = default_master_glyphs(font_data, ctx.doc)
+        if not glyphs:
+            return []
+        after_arrow = any(a.kind == "operator" and a.text == ">" for a in atoms)
+        detail = "target glyph" if after_arrow else "glyph"
+        return offer([(g, detail) for g in sorted(glyphs)], GLYPH)
+    if last is None:
+        return []
 
     def refs():
         return [(a.name, f"axis {a.tag}") for a in ctx.doc.axes] + ctx.axis_refs()

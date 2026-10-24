@@ -50,6 +50,8 @@ from .core.report import (
 )
 from .core.validation import UFOValidator, ValidationReport
 from .parsers.dss_parser import DSSParser
+from .fontdata import DefconFontData, FontData, FontDataProvider, expand_rule
+from .fixes import Fix
 from .sketch import EditError, EditResult, Sketch, SourceKey, TextEdit, apply_edits
 from .structure import Span
 from .syntax import Completion, Diagnostic, Token, complete, diagnose, tokenize
@@ -111,6 +113,12 @@ __all__ = [
     "EditError",
     "Span",
     "apply_edits",
+    "Fix",
+    # Font data from the host (1.5.x)
+    "FontDataProvider",
+    "FontData",
+    "DefconFontData",
+    "expand_rule",
     # Structured conversion diagnostics
     "ConversionReport",
     "ConversionIssue",

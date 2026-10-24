@@ -34,7 +34,7 @@ from ..core.models import elided_fallback_name
 from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 
 # Import validation components
-from ..core.validation import UFOGlyphExtractor
+from ..fontdata import DefconFontData, _call, source_path
 from ..utils.discrete import DiscreteAxisHandler
 from ..core.report import (
     AVAR2_UNKNOWN_AXIS,
@@ -65,9 +65,15 @@ from ..utils.patterns import PatternMatcher
 class DSSToDesignSpace:
     """Convert DSS to DesignSpace format"""
 
-    def __init__(self, base_path: Optional[Path] = None):
-        """Initialize converter with optional base path for UFO files"""
+    def __init__(self, base_path: Optional[Path] = None, font_data=None):
+        """Initialize converter with optional base path for UFO files
+
+        font_data: a fontdata.FontDataProvider for family / style / glyph
+        names; None reads the UFOs under base_path with defcon
+        """
         self.base_path = base_path
+        self.font_data = font_data
+        self._provider = None
         self.logger = DSSketchLogger()
         #: What the last convert() found; see core/report.py
         self.report = ConversionReport()
@@ -101,34 +107,25 @@ class DSSToDesignSpace:
         if not base_source:
             return self._family_unknown("no family line and no @base source to read it from")
 
-        # Construct UFO path
-        ufo_filename = base_source.filename
-        if dss_doc.path:
-            ufo_path = Path(dss_doc.path) / ufo_filename
-        else:
-            ufo_path = Path(ufo_filename)
+        source = source_path(dss_doc, base_source)
+        provider = self._font_data(dss_doc)
+        if _call(provider, "source_exists", source) is False:
+            return self._family_unknown(f"no family line, and the base UFO '{source}' was not found")
+        family_name = _call(provider, "family_name")
+        if family_name:
+            self.logger.info(f"Detected family name '{family_name}' from {source}")
+            return family_name
+        return self._family_unknown(f"no family line, and '{source}' has no familyName")
 
-        # Make path absolute if base_path is set
-        if self.base_path and not ufo_path.is_absolute():
-            ufo_path = self.base_path / ufo_path
-
-        # Try to read familyName from UFO
-        try:
-            if not ufo_path.exists() or not ufo_path.is_dir():
-                return self._family_unknown(f"no family line, and the base UFO '{ufo_path}' was not found")
-
-            from defcon import Font
-
-            font = Font(str(ufo_path))
-            family_name = font.info.familyName
-
-            if family_name:
-                self.logger.info(f"Detected family name '{family_name}' from {ufo_path.name}")
-                return family_name
-            else:
-                return self._family_unknown(f"no family line, and '{ufo_path.name}' has no familyName")
-        except Exception as e:
-            return self._family_unknown(f"no family line, and '{ufo_path}' could not be read: {e}")
+    def _font_data(self, dss_doc: DSSDocument):
+        """The provider for this conversion: the caller's, or defcon on disk"""
+        if self.font_data is not None:
+            return self.font_data
+        if self._provider is None or self._provider[0] is not dss_doc:
+            base = next((s for s in dss_doc.sources if s.is_base), None)
+            base_path = Path(self.base_path) if self.base_path else None
+            self._provider = (dss_doc, DefconFontData(base_path, source_path(dss_doc, base) if base else None))
+        return self._provider[1]
 
     def _family_unknown(self, reason: str) -> str:
         self._report(
@@ -141,6 +138,7 @@ class DSSToDesignSpace:
     def convert(self, dss_doc: DSSDocument) -> DesignSpaceDocument:
         """Convert DSS document to DesignSpace document"""
         self.report = ConversionReport()
+        self._dss_doc = dss_doc
         doc = DesignSpaceDocument()
 
         # Detect family name if not specified
@@ -590,12 +588,10 @@ class DSSToDesignSpace:
         # Always use familyName from DSS document (prioritize DSS over UFO)
         source.familyName = dss_doc.family
 
-        # Try to read styleName from UFO file, fall back to DSS source name
-        ufo_info = self._read_ufo_info(source.filename)
-        if ufo_info and ufo_info.get("styleName"):
-            source.styleName = ufo_info.get("styleName")
-        else:
-            source.styleName = dss_source.name
+        # styleName from the font (the UFO, or the caller's font data), else the
+        # DSS source name
+        style_name = _call(self._font_data(dss_doc), "style_name", source.filename)
+        source.styleName = style_name or dss_source.name
 
         # Convert location keys from tags to axis names (fontTools uses axis.name)
         # Build mapping: tag -> axis_name (display_name if available, else name)
@@ -623,26 +619,6 @@ class DSSToDesignSpace:
             source.layerName = dss_source.layer
 
         return source
-
-    def _read_ufo_info(self, filename: str) -> Optional[dict]:
-        """Read familyName and styleName from UFO file"""
-        try:
-            # The filename already includes the full relative path from the base_path
-            # (e.g., "sources/SuperFont-Black.ufo")
-            ufo_path = Path(filename)
-            if self.base_path and not ufo_path.is_absolute():
-                ufo_path = self.base_path / filename
-
-            if not ufo_path.exists() or not ufo_path.is_dir():
-                return None
-
-            from defcon import Font
-
-            font = Font(str(ufo_path))
-            return {"familyName": font.info.familyName, "styleName": font.info.styleName}
-        except Exception:
-            # If UFO reading fails, return None to fall back to defaults
-            return None
 
     def _convert_instance(
         self, dss_instance: DSSInstance, dss_doc: DSSDocument
@@ -766,34 +742,28 @@ class DSSToDesignSpace:
         cache = getattr(self, "_default_glyphs_cache", None)
         if cache is not None and cache[0] is doc:
             return cache[1]
-        base_path = (
-            Path(self.base_path)
-            if self.base_path and not isinstance(self.base_path, Path)
-            else self.base_path
-        )
-        base_sources = [s for s in doc.sources if s.copyInfo]
-        glyphs = UFOGlyphExtractor.get_all_glyphs_from_sources(base_sources, base_path)
+        glyphs = self._glyphs_of([s for s in doc.sources if s.copyInfo])
         self._default_glyphs_cache = (doc, glyphs)
+        return glyphs
+
+    def _glyphs_of(self, sources) -> set:
+        """Every glyph name of these DesignSpace sources (unreadable: none)"""
+        provider = self._font_data(self._dss_doc)
+        glyphs = set()
+        for source in sources:
+            if source.filename:
+                glyphs |= set(_call(provider, "glyph_names", source.filename) or ())
         return glyphs
 
     def _expand_wildcard_pattern(
         self, dss_rule: DSSRule, doc: DesignSpaceDocument
     ) -> List[Tuple[str, str]]:
         """Expand wildcard patterns to concrete glyph substitutions"""
-        # Extract all glyph names from UFO files for validation
-        # Ensure base_path is a Path object
-        base_path = (
-            Path(self.base_path)
-            if self.base_path and not isinstance(self.base_path, Path)
-            else self.base_path
-        )
         # Substitutions must exist in the default master: that is the glyph set
         # varLib checks rules against, and a glyph present only in a sparse or
         # other non-default master fails the build. Fall back to every source
         # only when no default master can be read
-        all_glyphs = self._default_master_glyphs(doc) or UFOGlyphExtractor.get_all_glyphs_from_sources(
-            doc.sources, base_path
-        )
+        all_glyphs = self._default_master_glyphs(doc) or self._glyphs_of(doc.sources)
 
         if not dss_rule.pattern or not dss_rule.to_pattern:
             # Validate regular substitutions (non-wildcard)

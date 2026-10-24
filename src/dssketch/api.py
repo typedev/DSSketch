@@ -99,13 +99,15 @@ def _sketch_report(parser: DSSParser, converter: DSSToDesignSpace) -> Conversion
     return report
 
 
-def convert_to_designspace(dss_path: str, return_report: bool = False):
+def convert_to_designspace(dss_path: str, return_report: bool = False, font_data=None):
     """
     Convert a DSSketch file to a DesignSpace object.
 
     Args:
         dss_path: Path to the .dssketch or .dss file to convert
         return_report: Also return the structured ConversionReport (default False)
+        font_data: a fontdata.FontDataProvider giving family, style and glyph
+            names from fonts the caller has open; None reads the UFOs on disk
 
     Returns:
         DesignSpaceDocument object, or a (DesignSpaceDocument, ConversionReport)
@@ -136,7 +138,7 @@ def convert_to_designspace(dss_path: str, return_report: bool = False):
     dss_doc = parser.parse_file(str(dss_file))
 
     # Convert to DesignSpace
-    converter = DSSToDesignSpace(base_path=dss_file.parent)
+    converter = DSSToDesignSpace(base_path=dss_file.parent, font_data=font_data)
     ds_doc = converter.convert(dss_doc)
 
     if return_report:
@@ -145,7 +147,7 @@ def convert_to_designspace(dss_path: str, return_report: bool = False):
 
 
 def convert_dss_string_to_designspace(
-    dss_content: str, base_path: Union[str, Path] = None, return_report: bool = False
+    dss_content: str, base_path: Union[str, Path] = None, return_report: bool = False, font_data=None
 ):
     """
     Convert DSSketch content string to a DesignSpace object.
@@ -154,6 +156,7 @@ def convert_dss_string_to_designspace(
         dss_content: DSSketch format string content
         base_path: Base path for resolving relative UFO paths (optional)
         return_report: Also return the structured ConversionReport (default False)
+        font_data: a fontdata.FontDataProvider (see convert_to_designspace)
 
     Returns:
         DesignSpaceDocument object, or a (DesignSpaceDocument, ConversionReport)
@@ -183,7 +186,7 @@ def convert_dss_string_to_designspace(
 
     # Convert to DesignSpace
     base_path = Path(base_path) if base_path else None
-    converter = DSSToDesignSpace(base_path=base_path)
+    converter = DSSToDesignSpace(base_path=base_path, font_data=font_data)
     ds_doc = converter.convert(dss_doc)
 
     if return_report:

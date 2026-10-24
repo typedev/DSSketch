@@ -93,6 +93,12 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     # -- 1.5.x ------------------------------------------------------------------
     (47, "SKIP_UNKNOWN_LABEL", r"^Skip rule '.*' contains label", "A skip entry word that is no axis label"),
     (48, "ELIDED_FALLBACK_EMPTY", r"^elidedfallback: no name given", "`elidedfallback` without a name"),
+    # -- font data (fontdata.py; only with a provider) --------------------------
+    (49, "SOURCE_UFO_MISSING", r"^Source UFO '.*' not found", "A source's UFO does not exist"),
+    (50, "SOURCE_LAYER_MISSING", r"^Source '.*': layer '.*' not found in", "A source's layer is not in its UFO"),
+    (51, "RULE_GLYPH_MISSING", r": glyph '.*' is not in the default master", "A rule glyph the default master lacks"),
+    (52, "RULE_TARGET_MISSING", r": target glyph '.*' is not in the default master", "A rule target the default master lacks"),
+    (53, "RULE_MATCHES_NOTHING", r"matches no glyph whose target exists", "A wildcard rule that substitutes nothing"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition

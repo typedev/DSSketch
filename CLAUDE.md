@@ -1708,6 +1708,24 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - A new message with an obvious repair: add a handler and a case in
   `tests/test_quick_fixes.py` (apply the fix, the code must be gone)
 
+**`fontdata.py`** - Font data from the host (1.5.x)
+- `FontDataProvider` protocol: `family_name()`, `style_name(source)`,
+  `glyph_names(source)`, `layer_names(source)`, optional `source_exists(source)`.
+  A source = `path` + file name as the DesignSpace writes it
+  (`source_path(doc, source)`). **None = unknown, never empty**: skip the check
+- `DefconFontData(base_path, base_source)`: the old UFO reading (path logic of
+  UFOGlyphExtractor), each UFO opened once; `FontData`: knows nothing
+- DSS → DS goes through `DSSToDesignSpace._font_data(doc)` for the family,
+  style names and glyph sets (`_glyphs_of`); never `defcon` directly any more.
+  Every provider call goes through `_call()`, which swallows host exceptions
+- `diagnose()` / `complete()` / `Sketch.parse()` take `font_data=`; **without
+  it they never read the disk**. `check(doc, provider)` adds codes 5.49–5.53;
+  a rule is named in double quotes in those messages so the message is placed
+  on the glyph (placement takes the first single-quoted word)
+- Parsed explicit rules (`dollar > dollar.alt`) have `substitutions` and no
+  pattern; wildcard ones `pattern` / `to_pattern`. `expand_rule()` handles both
+- Tests: `tests/test_font_data.py`
+
 **`codes.py`** - Stable diagnostic codes (1.5.0)
 - `"5.N"` (category 5 = Sketch of the report scheme). Messages are recognised
   by wording (`classify()`), first match wins, `_FIRST` for messages that

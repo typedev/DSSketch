@@ -39,7 +39,8 @@ def _loaded_after(code: str) -> list:
         "from dssketch.gtksourceview import language_spec",
         "from dssketch import Sketch; Sketch.parse('family T\\naxes\\n    wght 1:2:3\\nsources\\n    A @base').diagnostics",
         "from dssketch import Sketch; Sketch.parse('family T').set_family('U')",
-        "import dssketch.codes, dssketch.structure, dssketch.fixes",
+        "import dssketch.codes, dssketch.structure, dssketch.fixes, dssketch.fontdata",
+        "from dssketch import diagnose, FontData, DefconFontData; diagnose('sources\\n    A @base', font_data=FontData()); DefconFontData('.').glyph_names('nope.ufo')",
         "from dssketch import diagnose; diagnose('familly T\\naxes\\n    wgjt 1:2:3')",
     ],
 )
