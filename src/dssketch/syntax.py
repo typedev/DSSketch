@@ -75,6 +75,8 @@ class Diagnostic:
     end_column: int = 0
     # Stable code ("5.31"), see codes.py; "5.0" for a message without one
     code: str = "5.0"
+    # Quick fixes (fixes.Fix: title, edits), see fixes.py
+    fixes: tuple = ()
 
 
 # =============================================================================
@@ -522,14 +524,14 @@ def diagnose(text: str) -> List[Diagnostic]:
     the result is in text order. What belongs to no line (no base source, no
     axes, no family) comes last with `line=None`.
     """
-    from .sketch import _parse
+    from .sketch import Sketch
 
-    parser, crash = _parse(text)
-    return _diagnostics_for(text, parser, crash, None)
+    return list(Sketch.parse(text).diagnostics)
 
 
-def _diagnostics_for(text: str, parser, crash, structure) -> List[Diagnostic]:
-    """diagnose() on a parse already made (`structure`: its tokens, or None)"""
+def _diagnostics_for(text: str, parser, crash, structure, sketch=None) -> List[Diagnostic]:
+    """diagnose() on a parse already made (`structure`: its tokens, or None;
+    `sketch`: the Sketch to build quick fixes with, or None for none)"""
     lines = text.split("\n")
     by_line: Dict[int, List[Token]] = {}
     if structure is not None:
@@ -569,6 +571,12 @@ def _diagnostics_for(text: str, parser, crash, structure) -> List[Diagnostic]:
     result.sort(key=lambda d: (d.line is None, d.line or 0, d.column))
     if crash is not None:
         result.append(Diagnostic("error", str(crash), None, code=code_id(str(crash))))
+    if sketch is not None:
+        from dataclasses import replace
+
+        from .fixes import fixes_for
+
+        result = [replace(d, fixes=fixes_for(sketch, d)) for d in result]
     return result
 
 

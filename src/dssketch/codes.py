@@ -90,6 +90,9 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (44, "AVAR2_UNKNOWN_LABEL", r"^avar2: unknown label", "An avar2 input label the axis does not have"),
     (45, "AVAR2_INPUT_OUT_OF_RANGE", r"^avar2 input .* is outside the axis range", "An avar2 input outside the user range"),
     (46, "AVAR2_SYNTAX", r"^avar2( matrix| vars| input| output)?: |^Variable name must start", "An avar2 line that does not parse"),
+    # -- 1.5.x ------------------------------------------------------------------
+    (47, "SKIP_UNKNOWN_LABEL", r"^Skip rule '.*' contains label", "A skip entry word that is no axis label"),
+    (48, "ELIDED_FALLBACK_EMPTY", r"^elidedfallback: no name given", "`elidedfallback` without a name"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition

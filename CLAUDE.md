@@ -1698,6 +1698,16 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   `tests/test_sketch_structure.py` (spans, item_at, comments in every position,
   benchmark)
 
+**`fixes.py`** - Quick fixes (1.5.x)
+- `fixes_for(sketch, diagnostic) -> Tuple[Fix]`; `Diagnostic.fixes` is filled
+  by `_diagnostics_for(..., sketch)` (both `diagnose()` and `Sketch.diagnostics`)
+- Handlers keyed by code name (`_HANDLERS`); arguments come from the names the
+  message quotes. Built with the Sketch ops on `sketch._unverified()`: a clone
+  sharing the parse whose ops skip the re-parse and the target-has-errors
+  check (a fix targets the faulty line). Fixes are suggestions, not verified
+- A new message with an obvious repair: add a handler and a case in
+  `tests/test_quick_fixes.py` (apply the fix, the code must be gone)
+
 **`codes.py`** - Stable diagnostic codes (1.5.0)
 - `"5.N"` (category 5 = Sketch of the report scheme). Messages are recognised
   by wording (`classify()`), first match wins, `_FIRST` for messages that

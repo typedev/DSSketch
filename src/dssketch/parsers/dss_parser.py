@@ -1116,6 +1116,7 @@ class DSSParser:
                 combination = line.strip()
                 if combination:  # Ignore empty lines
                     self.document.instances_skip.append(combination)
+                    self.document.instances_skip_lines.append(self.current_line_no)
             else:
                 # Non-indented line means we're exiting skip subsection
                 self.in_skip_subsection = False

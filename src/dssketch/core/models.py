@@ -198,6 +198,8 @@ class DSSDocument:
     instances_auto: bool = False  # Flag for automatic instance generation
     instances_off: bool = False  # Flag to disable instance generation entirely
     instances_skip: List[str] = field(default_factory=list)  # Instance combinations to skip (e.g., ["Bold Italic", "Light Italic"])
+    # Line of each skip entry (from 1), in step with instances_skip; for editors
+    instances_skip_lines: List[Optional[int]] = field(default_factory=list, compare=False, repr=False)
     # avar2 support
     avar2_vars: Dict[str, float] = field(default_factory=dict)  # Variable definitions: $name -> value
     avar2_vars_counts: Dict[str, int] = field(default_factory=dict)  # Variable frequency counts: $name -> count

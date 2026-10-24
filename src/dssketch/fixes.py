@@ -1,0 +1,282 @@
+"""Quick fixes for diagnostics
+
+`fixes_for(sketch, diagnostic)` gives the fixes an editor can offer for one
+`syntax.Diagnostic`: each a `Fix(title, edits)`, the edits made by the same
+operations as `Sketch`'s editing API. They are suggestions: unlike an edit
+operation, a fix is not re-parsed before it is offered (that would parse the
+text once per message); applying it gives the text the title says.
+
+Fixes exist for:
+- a misspelt keyword, registered axis tag or standard label (the suggestion
+  the message makes; a label rename rewrites its uses too);
+- an unknown label in a source, rule condition, avar2 input or skip entry
+  (the closest label of that axis, within two edits), and removing a bad
+  skip entry;
+- no base source (a source at the defaults), an auto-detected base, several
+  base sources (keep one);
+- a mapping outside the axis range (extend the range, or move the mapping);
+- an axis without an @elidable label (mark the one at the default);
+- a missing mapping at an end of the axis;
+- a label used on two axes (remove the second use);
+- `en` listed in `lang`.
+
+Never raises: a fix that cannot be built is left out. Light: stdlib + PyYAML.
+"""
+
+import re
+from dataclasses import dataclass
+from typing import Callable, Dict, List, Optional, Tuple
+
+from .sketch import EditError, EditResult, Sketch, TextEdit
+
+_QUOTED = re.compile(r"'([^']*)'")
+_NUMBER = r"(-?\d+(?:\.\d+)?)"
+
+
+@dataclass(frozen=True)
+class Fix:
+    """A quick fix: what it does, and the edits that do it (against the text
+    the diagnostic was made for)"""
+
+    title: str
+    edits: Tuple[TextEdit, ...]
+
+
+def fixes_for(sketch: Sketch, diagnostic) -> Tuple[Fix, ...]:
+    """The fixes for one diagnostic of `sketch`'s text. Never raises"""
+    from .codes import lookup
+
+    code = lookup(diagnostic.code)
+    handler = _HANDLERS.get(code.name) if code is not None else None
+    if handler is None:
+        return ()
+    try:
+        fixer = sketch._unverified()
+        fixes = handler(fixer, diagnostic, _QUOTED.findall(diagnostic.message.split(". Available", 1)[0]))
+    except Exception:
+        return ()
+    out = []
+    for fix in fixes:
+        if fix is not None and fix.edits:
+            out.append(fix)
+    return tuple(out)
+
+
+def _fix(title: str, build: Callable[[], EditResult]) -> Optional[Fix]:
+    try:
+        result = build()
+    except (EditError, KeyError, IndexError, ValueError):
+        return None
+    return Fix(title, tuple(result.edits))
+
+
+def _replace_word(sketch: Sketch, line_no: Optional[int], old: str, new: str) -> Tuple[TextEdit, ...]:
+    """Replace the tokens of a line whose text is `old` (outside comments)"""
+    from .syntax import COMMENT
+
+    line = sketch.structure.line(line_no) if line_no else None
+    if line is None:
+        return ()
+    return tuple(
+        TextEdit(line_no, t.column, line_no, t.column + t.length, new)
+        for t in line.tokens
+        if t.type != COMMENT and t.text == old
+    )
+
+
+def _closest(word: str, candidates, limit: int = 2) -> Optional[str]:
+    from .utils.dss_validator import DSSValidator
+
+    best, best_distance = None, limit + 1
+    for candidate in sorted(candidates):
+        distance = DSSValidator.levenshtein_distance(word.lower(), candidate.lower())
+        if distance < best_distance:
+            best, best_distance = candidate, distance
+    return best
+
+
+def _numbers(message: str) -> List[float]:
+    return [float(n) for n in re.findall(_NUMBER, message)]
+
+
+def _mapping_on_line(sketch: Sketch, line_no: Optional[int]):
+    for axis in sketch._all_axes():
+        for mapping in axis.mappings:
+            if line_no is not None and mapping.line == line_no:
+                return axis, mapping
+    return None, None
+
+
+def _key(mapping):
+    return mapping.label if mapping.label else mapping.user_value
+
+
+# -- handlers -----------------------------------------------------------------
+
+
+def _keyword_typo(sk: Sketch, d, quoted):
+    word, suggestion = quoted[0], quoted[1]
+    edits = _replace_word(sk, d.line, word, suggestion)[:1]
+    return [Fix(f"Change to '{suggestion}'", edits)]
+
+
+def _axis_tag_typo(sk: Sketch, d, quoted):
+    tag, suggestion = quoted[0], quoted[1]
+    axis = next((a for a in sk._all_axes() if a.line == d.line), None)
+    if axis is not None:
+        return [_fix(f"Change to '{suggestion}'", lambda: sk.set_axis_tag(axis.tag, suggestion))]
+    return [Fix(f"Change to '{suggestion}'", _replace_word(sk, d.line, tag, suggestion)[:1])]
+
+
+def _label_typo(sk: Sketch, d, quoted):
+    label, suggestion = quoted[-2], quoted[-1]
+    axis, mapping = _mapping_on_line(sk, d.line)
+    if mapping is None or mapping.label != label:
+        return []
+    return [_fix(f"Rename '{label}' to '{suggestion}'", lambda: sk.rename_label(axis.tag, label, suggestion))]
+
+
+def _unknown_label(sk: Sketch, d, quoted):
+    """"Label 'Bolt' not found in axis 'weight' …", "unknown label 'Bolt' for axis 'weight'" """
+    message = d.message
+    match = re.search(r"[Ll]abel '([^']*)' (?:not found in axis|for axis) '([^']*)'", message)
+    if not match:
+        return []
+    word, axis_ref = match.groups()
+    try:
+        axis = sk.axis(axis_ref)
+    except EditError:
+        return []
+    labels = {m.label for m in axis.mappings if m.label}
+    suggestion = _closest(word, labels)
+    if suggestion is None:
+        return []
+    return [Fix(f"Change to '{suggestion}'", _replace_word(sk, d.line, word, suggestion))]
+
+
+def _skip_unknown_label(sk: Sketch, d, quoted):
+    entry, word = quoted[0], quoted[1]
+    labels = {m.label for a in sk.document.axes for m in a.mappings if m.label}
+    fixes = []
+    suggestion = _closest(word, labels)
+    if suggestion is not None:
+        fixes.append(Fix(f"Change to '{suggestion}'", _replace_word(sk, d.line, word, suggestion)))
+    fixes.append(_fix(f"Remove skip entry '{entry}'", lambda: sk.remove_skip(entry)))
+    return fixes
+
+
+def _at_defaults(sk: Sketch, source) -> bool:
+    for axis in sk.document.axes:
+        if axis.is_discrete:
+            continue
+        if source.location.get(axis.name) != axis.design_default:
+            return False
+    return True
+
+
+def _no_base(sk: Sketch, d, quoted):
+    return [
+        _fix(f"Make '{s.name}' the base source", lambda s=s: sk.set_base(Sketch.source_key(s)))
+        for s in sk.document.sources
+        if _at_defaults(sk, s)
+    ][:5]
+
+
+def _base_auto_detected(sk: Sketch, d, quoted):
+    for source in sk.document.sources:
+        if source.name == quoted[0]:
+            return [_fix(f"Mark '{source.name}' with @base", lambda: sk.set_base(Sketch.source_key(source)))]
+    return []
+
+
+def _multiple_base(sk: Sketch, d, quoted):
+    bases = [s for s in sk.document.sources if s.is_base]
+    fixes = []
+    for keep in bases:
+        edits = []
+        for other in bases:
+            line = sk._line_of(other)
+            if other is not keep and line is not None and "flag.base" in line.fields:
+                edits.append(sk._remove_field(line, "flag.base"))
+        fixes.append(Fix(f"Keep @base only on '{keep.name}'", tuple(edits)))
+    return fixes
+
+
+def _mapping_out_of_range(sk: Sketch, d, quoted):
+    axis, mapping = _mapping_on_line(sk, d.line)
+    if mapping is None:
+        return []
+    value = mapping.user_value
+    below = value < axis.minimum
+    bound = axis.minimum if below else axis.maximum
+    extend = {"minimum": value} if below else {"maximum": value}
+    return [
+        _fix(f"Extend the axis {'minimum' if below else 'maximum'} to {value:g}",
+             lambda: sk.set_axis_range(axis.tag, **extend)),
+        _fix(f"Move the mapping to user value {bound:g}",
+             lambda: sk.set_mapping_user(axis.tag, _key(mapping), bound)),
+    ]
+
+
+def _no_elidable(sk: Sketch, d, quoted):
+    try:
+        axis = sk.axis(quoted[0])
+    except EditError:
+        return []
+    for mapping in axis.mappings:
+        if mapping.label and mapping.user_value == axis.default:
+            return [_fix(f"Mark '{mapping.label}' @elidable",
+                         lambda: sk.set_mapping_elidable(axis.tag, mapping.label, True))]
+    return []
+
+
+def _extreme_missing(sk: Sketch, d, quoted):
+    from .core.mappings import Standards
+
+    try:
+        axis = sk.axis(quoted[0])
+    except EditError:
+        return []
+    match = re.search(r"\((minimum|maximum)=" + _NUMBER + r"\)", d.message)
+    if not match:
+        return []
+    value = float(match.group(2))
+    design = axis.get_design_value(value)
+    fixes = []
+    used = {m.label for a in sk._all_axes() for m in a.mappings}
+    label = quoted[-1] if len(quoted) > 1 else ""
+    if label and label not in used and Standards.has_mapping(label, axis.name):
+        fixes.append(_fix(f"Add '{label}' at {value:g}", lambda: sk.add_mapping(axis.tag, label, design, user=value)))
+    fixes.append(_fix(f"Add an unnamed map point at {value:g}", lambda: sk.add_mapping(axis.tag, "", design, user=value)))
+    return fixes
+
+
+def _duplicate_label(sk: Sketch, d, quoted):
+    axis, mapping = _mapping_on_line(sk, d.line)
+    if mapping is None or mapping.label != quoted[0]:
+        return []
+    return [_fix(f"Remove '{mapping.label}' from axis '{axis.tag}'", lambda: sk.remove_mapping(axis.tag, mapping.label))]
+
+
+def _lang_en(sk: Sketch, d, quoted):
+    codes = [c for c in sk.document.languages if c != "en"]
+    return [_fix("Remove 'en'", lambda: sk.set_lang(codes or None))]
+
+
+_HANDLERS: Dict[str, Callable] = {
+    "KEYWORD_TYPO": _keyword_typo,
+    "AXIS_TAG_TYPO": _axis_tag_typo,
+    "MAPPING_LABEL_TYPO": _label_typo,
+    "SOURCE_UNKNOWN_LABEL": _unknown_label,
+    "RULE_CONDITION": _unknown_label,
+    "AVAR2_UNKNOWN_LABEL": _unknown_label,
+    "SKIP_UNKNOWN_LABEL": _skip_unknown_label,
+    "NO_BASE": _no_base,
+    "BASE_AUTO_DETECTED": _base_auto_detected,
+    "MULTIPLE_BASE": _multiple_base,
+    "MAPPING_OUT_OF_RANGE": _mapping_out_of_range,
+    "NO_ELIDABLE": _no_elidable,
+    "MAPPING_EXTREME_MISSING": _extreme_missing,
+    "DUPLICATE_LABEL": _duplicate_label,
+    "LANG_EN": _lang_en,
+}

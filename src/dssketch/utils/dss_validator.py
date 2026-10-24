@@ -230,6 +230,27 @@ class DSSValidator:
                         at=mapping,
                     )
 
+    def _validate_skip_labels(self, document: DSSDocument):
+        """Each word of a `skip` entry is an axis label (as instances.py checks
+        at conversion; here it is placed on the entry's line)"""
+        if document.instances_off or not document.instances_skip:
+            return
+        # An axis without labels names its instances "wght400": not checked then
+        if any(not any(m.label for m in axis.mappings) for axis in document.axes):
+            return
+        labels = {m.label for axis in document.axes for m in axis.mappings if m.label}
+        lines = list(document.instances_skip_lines)
+        lines += [None] * (len(document.instances_skip) - len(lines))
+        for entry, line in zip(document.instances_skip, lines):
+            for word in entry.split():
+                if word not in labels:
+                    self.errors.append(
+                        f"Skip rule '{entry}' contains label '{word}' which is not defined in any axis. "
+                        f"Available labels: {', '.join(sorted(labels))}"
+                    )
+                    self.document_error_lines.append(line)
+                    break
+
     def _validate_content(self, document: DSSDocument):
         """Validate document content (non-critical)"""
 
@@ -237,6 +258,7 @@ class DSSValidator:
         self._validate_duplicate_mapping_labels(document)
 
         self._validate_avar2_input_space(document)
+        self._validate_skip_labels(document)
 
         # Validate axes content
         for axis in document.axes + document.hidden_axes:

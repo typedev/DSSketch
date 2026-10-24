@@ -1463,8 +1463,15 @@ Token types (`dssketch.syntax.TOKEN_TYPES`) are only ever added, never renamed:
 All of it loads only the standard library and PyYAML.
 
 Every diagnostic has a stable `code` (`"5.31"` = `SOURCE_COORD_COUNT`; see
-`dssketch.codes`) to key quick fixes and documentation on. Codes are only ever
-added.
+`dssketch.codes`) to key documentation on, and `fixes` an editor can offer:
+
+```python
+for d in dssketch.diagnose(text):
+    for fix in d.fixes:            # e.g. "Change to 'Black'", "Keep @base only on 'Font-Regular'"
+        print(fix.title, fix.edits)  # TextEdits against `text`
+```
+
+Codes are only ever added.
 
 ### Editing a Sketch (minimal edits, comments kept)
 

@@ -237,6 +237,7 @@ class Sketch:
         self._structure: Optional[st.Structure] = None
         self._diagnostics = None
         self._spans_done = False
+        self._verify = True  # False: a fixer clone, see _unverified()
 
     @classmethod
     def parse(cls, text: str) -> "Sketch":
@@ -285,9 +286,19 @@ class Sketch:
             from .syntax import _diagnostics_for
 
             self._diagnostics = _diagnostics_for(
-                self._text, self._parser, self._parsed[1], self.structure
+                self._text, self._parser, self._parsed[1], self.structure, self
             )
         return self._diagnostics
+
+    def _unverified(self) -> "Sketch":
+        """This sketch, sharing its parse, whose operations skip the re-parse
+        (quick fixes are suggestions; fixes.py)"""
+        self.document  # spans attached once, on the shared models
+        clone = Sketch(self._text, _parsed=self._parsed)
+        clone._structure = self.structure
+        clone._spans_done = True
+        clone._verify = False
+        return clone
 
     # -- keys -------------------------------------------------------------------
 
@@ -635,6 +646,8 @@ class Sketch:
             if (b.line, b.col) < (a.end_line, a.end_col):
                 raise EditError("rejected", "internal: overlapping edits")  # never
         new_text = apply_edits(self._text, edits)
+        if not self._verify:
+            return EditResult(edits, new_text)
         parsed = _parse(new_text)
         messages = _new_errors((self._parser, self._parsed[1]), parsed)
         if messages:
@@ -642,7 +655,7 @@ class Sketch:
         return EditResult(edits, new_text, Sketch(new_text, _parsed=parsed))
 
     def _check_target(self, line: Optional[st.Line]) -> None:
-        if line is None:
+        if line is None or not self._verify:  # a fix targets the faulty line itself
             return
         for severity, _, number in self._parser.line_messages:
             if severity == "error" and number == line.number:

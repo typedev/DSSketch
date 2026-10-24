@@ -19,7 +19,8 @@ PUBLISHED = {
     "SOURCE_EXTREME_MISSING": 36, "RULE_SYNTAX": 37, "RULE_CONDITION": 38,
     "INSTANCE_LINE_IGNORED": 39, "AVAR2_MATRIX_ROW_LENGTH": 40, "AVAR2_UNDEFINED_VAR": 41,
     "AVAR2_UNKNOWN_AXIS": 42, "AVAR2_INVALID_VALUE": 43, "AVAR2_UNKNOWN_LABEL": 44,
-    "AVAR2_INPUT_OUT_OF_RANGE": 45, "AVAR2_SYNTAX": 46,
+    "AVAR2_INPUT_OUT_OF_RANGE": 45, "AVAR2_SYNTAX": 46, "SKIP_UNKNOWN_LABEL": 47,
+    "ELIDED_FALLBACK_EMPTY": 48,
 }
 
 
@@ -93,6 +94,8 @@ def variant(old, new):
         ("AVAR2_SYNTAX", GOOD + "avar2\n    wght=Bolt > wght=700\n"),
         ("AVAR2_MATRIX_ROW_LENGTH", GOOD + "avar2 matrix\n    outputs wght\n    [wght=Black] 1 2\n"),
         ("NO_AXES", "family T\nsources\n    A @base\n"),
+        ("SKIP_UNKNOWN_LABEL", variant("instances auto", "instances auto\n    skip\n        Bolt Italic")),
+        ("ELIDED_FALLBACK_EMPTY", variant("family T", "family T\nelidedfallback")),
     ],
 )
 def test_message_gets_its_code(name, text):
