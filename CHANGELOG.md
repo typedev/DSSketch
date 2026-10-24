@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-24
+
 ### Added
 - **What a sketch means, in numbers** — `Sketch` methods for an editor's panels, without UFOs and without a conversion (`dssketch.queries`; free functions at the package root take a `Sketch` or a text). Axes are keyed by their DesignSpace name (display name, else name) and accepted by that name, the tag or the sketch's name. Never raise:
   - `instances()` / `expand_instances(text)`: what `instances auto` generates — `InstanceInfo` with `index` (position among the DesignSpace's instances), `name` / `style_name`, `family_name`, `user_location`, `design_location`, `skipped`, `skip_entry` and `skip_span` (the `skip` entry that removed it) and `group` (its labels on discrete axes). The same generator as DSS → DS, so names, order and locations match the conversion
