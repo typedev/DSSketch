@@ -26,6 +26,7 @@ EXAMPLES = sorted(glob.glob(os.path.join(HERE, "..", "examples", "*.dssketch")))
 EVERY_FORM = """\
 family Sans Pro  # note
 suffix VF
+elidedfallback Text Regular  # note
 lang de, ru
 path sources
 axes

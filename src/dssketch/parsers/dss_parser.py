@@ -217,6 +217,13 @@ class DSSParser:
         elif line.startswith("suffix "):
             self.document.suffix = line[7:].strip()
 
+        elif line.startswith("elidedfallback ") or line == "elidedfallback":
+            value = self._extract_quoted_or_plain_value(line[len("elidedfallback"):])
+            if not value:
+                self.validator.errors.append("elidedfallback: no name given (e.g. `elidedfallback Regular`)")
+                return
+            self.document.elided_fallback = value
+
         elif line.startswith("lang ") or line == "lang":
             codes = [c for c in re.split(r"[,\s]+", line[4:].strip()) if c]
             if not codes:

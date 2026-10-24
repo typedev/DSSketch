@@ -150,7 +150,8 @@ RULE_DROPPED_EMPTY = 3
 #: DS -> DSS: the document-level <lib> is not carried into the sketch.
 DOCUMENT_LIB_DROPPED = 0
 
-#: DS -> DSS: elidedFallbackName is not carried into the sketch.
+#: DS -> DSS: elidedFallbackName is not carried into the sketch. Not raised
+#: since 1.5.0: the sketch writes it (`elidedfallback`). Kept: codes are append-only.
 DOCUMENT_ELIDED_FALLBACK_DROPPED = 1
 
 #: DS -> DSS: document-level location labels (STAT format 4) are not carried.

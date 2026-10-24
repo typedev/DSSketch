@@ -181,6 +181,9 @@ class DSSDocument:
     """Complete DSS document structure"""
     family: str
     suffix: str = ""
+    # `elidedfallback Book`: the name where every label is elided
+    # (DesignSpace elidedFallbackName); None derives it, elided_fallback_name()
+    elided_fallback: Optional[str] = None
     # `lang de, ru`: languages to write derived names in (instance style names,
     # STAT labels, axis names), from data/font-resources-translations.json
     languages: List[str] = field(default_factory=list)
@@ -208,7 +211,10 @@ def elided_fallback_name(doc: "DSSDocument") -> str:
     one, the name derived from STAT is empty, and fontmake/ufo2ft give the
     variable font's default named instance an empty name. It is the elidable
     label of the weight axis ("Regular", or e.g. "Book"), else "Regular".
+    An `elidedfallback` line in the sketch overrides it.
     """
+    if doc.elided_fallback:
+        return doc.elided_fallback
     for axis in doc.axes:
         if axis.tag == "wght":
             for mapping in axis.mappings:

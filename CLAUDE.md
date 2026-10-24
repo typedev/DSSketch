@@ -811,7 +811,10 @@ sources [wght, wdth]
   usWeightClass from that word and will not use the wght coordinate. Do NOT
   switch to the STAT naming rule (eliding the weight)
 - DSS → DS always writes `elidedfallbackname` (`models.elided_fallback_name`);
-  without it fontmake gives the VF's default named instance an empty name
+  without it fontmake gives the VF's default named instance an empty name.
+  Derived (the weight's elidable label, else Regular) unless the sketch says
+  `elidedfallback Book` (`DSSDocument.elided_fallback`, 1.5.0); DS → DSS writes
+  that line only when the DesignSpace value differs from the derived one
 - The `ital` Upright label gets `linkeduservalue="1"` (STAT format 3)
 - An axes order that puts words after the weight is reported
   (`INSTANCE_WEIGHT_NOT_LAST`). Tests: `tests/test_tdkit_naming_contract.py`

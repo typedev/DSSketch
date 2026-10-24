@@ -218,7 +218,8 @@ class _Tokenizer:
         if line.startswith("family ") or line == "family":
             self.section = "family"
             return keyword_then_value()
-        if line.startswith("suffix ") or line.startswith("path "):
+        if (line.startswith("suffix ") or line.startswith("path ")
+                or line.startswith("elidedfallback ") or line == "elidedfallback"):
             return keyword_then_value()
         if line.startswith("lang ") or line == "lang":
             return [(first.start, first.end, KEYWORD)] + [
@@ -599,7 +600,7 @@ _WORD_HEAD = re.compile(r"[^\s\[\](){},:=\"'@$<>=&]*")
 
 # Section and document keywords, as a line at column 0 starts them
 _LINE_KEYWORDS = (
-    "family", "suffix", "path", "lang", "axes", "axes hidden", "sources",
+    "family", "suffix", "elidedfallback", "path", "lang", "axes", "axes hidden", "sources",
     "rules", "instances auto", "instances off", "avar2", "avar2 vars", "avar2 matrix",
 )
 _HEADER_FOLLOWERS = {"axes": ("hidden",), "instances": ("auto", "off"), "avar2": ("vars", "matrix")}

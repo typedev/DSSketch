@@ -77,6 +77,7 @@ BLANK = "blank"
 COMMENT_LINE = "comment"
 FAMILY = "family"
 SUFFIX = "suffix"
+ELIDED_FALLBACK = "elidedfallback"
 PATH = "path"
 LANG = "lang"
 SECTION = "section"            # axes, axes hidden, sources, rules, instances, avar2 …
@@ -93,7 +94,7 @@ AVAR2_HEADER = "avar2-header"  # the matrix `outputs` line
 OTHER = "other"                # not understood (the parser warns or errors)
 
 ITEM_KINDS = frozenset({
-    FAMILY, SUFFIX, PATH, LANG, AXIS, MAPPING, SOURCE_LINE, SKIP, SKIP_ENTRY, RULE,
+    FAMILY, SUFFIX, ELIDED_FALLBACK, PATH, LANG, AXIS, MAPPING, SOURCE_LINE, SKIP, SKIP_ENTRY, RULE,
     AVAR2_VAR, AVAR2_ROW, AVAR2_HEADER,
 })
 
@@ -111,7 +112,7 @@ class Line:
     `fields` maps a field name to its span; `values` to its text as written
     (quotes stripped from strings). Field names by kind:
 
-    - family / suffix / path: `value`; lang: `value`, `code.0`, `code.1` …
+    - family / suffix / elidedfallback / path: `value`; lang: `value`, `code.0`, `code.1` …
     - section: `keyword`; sources adds `order` (the brackets) and `order.0` …;
       instances adds `mode` (auto / off)
     - axis: `name`, `tag`, `min`, `default`, `max`, `discrete`, `display_name`
@@ -285,8 +286,9 @@ def _header_line(make, code, section, state) -> Optional[Line]:
     word = first.text
     rest = code[1:]
 
-    if word in ("family", "suffix", "path"):
-        line = make({"family": FAMILY, "suffix": SUFFIX, "path": PATH}[word], None)
+    if word in ("family", "suffix", "elidedfallback", "path"):
+        kind = {"family": FAMILY, "suffix": SUFFIX, "elidedfallback": ELIDED_FALLBACK, "path": PATH}[word]
+        line = make(kind, None)
         if rest:
             line.put("value", rest[0], rest[-1])
             if len(rest) == 1 and rest[0].type == STRING:

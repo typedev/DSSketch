@@ -1064,6 +1064,21 @@ instances auto
 
 **Result**: Automatic generation of all meaningful style combinations with proper PostScript names, file paths, and style linking based on axes order.
 
+### Elided Fallback Name (`elidedfallback`)
+
+Where every label is elided (Regular + Upright + Normal …) the style name is
+empty, so a DesignSpace names that location with its `elidedFallbackName`.
+DSSketch derives it — the weight axis's `@elidable` label, else `Regular` — and
+always writes it. A sketch can name it explicitly:
+
+```dssketch
+family MyFont
+elidedfallback Book
+```
+
+DesignSpace → DSSketch writes the line only when the DesignSpace's value is not
+the derived one.
+
 ### Localized Names (`lang`)
 
 One line asks for every derived name in more languages:

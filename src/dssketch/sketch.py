@@ -464,7 +464,7 @@ class Sketch:
         kind = path[0]
         field_name = path[-1] if len(path) > 1 else None
         doc = self.document
-        if kind in ("family", "suffix", "path", "lang"):
+        if kind in ("family", "suffix", "elidedfallback", "path", "lang"):
             line = next(iter(self.structure.of_kind(kind)), None)
             if line is None:
                 return None
@@ -524,7 +524,7 @@ class Sketch:
         """The object and field under a cursor, as a path; None outside any
 
         Paths:
-          ("family" | "suffix" | "path" | "lang", field?)
+          ("family" | "suffix" | "elidedfallback" | "path" | "lang", field?)
           ("section", name)
           ("axis", tag, field?)                 field: name tag min default max
                                                  range discrete display_name
@@ -564,7 +564,7 @@ class Sketch:
 
         doc = self.document
         kind = line.kind
-        if kind in (st.FAMILY, st.SUFFIX, st.PATH, st.LANG):
+        if kind in (st.FAMILY, st.SUFFIX, st.ELIDED_FALLBACK, st.PATH, st.LANG):
             name = field_at(line.fields)
             return (kind, name) if name else (kind,)
         if kind == st.SECTION:
@@ -709,7 +709,7 @@ class Sketch:
             return []
         out = []
         for line in self.structure.lines[header.number:]:
-            if line.kind == st.SECTION or line.kind in (st.FAMILY, st.SUFFIX, st.PATH, st.LANG):
+            if line.kind == st.SECTION or line.kind in (st.FAMILY, st.SUFFIX, st.ELIDED_FALLBACK, st.PATH, st.LANG):
                 break
             out.append(line)
         return out
@@ -729,7 +729,7 @@ class Sketch:
         rank = order.index(section)
         after = 0
         for line in self.structure.lines:
-            if line.kind in (st.FAMILY, st.SUFFIX, st.PATH, st.LANG):
+            if line.kind in (st.FAMILY, st.SUFFIX, st.ELIDED_FALLBACK, st.PATH, st.LANG):
                 after = max(after, line.number)
             elif line.kind == st.SECTION and order.index(line.values["section"]) < rank:
                 after = max(after, self._section_end(line.values["section"]))
@@ -781,12 +781,13 @@ class Sketch:
         return format_number(number)
 
     # =========================================================================
-    # Header: family, suffix, path, lang
+    # Header: family, suffix, elidedfallback, path, lang
     # =========================================================================
 
-    _HEADER_ORDER = (st.FAMILY, st.SUFFIX, st.PATH, st.LANG)
+    _HEADER_ORDER = (st.FAMILY, st.SUFFIX, st.ELIDED_FALLBACK, st.PATH, st.LANG)
 
     def _set_header(self, kind: str, value: Optional[str]) -> EditResult:
+        quotable = (st.FAMILY, st.ELIDED_FALLBACK)  # names: quotes keep a # or spaces at the ends
         line = next(iter(self.structure.of_kind(kind)), None)
         if value is None or value == "":
             if line is None:
@@ -797,14 +798,14 @@ class Sketch:
             if "value" in line.fields:
                 old = line.text("value")
                 new = value
-                if kind == st.FAMILY and (old.startswith('"') or old.startswith("'")):
+                if kind in quotable and (old.startswith('"') or old.startswith("'")):
                     new = old[0] + value + old[0]
-                elif kind == st.FAMILY and ("#" in value or value != value.strip()):
+                elif kind in quotable and ("#" in value or value != value.strip()):
                     new = '"' + value + '"'
                 return self._result([self._replace(line.fields["value"], new)])
             return self._result([self._append_to_line(line, " " + value)])
         # a new line, at its place among the header lines
-        if kind == st.FAMILY and ("#" in value or value != value.strip()):
+        if kind in quotable and ("#" in value or value != value.strip()):
             value = '"' + value + '"'
         new_line = f"{kind} {value}"
         rank = self._HEADER_ORDER.index(kind)
@@ -825,6 +826,12 @@ class Sketch:
     def set_family(self, value: Optional[str]) -> EditResult:
         """Set the family name; None or "" removes the line"""
         return self._set_header(st.FAMILY, value)
+
+    def set_elided_fallback(self, value: Optional[str]) -> EditResult:
+        """Set the name where every label is elided (`elidedfallback Book`,
+        DesignSpace elidedFallbackName); None or "" removes the line, and the
+        name is derived again (the weight's elidable label, else Regular)"""
+        return self._set_header(st.ELIDED_FALLBACK, value)
 
     def set_suffix(self, value: Optional[str]) -> EditResult:
         return self._set_header(st.SUFFIX, value)

@@ -10,6 +10,7 @@ All notable changes to DSSketch will be documented in this file.
 - `dssketch.structure`: what each line of a text is (axis, mapping, source, rule, skip entry, avar2 row …) with the spans of its parts, and which comments belong to which line (leading comments go with the item below them; a comment followed by a blank line belongs to the section)
 - **Stable diagnostic codes**: every `Diagnostic` has a `code` (`"5.31"` = `SOURCE_COORD_COUNT`, category 5 of the `ConversionReport` scheme); `dssketch.codes` lists them with names and descriptions. Codes are only ever added
 - `Sketch.diagnostics` = `diagnose()` without parsing the text again
+- **`elidedfallback` — the elided fallback name in the format**: `elidedfallback Book` (next to `family` / `suffix`) sets the DesignSpace `elidedFallbackName`, the name of a location where every label is elided. Without it the name is derived as before (the weight's `@elidable` label, else `Regular`). DS → DSS writes the line when the DesignSpace's value differs from the derived one, instead of reporting it dropped (`DOCUMENT_ELIDED_FALLBACK_DROPPED` is no longer raised; the code stays reserved). Highlighting, completion and `Sketch.set_elided_fallback()` know it
 
 ### Changed
 - **`#` inside a quoted string is no longer a comment**: `family "Sans #1"`, `@layer="v#2"` and rule names keep their `#`. A comment starts at the first `#` outside a closed string; an unclosed quote protects nothing. The parser, `tokenize()`, `complete()` and the GtkSourceView definition agree (`dssketch.utils.comments`)

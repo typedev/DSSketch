@@ -137,6 +137,11 @@ class DesignSpaceToDSS:
         for rule in ds_doc.rules:
             dss_doc.rules.extend(self._convert_rule(rule, ds_doc))
 
+        # elidedFallbackName: written only when it is not the one DSS -> DS
+        # derives anyway (the weight's elidable label, else Regular)
+        if ds_doc.elidedFallbackName and ds_doc.elidedFallbackName != elided_fallback_name(dss_doc):
+            dss_doc.elided_fallback = ds_doc.elidedFallbackName
+
         try:
             self._detect_languages(ds_doc, dss_doc)
         except Exception as e:  # a diagnostic must never break a conversion
@@ -233,15 +238,6 @@ class DesignSpaceToDSS:
                 description=f"Document <lib> dropped ({len(ds_doc.lib)} keys: {', '.join(sorted(ds_doc.lib))})",
                 details="Tools store project settings here (paths, plugin data, varLib options).",
                 raw_data={"keys": sorted(ds_doc.lib)},
-            ))
-        if ds_doc.elidedFallbackName and ds_doc.elidedFallbackName != elided_fallback_name(dss_doc):
-            report.add(ConversionIssue(
-                category=CATEGORY_DOCUMENT, code=DOCUMENT_ELIDED_FALLBACK_DROPPED, severity=SEVERITY_INFO,
-                description=(
-                    f"elidedFallbackName '{ds_doc.elidedFallbackName}' dropped; the sketch "
-                    f"generates '{elided_fallback_name(dss_doc)}'"
-                ),
-                raw_data={"elidedFallbackName": ds_doc.elidedFallbackName},
             ))
         if ds_doc.locationLabels:
             names = [label.name for label in ds_doc.locationLabels]

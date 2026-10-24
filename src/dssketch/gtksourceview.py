@@ -112,7 +112,7 @@ def language_spec() -> str:
 
     # Document lines: keyword and value
     match(
-        "document-line", r'^(family|suffix|path)\b(?:\s+([^#"\s](?:[^#"]*[^#"\s])?))?',
+        "document-line", r'^(family|suffix|elidedfallback|path)\b(?:\s+([^#"\s](?:[^#"]*[^#"\s])?))?',
         groups=[(1, "keyword"), (2, "text")],
     )
     # @layer=name, @layer name; a quoted name is left to the string context

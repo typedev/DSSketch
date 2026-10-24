@@ -84,7 +84,8 @@ def test_document_level_losses():
     d.locationLabels = [LocationLabelDescriptor(name="Reading", userLocation={"weight": 400})]
     r = _report(d)
     assert r.find(CATEGORY_DOCUMENT, DOCUMENT_LIB_DROPPED).raw_data["keys"] == ["com.example.setting"]
-    assert r.find(CATEGORY_DOCUMENT, DOCUMENT_ELIDED_FALLBACK_DROPPED)
+    # carried since 1.5.0 (`elidedfallback Book`), so no longer reported
+    assert not r.find(CATEGORY_DOCUMENT, DOCUMENT_ELIDED_FALLBACK_DROPPED)
     assert r.find(CATEGORY_DOCUMENT, DOCUMENT_LOCATION_LABELS_DROPPED).raw_data["labels"] == ["Reading"]
 
 
