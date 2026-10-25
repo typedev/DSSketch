@@ -473,3 +473,48 @@ def test_editing_never_touches_other_lines(sk):
         for number, line in enumerate(old, 1):
             if number not in changed and number < min(changed):
                 assert new[number - 1] == line
+
+
+HIDDEN = """\
+family T
+axes
+    wght 100:400:900
+        Thin > 100
+        Regular > 400 @elidable
+        Black > 900
+
+axes hidden
+    XOUC 0:100:200
+    XOLC 0:50:100
+
+sources [wght]
+    T-Thin [Thin]
+    T-Regular [Regular] @base
+    T-Black [Black]
+
+avar2
+    [wght=Black] > XOUC=150
+instances off
+"""
+
+
+def test_hidden_axis_range_and_remove():
+    sk = Sketch.parse(HIDDEN)
+    assert "    XOLC 0:50:120\n" in sk.set_axis_range("XOLC", maximum=120).text
+    removed = sk.remove_axis("XOLC").text
+    assert "XOLC" not in removed and "axes hidden\n    XOUC 0:100:200\n\nsources" in removed
+    refused("in-use", lambda: sk.remove_axis("XOUC"))
+
+
+def test_removing_the_last_hidden_axis_removes_the_section():
+    text = HIDDEN.replace("    XOLC 0:50:100\n", "").replace("\navar2\n    [wght=Black] > XOUC=150\n", "\n")
+    result = Sketch.parse(text).remove_axis("XOUC")
+    assert "axes hidden" not in result.text
+    assert "        Black > 900\n\nsources [wght]" in result.text
+    assert not [d for d in result.sketch.diagnostics if d.severity == "error"]
+
+
+def test_a_commented_hidden_section_header_stays():
+    text = HIDDEN.replace("axes hidden\n", "axes hidden  # parametric\n").replace("    XOLC 0:50:100\n", "")
+    text = text.replace("\navar2\n    [wght=Black] > XOUC=150\n", "\n")
+    assert "axes hidden  # parametric\n" in Sketch.parse(text).remove_axis("XOUC").text

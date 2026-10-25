@@ -1077,9 +1077,29 @@ class Sketch:
         refs = self._references(axis)
         if refs:
             raise EditError("in-use", f"Axis '{axis.tag}' is used by {', '.join(refs)}", refs)
-        edits = [self._remove_item(line)]
+        edits = [self._remove_hidden_section(axis, line) or self._remove_item(line)]
         edits += self._drop_axis_coordinates(axis)
         return self._result(edits)
+
+    def _remove_hidden_section(self, axis: DSSAxis, line: st.Line) -> Optional[TextEdit]:
+        """Removing the last hidden axis removes `axes hidden` too (with one of
+        the blank lines around it), unless the header carries a comment or the
+        section holds anything else"""
+        if not self._is_hidden(axis) or len(self.document.hidden_axes) != 1:
+            return None
+        header = self.structure.section_header("axes_hidden")
+        if header is None or header.comment is not None:
+            return None
+        first, _ = self.structure.owned_lines(header.number)
+        _, last = self.structure.owned_lines(line.number)
+        # only the header, the axis, its mappings and comments owned by them
+        for ln in self.structure.lines[first - 1: last]:
+            if ln.kind not in (st.SECTION, st.AXIS, st.MAPPING, st.BLANK) and ln.owner is None:
+                return None
+        lines = self.structure.lines
+        if first > 1 and lines[first - 2].kind == st.BLANK and last < len(lines) and lines[last].kind == st.BLANK:
+            last += 1  # one blank line stays between the neighbours
+        return self._delete_lines(first, last)
 
     def _drop_axis_coordinates(self, axis: DSSAxis) -> List[TextEdit]:
         edits = []

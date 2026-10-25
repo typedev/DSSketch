@@ -4,6 +4,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`remove_axis()` on the last hidden axis left an empty `axes hidden` header**: the header goes too (unless it carries a comment), with one of the blank lines around it. Changing the range and removing a hidden axis are now covered by tests
+
 ## [1.5.1] - 2026-10-24
 
 ### Added
