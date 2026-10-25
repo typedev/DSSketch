@@ -742,6 +742,15 @@ sources [wght, wdth]
 - Integration: `dss_to_designspace.py:67` calls `createInstances()` when `instances_auto=True`
 - **Custom axis ordering**: Change axes order in DSS to control instance name generation
 
+**`instances auto` is capped at 1000** (`MAX_AUTO_INSTANCES`, `core/instances.py`):
+`plan_instances()` counts the combinations (`auto_instance_count(plan_labels(...))`)
+and raises `TooManyInstances` before generating any. A parametric font without
+labels otherwise asks for 10^14 and takes the machine down (2026-10-25). Validator
+error 5.66 on the `instances` header (`DSSDocument.instances_line`); DS → DSS
+lists the instances as blocks (report 2.5); DSS → DS generates none (report
+error); queries/apply see an empty list. Tests: `tests/test_instances_limit.py`
+(run under RLIMIT_AS). **Run corpus sweeps under `ulimit -v` and a timeout.**
+
 **Fallback for Axes Without Labels:**
 - When axes have no mappings (only `min:def:max`), instances are generated from range values
 - Uses axis `minimum`, `default`, and `maximum` as instance points
@@ -853,6 +862,9 @@ sources [wght, wdth]
   hidden) and reordered axes. Such an axis is now reported
   (`AXIS_OUTPUT_ONLY_VISIBLE`, warning) and left visible
 - In a hand-written sketch, `axes hidden` is how the author declares them
+- A hidden axis line keeps the DesignSpace name when it is not the tag:
+  `HORI 0:0:100 "Horizontal"`. Its map and labels are not expressible (range
+  only): reported (0.2) and dropped, so instance locations write numbers there
 
 **Instance Skip Functionality (`instances auto skip`):**
 - **Purpose**: Exclude specific instance combinations from automatic generation

@@ -146,8 +146,12 @@ class DSSValidator:
                 if not axis.name or not axis.tag:
                     self._error(f"CRITICAL: Axis {i + 1} missing name or tag", at=axis)
                 if axis.minimum == axis.maximum:
-                    self._error(
-                        f"CRITICAL: Axis '{axis.name}' has invalid range (min = max = {axis.minimum})",
+                    # Legal in fvar and built by fontTools (a placeholder axis
+                    # kept for compatibility with a sibling font); it just does
+                    # not vary
+                    self._warning(
+                        f"Axis '{axis.name}' does not vary (min = max = {axis.minimum:g}). An axis "
+                        f"usually spans a range; this one only keeps the axis in the font.",
                         at=axis,
                     )
 
@@ -373,6 +377,26 @@ class DSSValidator:
                 at=mapping,
             )
 
+    def _validate_instances_auto_size(self, document: DSSDocument):
+        """`instances auto` within MAX_AUTO_INSTANCES (counted, never generated)"""
+        if not document.instances_auto or document.instances_off or not document.axes:
+            return
+        try:
+            from types import SimpleNamespace
+
+            from ..core.instances import (
+                MAX_AUTO_INSTANCES, TooManyInstances, auto_instance_count, instance_axis_order,
+                plan_labels, spec_from_dss_axis,
+            )
+
+            specs = [spec_from_dss_axis(axis) for axis in list(document.axes) + list(document.hidden_axes)]
+            order = instance_axis_order(document, [spec.name for spec in specs])
+            count = auto_instance_count(plan_labels(specs, order, document))
+        except Exception:
+            return
+        if count > MAX_AUTO_INSTANCES:
+            self._error(str(TooManyInstances(count)), at=SimpleNamespace(line=document.instances_line))
+
     def _validate_explicit_instances(self, document: DSSDocument):
         """Explicit instance blocks: a location each, no doubles, none where
         `instances auto` already puts an instance"""
@@ -463,6 +487,7 @@ class DSSValidator:
         self._validate_avar2(document)
         self._validate_rule_axes(document)
         self._validate_skip_labels(document)
+        self._validate_instances_auto_size(document)
         self._validate_explicit_instances(document)
 
         # Validate axes content

@@ -213,6 +213,7 @@ class DSSDocument:
     lib: Dict = field(default_factory=dict)
     instances_auto: bool = False  # Flag for automatic instance generation
     instances_off: bool = False  # Flag to disable instance generation entirely
+    instances_line: Optional[int] = field(default=None, compare=False, repr=False)  # the header's line
     instances_skip: List[str] = field(default_factory=list)  # Instance combinations to skip (e.g., ["Bold Italic", "Light Italic"])
     # Line of each skip entry (from 1), in step with instances_skip; for editors
     instances_skip_lines: List[Optional[int]] = field(default_factory=list, compare=False, repr=False)

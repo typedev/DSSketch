@@ -813,7 +813,10 @@ class DSSWriter:
         # Format range
         range_str = f"{self._format_number(axis.minimum)}:{self._format_number(axis.default)}:{self._format_number(axis.maximum)}"
 
-        lines.append(f"    {axis_name} {range_str}")
+        line = f"    {axis_name} {range_str}"
+        if axis.display_name and axis.display_name != axis_name:
+            line += f' "{axis.display_name}"'  # the DesignSpace name, when it is not the tag
+        lines.append(line)
 
         return lines
 

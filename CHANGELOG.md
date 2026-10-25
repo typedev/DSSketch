@@ -14,6 +14,12 @@ All notable changes to DSSketch will be documented in this file.
 - The example sketches `AmstelvarA2-Roman_avar2` and `avar2-RobotoDelta-Roman` are regenerated from their DesignSpaces
 
 ### Fixed
+- **`instances auto` could exhaust memory**: an axis without labels counts its ends, its default and its avar2 inputs, and a parametric font asked for 10^14 combinations, all built at once (also in 1.5.2 and earlier, wherever DS → DSSketch checked the instances). The generator now stops at 1000 (`MAX_AUTO_INSTANCES`) before building any: a sketch past it is an error (`INSTANCES_AUTO_TOO_MANY`, 5.66), DS → DSSketch lists the DesignSpace's instances as blocks (report 2.5), DSSketch → DS generates none (report error)
+- **Hidden axis names were lost**: `HORI 0:0:100 "Horizontal"` now carries the DesignSpace name, which sources and avar2 rows refer to
+- **An axis map without its end or default points** (legal: fontTools continues the map) failed to convert; DS → DSSketch adds the points where the map puts them. A label between map points took design = user; it now takes the map's value
+- **An axis that does not vary** (min = max, a placeholder kept for a sibling font) was a critical error; it is a warning
+- **DS → DSSketch crashed** on DesignSpace 5 anisotropic locations (x is kept, report 4.7) and on an instance naming an unknown location label
+- Data a sketch cannot carry is reported instead of changed silently: a hidden axis's map and labels (0.2), a discrete axis whose default is not one of its values (0.3)
 - **avar2 matrix rows lost their mapping names** without a word: a row now takes a name like a linear one (`"opsz144" [opsz=144] 84 …`), and DS → DSS writes it
 - **"Source 'X' has 67 coordinates, expected 4"** on every master of a font with hidden axes: the count included the hidden axes' coordinates
 - A linear avar2 row opening a `{ }` block was warned about mismatched brackets

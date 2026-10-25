@@ -49,6 +49,7 @@ axes
         20 Slant > 20
 axes hidden
     XOUC 0:100:200
+    HORI 0:0:100 "Horizontal"
 sources [wght, opsz, CNTR, ital, slnt]
     upright/Font-Thin.ufo [Thin, Text, Flat, Upright, Neutral]
     "My Font Light.ufo" [100, 14, 0, 0, 0] @sparse

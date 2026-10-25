@@ -98,6 +98,11 @@ INSTANCE_FIELDS_DROPPED = 3
 #: name expect it last or right before Italic/Slant.
 INSTANCE_WEIGHT_NOT_LAST = 4
 
+#: `instances auto` would generate more than MAX_AUTO_INSTANCES instances
+#: (core/instances.py). DS -> DSS lists the DesignSpace's instances as blocks
+#: instead (warning); DSS -> DS generates none (error)
+INSTANCE_AUTO_TOO_MANY = 5
+
 # =============================================================================
 # Issue codes — CATEGORY_AXES
 # =============================================================================
@@ -109,6 +114,14 @@ AXIS_OUTPUT_ONLY_VISIBLE = 0
 #: DS -> DSS: STAT label data the sketch does not express (label ranges,
 #: linked values, older siblings, localized label or axis names).
 AXIS_LABEL_DATA_DROPPED = 1
+
+#: DS -> DSS: a hidden axis with a map or labels; `axes hidden` declares a
+#: range only, so they are dropped
+AXIS_HIDDEN_DATA_DROPPED = 2
+
+#: DS -> DSS: a discrete axis whose default is not one of its values (fontTools
+#: cannot build it); the sketch takes the smallest value
+AXIS_DISCRETE_DEFAULT_INVALID = 3
 
 #: DSS -> DS: an avar2 mapping names an axis the sketch does not define. It is
 #: written as is, and fontTools fails on it when building.
@@ -175,6 +188,11 @@ DOCUMENT_TRANSLATION_MISSING = 5
 #: DS -> DSS: the document's localized names are not what `lang` would generate
 #: from the dictionary, so no `lang` line is written and they are not carried.
 DOCUMENT_TRANSLATIONS_DIFFER = 6
+
+#: DS -> DSS: anisotropic locations (DesignSpace 5 `xvalue` + `yvalue`) in
+#: sources or instances; a sketch has one value per axis, so the x value is
+#: kept and the y value dropped
+DOCUMENT_ANISOTROPIC_DROPPED = 7
 
 # =============================================================================
 # Issue codes — CATEGORY_SKETCH

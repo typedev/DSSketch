@@ -26,6 +26,7 @@ PUBLISHED = {
     "AVAR2_OUTPUT_ONLY_VISIBLE": 57, "AVAR2_HIDDEN_INPUT": 58, "RULES_MODE_UNKNOWN": 59,
     "INSTANCE_FIELD_INVALID": 60, "INSTANCE_LOCATION_INVALID": 61, "INSTANCE_NO_LOCATION": 62,
     "INSTANCE_OFF_IGNORED": 63, "INSTANCE_DUPLICATE": 64, "INSTANCE_SHADOWS_AUTO": 65,
+    "INSTANCES_AUTO_TOO_MANY": 66,
 }
 
 
@@ -118,6 +119,8 @@ def variant(old, new):
         ("INSTANCE_DUPLICATE", variant("instances auto", "instances\n    Wide\n        location: wght=700\n"
                                        "    Wide\n        location: wght=800")),
         ("INSTANCE_SHADOWS_AUTO", variant("instances auto", "instances auto\n    Wide\n        location: wght=Black")),
+        ("INSTANCES_AUTO_TOO_MANY", GOOD.replace("axes\n", "axes\n" + "".join(
+            f"    X{i:03d} 0:50:100\n" for i in range(7)), 1)),
     ],
 )
 def test_message_gets_its_code(name, text):

@@ -273,6 +273,7 @@ class DSSParser:
 
         elif line == "instances" or line.startswith("instances "):
             self.current_section = "instances"
+            self.document.instances_line = self.current_line_no
             self.in_skip_subsection = False  # Reset skip subsection flag
             self.current_instance = None
             if "off" in line:
@@ -1413,14 +1414,19 @@ class DSSParser:
     def _parse_hidden_axis_line(self, line: str):
         """Parse hidden axis definition lines for avar2
 
-        Format: AXIS min:default:max
-        Example: XOUC 4:90:310
+        Format: AXIS min:default:max ["DesignSpace name"]
+        Example: XOUC 4:90:310, HORI 0:0:100 "Horizontal"
 
         Hidden axes are simpler than regular axes - no label mappings.
         """
         line = line.strip()
         if not line:
             return
+        display_name = None
+        match = re.search(r'"([^"]+)"$', line)
+        if match:
+            display_name = match.group(1)
+            line = line[:match.start()].strip()
 
         parts = line.split()
         if len(parts) < 2:
@@ -1464,7 +1470,8 @@ class DSSParser:
             minimum=minimum,
             default=default,
             maximum=maximum,
-            mappings=[]
+            mappings=[],
+            display_name=display_name,
         )
 
         self.document.hidden_axes.append(hidden_axis)

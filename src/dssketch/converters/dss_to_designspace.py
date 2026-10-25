@@ -26,7 +26,7 @@ from fontTools.designspaceLib import (
 )
 
 # Import instances module
-from ..core.instances import createInstance, createInstances, dss_axis_labels, dss_axis_map, dss_axis_name
+from ..core.instances import TooManyInstances, createInstance, createInstances, dss_axis_labels, dss_axis_map, dss_axis_name
 
 # Import models from core
 from ..core.translations import Translations
@@ -44,6 +44,7 @@ from ..core.report import (
     DOCUMENT_FAMILY_UNKNOWN,
     DOCUMENT_TRANSLATION_MISSING,
     CATEGORY_INSTANCES,
+    INSTANCE_AUTO_TOO_MANY,
     INSTANCE_WEIGHT_NOT_LAST,
     RULE_DROPPED_EMPTY,
     RULE_GLYPH_NOT_IN_DEFAULT,
@@ -186,17 +187,23 @@ class DSSToDesignSpace:
         # Convert instances (skip if instances_off is set)
         if not dss_doc.instances_off:
             if dss_doc.instances_auto:
-                # Use sophisticated instance generation from instances module
-                enhanced_doc, _ = createInstances(
-                    doc,
-                    dss_doc=dss_doc,
-                    defaultFolder="instances",
-                    skipFilter={},
-                    skipList=dss_doc.instances_skip if dss_doc.instances_skip else None,
-                    filterInstances={}
-                )
-                # Copy the generated instances back to our document
-                doc.instances = enhanced_doc.instances
+                try:
+                    enhanced_doc, _ = createInstances(
+                        doc,
+                        dss_doc=dss_doc,
+                        defaultFolder="instances",
+                        skipFilter={},
+                        skipList=dss_doc.instances_skip if dss_doc.instances_skip else None,
+                        filterInstances={}
+                    )
+                    doc.instances = enhanced_doc.instances
+                except TooManyInstances as exc:
+                    self._report(
+                        CATEGORY_INSTANCES, INSTANCE_AUTO_TOO_MANY, SEVERITY_ERROR,
+                        f"`instances auto` would generate {exc.count:,} instances (limit {exc.limit}); "
+                        f"none generated", details=str(exc),
+                        raw_data={"count": exc.count, "limit": exc.limit},
+                    )
             # Explicit instances: what `instances auto` does not reproduce
             for dss_instance in dss_doc.instances:
                 doc.addInstance(self._convert_instance(dss_instance, dss_doc, doc))

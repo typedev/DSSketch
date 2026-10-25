@@ -391,6 +391,37 @@ class PlannedInstance:
     skipped: bool = False  # removed by a skip entry (its text = style_name)
 
 
+#: The most instances `instances auto` makes (combinations of labels, before
+#: `skip`). An axis without labels counts its ends, default and avar2 inputs,
+#: so a parametric font would otherwise ask for 10^14 of them and exhaust memory
+MAX_AUTO_INSTANCES = 1000
+
+
+class TooManyInstances(ValueError):
+    """`instances auto` would generate more than MAX_AUTO_INSTANCES instances"""
+
+    def __init__(self, count: int, limit: int = MAX_AUTO_INSTANCES):
+        self.count = count
+        self.limit = limit
+        super().__init__(
+            f"instances auto would generate {count:,} instances (the limit is {limit}). "
+            f"An axis without labels counts its ends, its default and every avar2 input. "
+            f"Give the axes labels, write `instances off`, or list the instances as blocks."
+        )
+
+
+def auto_instance_count(labelsmap: List[dict]) -> int:
+    count = 1
+    for labels in labelsmap:
+        count *= len(labels)
+    return count if labelsmap else 0
+
+
+def plan_labels(specs: List[AxisSpec], axisOrder: List[str], dss_doc: "DSSDocument" = None) -> List[dict]:
+    """The labels of each axis that makes instances ({label: user value})"""
+    return [_spec_mapping(_find_spec(specs, axisname), dss_doc)["axisLabels"] for axisname in axisOrder]
+
+
 def plan_instances(
     specs: List[AxisSpec],
     axisOrder: List[str],
@@ -404,12 +435,14 @@ def plan_instances(
     the names of those that make instances, in order. Returns the labels of
     each ordered axis ({label: user value}, for checking skip entries) and the
     instances in generation order, those a `skip` entry removes marked skipped.
+    Raises TooManyInstances, before generating any, past MAX_AUTO_INSTANCES.
     """
+    labelsmap = plan_labels(specs, axisOrder, dss_doc)
+    count = auto_instance_count(labelsmap)
+    if count > MAX_AUTO_INSTANCES:
+        raise TooManyInstances(count)
     elidableStyleNames = _spec_elidable_names(specs, axisOrder, ignoreAxis=["weight"])
     by_name = {spec.name: spec for spec in specs}
-    labelsmap = []
-    for axisname in axisOrder:
-        labelsmap.append(_spec_mapping(_find_spec(specs, axisname), dss_doc)["axisLabels"])
 
     skipped_names = set(skip or ())
     planned = []

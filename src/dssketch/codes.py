@@ -42,7 +42,7 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (3, "NO_BASE", r"^(?:CRITICAL: )?No base source found", "No source has @base"),
     (4, "MULTIPLE_BASE", r"^(?:CRITICAL: )?Multiple base sources", "More than one source has @base"),
     (5, "BASE_NOT_AT_DEFAULT", r"^(?:CRITICAL: )?Base source '.*' coordinates", "The base source is not at the axis defaults"),
-    (6, "AXIS_RANGE_EMPTY", r"^(?:CRITICAL: )?Axis '.*' has invalid range", "An axis with min = max"),
+    (6, "AXIS_RANGE_EMPTY", r"^(?:CRITICAL: )?Axis '.*' (?:has invalid range|does not vary)", "An axis with min = max"),
     (7, "AXIS_INCOMPLETE", r"^(?:CRITICAL: )?Axis \d+ missing name or tag", "An axis without name or tag"),
     (8, "DUPLICATE_LABEL", r"^(?:CRITICAL: )?Mapping label '.*' is used in multiple axes", "A label used on two axes"),
     (9, "BASE_AUTO_DETECTED", r"^Auto-detected base source", "No @base; the source at the defaults was taken"),
@@ -116,6 +116,8 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (64, "INSTANCE_DUPLICATE", r"^Instance '.*' has the family and style name of", "Two instance blocks with one family and style name"),
     (65, "INSTANCE_SHADOWS_AUTO", r"^Instance '.*' is at the location of '.*', which instances auto",
      "An instance block where `instances auto` puts an instance too"),
+    (66, "INSTANCES_AUTO_TOO_MANY", r"^instances auto would generate [\d,]+ instances",
+     "`instances auto` past its limit of 1000 instances"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition

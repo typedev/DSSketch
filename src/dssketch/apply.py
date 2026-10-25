@@ -51,6 +51,12 @@ from .sketch import EditError, EditResult, Sketch, SourceKey, TextEdit
 _EPSILON = 1e-6
 
 
+def _full_location(ds_doc, instance) -> dict:
+    from .converters.designspace_to_dss import DesignSpaceToDSS
+
+    return DesignSpaceToDSS._full_location(ds_doc, instance)
+
+
 def _same(a, b) -> bool:
     if a is None or b is None:
         return a is b
@@ -676,7 +682,7 @@ class _Applier:
         default_family = (default.familyName if default else None) or self.target.family or ""
         out = []
         for i in ds_doc.instances:
-            name, position = self._instance_key(ds_doc, i.styleName or "", i.getFullDesignLocation(ds_doc))
+            name, position = self._instance_key(ds_doc, i.styleName or "", _full_location(ds_doc, i))
             family = i.familyName or default_family
             out.append((name, position, family, i.postScriptFontName or self._postscript(family, name),
                         i.styleMapFamilyName or "", i.styleMapStyleName or ""))
@@ -694,7 +700,7 @@ class _Applier:
                 for i in sketch.instances() if not i.skipped}
 
     def designspace_keys(self, ds_doc):
-        return {self._instance_key(ds_doc, i.styleName or "", i.getFullDesignLocation(ds_doc))
+        return {self._instance_key(ds_doc, i.styleName or "", _full_location(ds_doc, i))
                 for i in ds_doc.instances}
 
     def check_instances(self, ds_doc):
@@ -761,6 +767,7 @@ def apply_designspace(sketch: Sketch, ds_doc) -> Tuple[EditResult, ConversionRep
 
     converter = DesignSpaceToDSS()
     target = converter.convert(ds_doc)
+    ds_doc = converter.source_document
     report = ConversionReport()
     for issue in converter.report:
         report.add(issue)

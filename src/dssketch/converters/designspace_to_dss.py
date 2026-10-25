@@ -17,10 +17,12 @@ from fontTools.designspaceLib import (
 )
 
 from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
-from ..core.instances import createInstances
+from ..core.instances import TooManyInstances, createInstances
 from ..core.models import elided_fallback_name
 from ..core.translations import Translations
 from ..core.report import (
+    AXIS_DISCRETE_DEFAULT_INVALID,
+    AXIS_HIDDEN_DATA_DROPPED,
     AXIS_LABEL_DATA_DROPPED,
     AXIS_OUTPUT_ONLY_VISIBLE,
     CATEGORY_AXES,
@@ -29,9 +31,11 @@ from ..core.report import (
     CATEGORY_SOURCES,
     DOCUMENT_ELIDED_FALLBACK_DROPPED,
     DOCUMENT_LIB_DROPPED,
+    DOCUMENT_ANISOTROPIC_DROPPED,
     DOCUMENT_TRANSLATIONS_DIFFER,
     DOCUMENT_LOCATION_LABELS_DROPPED,
     DOCUMENT_VARIABLE_FONTS_DROPPED,
+    INSTANCE_AUTO_TOO_MANY,
     INSTANCE_EXTRA,
     INSTANCE_FIELDS_DROPPED,
     SEVERITY_INFO,
@@ -79,6 +83,8 @@ class DesignSpaceToDSS:
     def convert(self, ds_doc: DesignSpaceDocument) -> DSSDocument:
         """Convert DesignSpace document to DSS document"""
         self.report = ConversionReport()
+        ds_doc = self._isotropic(ds_doc)
+        self.source_document = ds_doc  # what was converted (anisotropic locations reduced)
         dss_doc = DSSDocument(family=self._extract_family_name(ds_doc))
 
         # Determine common path for sources
@@ -97,6 +103,8 @@ class DesignSpaceToDSS:
             dss_axis = self._convert_axis(axis)
             # Check if this axis should be hidden
             if axis.name in hidden_axis_names:
+                self._report_hidden_axis_data(axis, dss_axis)
+                dss_axis.mappings = []  # `axes hidden` writes a range only
                 dss_doc.hidden_axes.append(dss_axis)
             else:
                 dss_doc.axes.append(dss_axis)
@@ -328,7 +336,7 @@ class DesignSpaceToDSS:
                 counts[f] = counts.get(f, 0) + 1
             if present:
                 refs.append(InstanceRef(style_name=instance.styleName or instance.name or "?",
-                                        location=dict(instance.getFullDesignLocation(ds_doc))))
+                                        location=dict(self._full_location(ds_doc, instance))))
         if counts:
             summary = ", ".join(f"{fields[f]} ({n})" for f, n in sorted(counts.items()))
             report.add(ConversionIssue(
@@ -411,6 +419,14 @@ class DesignSpaceToDSS:
             minimum = min(values)
             maximum = max(values)
             default = getattr(axis, "default", minimum)
+            if default not in values:
+                self.report.add(ConversionIssue(
+                    category=CATEGORY_AXES, code=AXIS_DISCRETE_DEFAULT_INVALID, severity=SEVERITY_WARNING,
+                    description=f"Discrete axis '{axis.tag}': default {default:g} is not one of its values "
+                                f"{', '.join(f'{v:g}' for v in values)}; the sketch uses {minimum:g}",
+                    raw_data={"axis": axis.tag, "default": default, "values": values},
+                ))
+                default = minimum
         else:
             minimum = getattr(axis, "minimum", 0)
             maximum = getattr(axis, "maximum", 1000)
@@ -444,6 +460,18 @@ class DesignSpaceToDSS:
         if axis.axisLabels:
             for label in axis.axisLabels:
                 labels_dict[label.userValue] = label
+
+        # A map need not list the axis ends or default: fontTools continues it
+        # past its last points. A sketch needs those points, so add them where
+        # the map puts them (unnamed); a label off the map points goes there too
+        explicit = dict(mappings_dict)
+        if (explicit or labels_dict) and not (hasattr(axis, "values") and axis.values):
+            for user_val in (minimum, default, maximum):
+                if user_val not in mappings_dict:
+                    mappings_dict[user_val] = axis.map_forward(user_val)
+        for user_val in labels_dict:
+            if explicit and user_val not in mappings_dict:
+                mappings_dict[user_val] = axis.map_forward(user_val)
 
         # The avar map and the STAT labels are two independent lists and need not
         # cover the same user values. A map point may carry no label (an axis that
@@ -583,7 +611,7 @@ class DesignSpaceToDSS:
             names[axis.name] = axis.name
             if axis.display_name:
                 names[axis.display_name] = axis.name
-        full = instance.getFullDesignLocation(ds_doc)
+        full = self._full_location(ds_doc, instance)
         hidden = {a.name for a in ds_doc.axes if getattr(a, "hidden", False)}
         location = {}
         for axis in ds_doc.axes:
@@ -745,6 +773,61 @@ class DesignSpaceToDSS:
 
         return output_axes
 
+    def _report_hidden_axis_data(self, axis: AxisDescriptor, dss_axis: DSSAxis) -> None:
+        """A hidden axis with a map or labels: `axes hidden` has a range only"""
+        moving = [(i, o) for i, o in (axis.map or []) if abs(i - o) > 1e-9]
+        labels = [label.name for label in (axis.axisLabels or [])]
+        if not moving and not labels:
+            return
+        what = []
+        if moving:
+            what.append(f"a map of {len(axis.map)} points")
+        if labels:
+            what.append(f"labels {', '.join(labels)}")
+        self.report.add(ConversionIssue(
+            category=CATEGORY_AXES, code=AXIS_HIDDEN_DATA_DROPPED, severity=SEVERITY_WARNING,
+            description=f"Hidden axis '{axis.tag}': {' and '.join(what)} dropped",
+            details="`axes hidden` declares a range only; design values on this axis are taken as written.",
+            raw_data={"axis": axis.tag, "map": [list(p) for p in axis.map or []], "labels": labels},
+        ))
+
+    def _isotropic(self, ds_doc: DesignSpaceDocument) -> DesignSpaceDocument:
+        """The document with anisotropic (x, y) locations reduced to x, on a copy
+        (the caller's document is never changed), and the loss reported"""
+        def anisotropic(location):
+            return any(isinstance(v, tuple) for v in (location or {}).values())
+
+        items = list(ds_doc.sources) + list(ds_doc.instances)
+        if not any(anisotropic(i.location) for i in items):
+            return ds_doc
+        import copy
+
+        ds_doc = copy.deepcopy(ds_doc)
+        names = []
+        for item in list(ds_doc.sources) + list(ds_doc.instances):
+            if anisotropic(item.location):
+                names.append(getattr(item, "styleName", None) or item.name or item.filename or "?")
+                item.location = {k: v[0] if isinstance(v, tuple) else v for k, v in item.location.items()}
+        self.report.add(ConversionIssue(
+            category=CATEGORY_DOCUMENT, code=DOCUMENT_ANISOTROPIC_DROPPED, severity=SEVERITY_WARNING,
+            description=f"{len(names)} anisotropic locations (x, y) kept as x: {', '.join(names[:5])}"
+                        + (f" (+{len(names) - 5} more)" if len(names) > 5 else ""),
+            details="A sketch has one value per axis; the y values are dropped.",
+            raw_data={"items": names},
+        ))
+        return ds_doc
+
+    @staticmethod
+    def _full_location(ds_doc: DesignSpaceDocument, instance) -> dict:
+        """getFullDesignLocation, or the instance's own location with the axis
+        defaults when it cannot be resolved (an unknown location label)"""
+        try:
+            return instance.getFullDesignLocation(ds_doc)
+        except Exception:
+            out = {a.name: a.map_forward(a.default) for a in ds_doc.axes}
+            out.update(instance.location or {})
+            return out
+
     def _split_instances(self, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument) -> None:
         """Describe the DesignSpace's instances as `instances auto`, `skip` and blocks
 
@@ -759,12 +842,23 @@ class DesignSpaceToDSS:
         """
         try:
             generated = createInstances(ds_doc, dss_doc)[0].instances
+        except TooManyInstances as exc:
+            self.report.add(ConversionIssue(
+                category=CATEGORY_INSTANCES, code=INSTANCE_AUTO_TOO_MANY, severity=SEVERITY_WARNING,
+                description=(
+                    f"`instances auto` would generate {exc.count:,} instances (limit {exc.limit}); "
+                    f"the {len(ds_doc.instances)} instances are listed as blocks"
+                ),
+                details=str(exc),
+                raw_data={"count": exc.count, "limit": exc.limit},
+            ))
+            generated = []
         except Exception as exc:  # the generator failing leaves every instance explicit
             DSSketchLogger.debug(f"Could not run `instances auto`: {exc}")
             generated = []
 
         def position(instance) -> tuple:
-            full = instance.getFullDesignLocation(ds_doc)
+            full = self._full_location(ds_doc, instance)
             return tuple(sorted((name, round(value, 6)) for name, value in full.items()))
 
         default = ds_doc.findDefault() if ds_doc.sources else None
