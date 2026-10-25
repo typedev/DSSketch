@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-25
+
 ### Added
 - **`variable-fonts`** (DesignSpace 5 `<variable-fonts>`): `variable-fonts auto` makes one variable font per value of the discrete axes, named after the family and the discrete labels (`SuperFont`, `SuperFont-Italic`; `suffix` appended); blocks add sub-ranges and frozen axes — `axes: wght=Light:Bold, ital=Upright`, `filename: …` (user space, labels allowed). DesignSpace → DSSketch writes `auto` when it reproduces the document's fonts and blocks for the rest, instead of dropping them (report 4.3 is left for a variable font's lib). Highlighted, completed, in the outline; `Sketch.variable_fonts()`, `add_variable_font`, `remove_variable_font`, `set_variable_font_name`, `set_variable_font_field`, `set_variable_fonts_mode`; carried by `apply_designspace`. Diagnostics 5.72–5.78
 
