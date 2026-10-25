@@ -6,6 +6,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [1.5.4] - 2026-10-25
 
+### Performance
+- Quick fixes for avar2 recomputed every row's input location and every axis reference for each diagnostic (quadratic on large matrices); a sketch now caches both, shared by the clones fixes are built on. Parse + diagnose of the AmstelvarA2 example: 79 → 66 ms
+
 ### Added
 - **Checks for what fontTools cannot build or quietly changes**, each placed on its line:
   - an axis map whose design values fall as user values grow (error, 5.67; varLib requires ascending outputs);

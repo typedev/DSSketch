@@ -306,6 +306,8 @@ class Sketch:
         clone._structure = self.structure
         clone._spans_done = True
         clone._verify = False
+        for cache in ("_ref_tags", "_avar2_keys"):  # same parse, same answers
+            clone.__dict__[cache] = self.__dict__.setdefault(cache, {})
         return clone
 
     # -- keys -------------------------------------------------------------------
@@ -395,6 +397,12 @@ class Sketch:
     def _axis_ref_tag(self, ref: str) -> Optional[str]:
         """The tag of the axis a written reference means (tag, name, display
         name or registered human name, any case)"""
+        cache = self.__dict__.setdefault("_ref_tags", {})  # a snapshot: the answer never changes
+        if ref not in cache:
+            cache[ref] = self._find_axis_ref_tag(ref)
+        return cache[ref]
+
+    def _find_axis_ref_tag(self, ref: str) -> Optional[str]:
         from .syntax import _AXIS_ALIASES
 
         lowered = ref.lower()
@@ -2074,6 +2082,12 @@ class Sketch:
 
     def _avar2_key(self, mapping) -> tuple:
         """The input location rows combine on: by tag, axes at their default left out"""
+        cache = self.__dict__.setdefault("_avar2_keys", {})
+        if id(mapping) not in cache:
+            cache[id(mapping)] = self._find_avar2_key(mapping)
+        return cache[id(mapping)]
+
+    def _find_avar2_key(self, mapping) -> tuple:
         out = []
         for key, value in mapping.input.items():
             tag = self._axis_ref_tag(key) or key

@@ -328,8 +328,10 @@ def test_never_raises_on_garbage():
 
 
 def test_benchmark_largest_example():
-    """parse + diagnose of the largest example (~350 lines) well under 50 ms
-    on a desktop; the bound here is loose for slow CI machines"""
+    """parse + diagnose (with quick fixes) of the largest example: AmstelvarA2,
+    582 lines, 126 sources of 63 positional coordinates, ~70 ms on a desktop.
+    The bound is for slow CI machines (Python 3.8 there ran ~3.3x slower) and
+    catches quadratic regressions, which cost multiples, not percent"""
     path = max(EXAMPLES, key=lambda p: len(p.read_text(encoding="utf-8").splitlines()))
     text = path.read_text(encoding="utf-8")
     best = None
@@ -340,7 +342,7 @@ def test_benchmark_largest_example():
         elapsed = time.perf_counter() - start
         best = elapsed if best is None else min(best, elapsed)
     print(f"\n{path.name}: {len(text.splitlines())} lines, parse + diagnose {best * 1000:.1f} ms")
-    assert best < 0.25
+    assert best < 0.4
 
     sketch = Sketch.parse(text)
     sketch.diagnostics
