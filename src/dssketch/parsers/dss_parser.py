@@ -195,6 +195,8 @@ class DSSParser:
         # Check for bracket mismatches in the code only: brackets and commas in a
         # comment or a quoted name ("heavy, dollar") are text, not coordinates
         code = _QUOTED.sub("", strip_comment(line))
+        if self.current_section == "avar2":  # an avar2 row's `> {` block opens and closes on other lines
+            code = "" if code.strip() == "}" else re.sub(r">\s*\{\s*$", ">", code)
         bracket_issues = DSSValidator.detect_bracket_mismatch(code) if code.strip() else None
         if bracket_issues:
             self.validator.warnings.append(f"Bracket issues: {bracket_issues}")
@@ -1769,10 +1771,17 @@ class DSSParser:
         Format:
             outputs AXIS1 AXIS2 AXIS3 ...   (column header)
             [input] value1 value2 value3 ... (data row)
+            "name" [input] value1 ...       (a row's own name, as in linear rows)
         """
         line = line.strip()
         if not line or line.startswith("#"):
             return
+
+        row_name = None
+        if line.startswith('"') and '"' in line[1:]:
+            end_quote = line.index('"', 1)
+            row_name = line[1:end_quote]
+            line = line[end_quote + 1:].strip()
 
         # Check for outputs header
         if line.startswith("outputs"):
@@ -1852,7 +1861,7 @@ class DSSParser:
 
         # Create mapping
         mapping = DSSAvar2Mapping(
-            name=self.current_avar2_matrix_name,  # From matrix header
+            name=row_name or self.current_avar2_matrix_name,  # the row's, else the matrix's
             input=input_conditions,
             output=outputs
         )

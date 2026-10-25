@@ -270,19 +270,24 @@ class DSSValidator:
             if not key:
                 self._avar2_default_input(mapping, axes)
                 continue
+            outputs = {getattr(axes.get(k), "tag", k) for k in mapping.output}
             if key in locations:
-                shown = ", ".join(f"{tag}={value:g}" for tag, value in key)
-                first = locations[key]
-                where = f" (line {first.line})" if first.line else ""
-                self._error(
-                    f"avar2 mapping [{shown}] has the same input location as an earlier "
-                    f"one{where}. Axes at their default count as left out, and inputs outside "
-                    f"the axis range as its end. fontTools cannot build two mappings at one "
-                    f"location; merge them.",
-                    at=mapping,
-                )
+                first, seen = locations[key]
+                both = sorted(outputs & seen)
+                if both:
+                    shown = ", ".join(f"{tag}={value:g}" for tag, value in key)
+                    where = f" (line {first.line})" if first.line else ""
+                    self._error(
+                        f"avar2 mapping [{shown}] has the same input location as an earlier "
+                        f"one{where} and sets {', '.join(both)} there too. Rows at one location "
+                        f"combine (a wide matrix is split into sections), each output once. "
+                        f"Axes at their default count as left out, and inputs outside the axis "
+                        f"range as its end.",
+                        at=mapping,
+                    )
+                seen |= outputs
             else:
-                locations[key] = mapping
+                locations[key] = (mapping, set(outputs))
 
         for axis in document.axes:
             if id(axis) in output_axes and id(axis) not in input_axes:
@@ -508,11 +513,13 @@ class DSSValidator:
                         at=axis,
                     )
 
-        # Validate sources coordinates
+        # Validate sources coordinates: one per visible axis (a hidden axis's
+        # coordinate is extra, and named coordinates fill in every axis)
         if document.axes and document.sources:
             expected_coords = len(document.axes)
+            visible = {axis.name for axis in document.axes}
             for source in document.sources:
-                actual_coords = len(source.location) if source.location else 0
+                actual_coords = sum(1 for name in (source.location or {}) if name in visible)
                 if actual_coords != expected_coords:
                     self._warning(
                         f"Source '{source.name}' has {actual_coords} coordinates, expected {expected_coords}",

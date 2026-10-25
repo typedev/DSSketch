@@ -159,3 +159,14 @@ def test_fonttools_examples_are_clean(name):
     for suffix in ("", "-linear"):
         text = (EXAMPLES / f"{name}{suffix}.dssketch").read_text(encoding="utf-8")
         assert avar2_codes(text) == [], name + suffix
+
+
+def test_hidden_axis_coordinates_are_not_counted_as_extra():
+    # Amstelvar: named coordinates fill in every axis, hidden ones included;
+    # the source still has one coordinate per visible axis
+    from pathlib import Path
+
+    from dssketch import diagnose
+
+    path = Path(__file__).parent.parent / "examples" / "AmstelvarA2-Roman_avar2.dssketch"
+    assert not [d for d in diagnose(path.read_text(encoding="utf-8")) if d.code == "5.31"]

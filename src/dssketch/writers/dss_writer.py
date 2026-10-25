@@ -883,13 +883,16 @@ class DSSWriter:
         output_str = ", ".join(output_parts)
 
         # Build the line
-        if mapping.name:
-            line = f'    "{mapping.name}" {input_str} > {output_str}'
-        else:
-            line = f"    {input_str} > {output_str}"
-
-        lines.append(line)
-
+        head = f'    "{mapping.name}" {input_str}' if mapping.name else f"    {input_str}"
+        line = f"{head} > {output_str}"
+        if len(line) <= self.LINEAR_WIDTH or len(output_parts) <= self.MATRIX_COLUMNS:
+            return [line]
+        # A long row: a { } block, MATRIX_COLUMNS outputs a line
+        size = self.MATRIX_COLUMNS
+        lines.append(f"{head} > {{")
+        for i in range(0, len(output_parts), size):
+            lines.append("        " + ", ".join(output_parts[i:i + size]))
+        lines.append("    }")
         return lines
 
     def _get_avar2_label_for_value(self, axis_name: str, value: float, dss_doc: DSSDocument) -> Optional[str]:
@@ -916,122 +919,98 @@ class DSSWriter:
         # Hidden axes typically don't have labels
         return None
 
+    # Output columns per `avar2 matrix` section: a wider matrix is written as
+    # several sections side by side, each repeating the input rows it needs
+    MATRIX_COLUMNS = 8
+    # A linear row longer than this becomes a { } block
+    LINEAR_WIDTH = 100
+
     def _format_avar2_as_matrix(self, dss_doc: DSSDocument) -> List[str]:
-        """Format avar2 mappings as matrix format
+        """Format avar2 mappings as matrix sections
 
-        Matrix format is more compact when multiple mappings share the same output axes.
-
-        Format:
             avar2 matrix
                 outputs  AXIS1  AXIS2  AXIS3
                 [input1]  val1   val2   val3
-                [input2]  val1   val2   val3
+                [input2]  val1   -      val3
+
+        Columns are output axes, in order of first use; `-` = no output, `$` =
+        the axis default. More than MATRIX_COLUMNS columns are split into
+        sections of that many; a row appears in a section only where it has an
+        output, and rows with one input combine into one mapping (parser and
+        converter), so the split changes nothing.
         """
-        lines = []
+        mappings = dss_doc.avar2_mappings
+        if not mappings:
+            return []
 
-        if not dss_doc.avar2_mappings:
-            return lines
-
-        # Collect all unique output axes in consistent order
         output_axes = []
-        for mapping in dss_doc.avar2_mappings:
+        for mapping in mappings:
             for axis_name in mapping.output.keys():
                 if axis_name not in output_axes:
                     output_axes.append(axis_name)
+        size = max(1, self.MATRIX_COLUMNS)
+        groups = [output_axes[i:i + size] for i in range(0, len(output_axes), size)] or [[]]
+        # A row at the default location cannot be split: several such rows are
+        # legal and never combine. Written linear after the sections
+        at_default = []
+        if len(groups) > 1:
+            at_default = [m for m in mappings if self._avar2_at_default(m, dss_doc)]
+            mappings = [m for m in mappings if m not in at_default]
 
-        # Start matrix section
-        lines.append("avar2 matrix")
-
-        # Output header row
-        header_parts = ["outputs"] + output_axes
-        # Calculate column widths for alignment
-        col_widths = self._calculate_matrix_column_widths(dss_doc, output_axes)
-        header_line = "    " + "  ".join(
-            part.ljust(col_widths.get(i, len(part)))
-            for i, part in enumerate(header_parts)
-        )
-        lines.append(header_line)
-
-        # Format each mapping as a data row
-        for mapping in dss_doc.avar2_mappings:
-            # Format input conditions
-            input_parts = []
-            for axis_name, value in mapping.input.items():
-                label = self._get_avar2_label_for_value(axis_name, value, dss_doc)
-                if label:
-                    input_parts.append(f"{axis_name}={label}")
-                else:
-                    input_parts.append(f"{axis_name}={self._format_number(value)}")
-            input_str = f"[{', '.join(input_parts)}]"
-
-            # Format output values in column order
-            value_parts = []
-            for axis_name in output_axes:
-                if axis_name in mapping.output:
-                    value = mapping.output[axis_name]
-                    # Check if value equals axis default - use $ shorthand
-                    axis_default = self._get_axis_default(axis_name, dss_doc)
-                    if axis_default is not None and value == axis_default:
-                        value_parts.append("$")
-                    else:
-                        # Check if value matches a variable
-                        var_name = self._find_variable_for_value(value, dss_doc)
-                        if var_name:
-                            value_parts.append(f"${var_name}")
-                        else:
-                            value_parts.append(self._format_number(value))
-                else:
-                    # Missing value - use dash or empty
-                    value_parts.append("-")
-
-            # Build the row with alignment
-            row_parts = [input_str] + value_parts
-            row_line = "    " + "  ".join(
-                part.ljust(col_widths.get(i, len(part)))
-                for i, part in enumerate(row_parts)
-            )
-            lines.append(row_line)
-
+        lines = []
+        named = set()  # a row's name goes on its first appearance only
+        for number, columns in enumerate(groups):
+            rows = [
+                m for m in mappings
+                if any(axis in m.output for axis in columns) or (number == 0 and not m.output)
+            ]
+            table = [["outputs"] + columns]
+            for mapping in rows:
+                cells = [self._format_avar2_matrix_input(mapping, dss_doc)]
+                if mapping.name and id(mapping) not in named:
+                    named.add(id(mapping))
+                    cells[0] = f'"{mapping.name}" {cells[0]}'
+                for axis_name in columns:
+                    cells.append(
+                        self._format_avar2_matrix_cell(axis_name, mapping.output[axis_name], dss_doc)
+                        if axis_name in mapping.output else "-"
+                    )
+                table.append(cells)
+            widths = [max(len(row[i]) for row in table) for i in range(len(table[0]))]
+            if number:
+                lines.append("")
+            lines.append("avar2 matrix")
+            for row in table:
+                lines.append(("    " + "  ".join(cell.ljust(w) for cell, w in zip(row, widths))).rstrip())
+        if at_default:
+            lines.extend(["", "avar2"])
+            for mapping in at_default:
+                lines.extend(self._format_avar2_mapping(mapping, dss_doc))
         return lines
 
-    def _calculate_matrix_column_widths(self, dss_doc: DSSDocument, output_axes: List[str]) -> dict:
-        """Calculate column widths for matrix alignment
+    @staticmethod
+    def _avar2_at_default(mapping, dss_doc: DSSDocument) -> bool:
+        """Every input at its axis default (user space), or no input"""
+        axes = {}
+        for axis in dss_doc.axes + dss_doc.hidden_axes:
+            axes[axis.tag] = axes[axis.name] = axis
+        for key, value in mapping.input.items():
+            axis = axes.get(key)
+            if axis is None or abs(value - axis.default) > 1e-9:
+                return False
+        return True
 
-        Returns dict mapping column index to width.
-        """
-        widths = {}
+    def _format_avar2_matrix_input(self, mapping, dss_doc: DSSDocument) -> str:
+        parts = []
+        for axis_name, value in mapping.input.items():
+            label = self._get_avar2_label_for_value(axis_name, value, dss_doc)
+            parts.append(f"{axis_name}={label if label else self._format_number(value)}")
+        return f"[{', '.join(parts)}]"
 
-        # Column 0 is the input/outputs column
-        max_input_len = len("outputs")
-        for mapping in dss_doc.avar2_mappings:
-            input_parts = []
-            for axis_name, value in mapping.input.items():
-                label = self._get_avar2_label_for_value(axis_name, value, dss_doc)
-                if label:
-                    input_parts.append(f"{axis_name}={label}")
-                else:
-                    input_parts.append(f"{axis_name}={self._format_number(value)}")
-            input_str = f"[{', '.join(input_parts)}]"
-            max_input_len = max(max_input_len, len(input_str))
-        widths[0] = max_input_len
-
-        # Columns 1+ are output axes
-        for i, axis_name in enumerate(output_axes):
-            max_len = len(axis_name)
-            for mapping in dss_doc.avar2_mappings:
-                if axis_name in mapping.output:
-                    value = mapping.output[axis_name]
-                    axis_default = self._get_axis_default(axis_name, dss_doc)
-                    if axis_default is not None and value == axis_default:
-                        val_str = "$"
-                    else:
-                        # Check if value matches a variable
-                        var_name = self._find_variable_for_value(value, dss_doc)
-                        if var_name:
-                            val_str = f"${var_name}"
-                        else:
-                            val_str = self._format_number(value)
-                    max_len = max(max_len, len(val_str))
-            widths[i + 1] = max_len
-
-        return widths
+    def _format_avar2_matrix_cell(self, axis_name: str, value: float, dss_doc: DSSDocument) -> str:
+        """`$` for the axis default, a variable that holds the value, else the number"""
+        axis_default = self._get_axis_default(axis_name, dss_doc)
+        if axis_default is not None and value == axis_default:
+            return "$"
+        var_name = self._find_variable_for_value(value, dss_doc)
+        return f"${var_name}" if var_name else self._format_number(value)

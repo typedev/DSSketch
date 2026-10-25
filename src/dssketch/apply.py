@@ -459,16 +459,25 @@ class _Applier:
 
     def avar2(self):
         def normal(doc):
-            out = []
+            """The mappings as DSS -> DS builds them: rows at one input combine"""
+            merged, at_default = {}, []
             for mapping in doc.avar2_mappings:
-                def side(values):
-                    items = []
-                    for key, value in values.items():
-                        axis = self.axis_of(doc, key)
-                        items.append((axis.tag if axis is not None else key, round(float(value), 4)))
-                    return tuple(sorted(items))
-                out.append((side(mapping.input), side(mapping.output)))
-            return sorted(out)
+                inputs = []
+                for key, value in mapping.input.items():
+                    axis = self.axis_of(doc, key)
+                    if axis is not None and _same(value, axis.default):
+                        continue  # left out = at the default
+                    inputs.append((axis.tag if axis is not None else key, round(float(value), 4)))
+                outputs = {}
+                for key, value in mapping.output.items():
+                    axis = self.axis_of(doc, key)
+                    outputs[axis.tag if axis is not None else key] = round(float(value), 4)
+                key = tuple(sorted(inputs))
+                if not key:
+                    at_default.append(((), tuple(sorted(outputs.items()))))
+                else:
+                    merged.setdefault(key, {}).update(outputs)
+            return sorted([(k, tuple(sorted(v.items()))) for k, v in merged.items()] + at_default)
 
         if normal(self.doc) != normal(self.target):
             self.note(APPLY_AVAR2_NOT_APPLIED, SEVERITY_WARNING,

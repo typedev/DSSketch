@@ -4,6 +4,15 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **Wide avar2 matrices are written in sections** of 8 output columns (`DSSWriter.MATRIX_COLUMNS`), each repeating the input rows it needs; rows with one input location combine into one mapping when parsed and converted, so the split changes nothing. AmstelvarA2 went from 527 to under 130 characters a line, RobotoDelta from 285. Rows at the default location never combine (fontTools allows several) and are written linear after the sections. A linear row longer than 100 characters becomes a `{ }` block with 8 outputs a line. Two rows at one location that set the same output are still an error (5.56); with different outputs they now combine
+- The example sketches `AmstelvarA2-Roman_avar2` and `avar2-RobotoDelta-Roman` are regenerated from their DesignSpaces
+
+### Fixed
+- **avar2 matrix rows lost their mapping names** without a word: a row now takes a name like a linear one (`"opsz144" [opsz=144] 84 …`), and DS → DSS writes it
+- **"Source 'X' has 67 coordinates, expected 4"** on every master of a font with hidden axes: the count included the hidden axes' coordinates
+- A linear avar2 row opening a `{ }` block was warned about mismatched brackets
+
 ## [1.5.2] - 2026-10-24
 
 ### Added

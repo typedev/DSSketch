@@ -61,6 +61,10 @@ from ..utils.logging import DSSketchLogger
 from ..utils.patterns import PatternMatcher
 
 
+def _same_value(a, b) -> bool:
+    return b is not None and abs(a - b) < 1e-6
+
+
 class DSSToDesignSpace:
     """Convert DSS to DesignSpace format"""
 
@@ -153,11 +157,25 @@ class DSSToDesignSpace:
             axis = self._convert_hidden_axis(dss_axis)
             doc.addAxis(axis)
 
-        # Convert avar2 mappings
+        # Convert avar2 mappings; rows at one input location combine (a wide
+        # matrix is written as several sections, each repeating the inputs)
         if dss_doc.avar2_mappings:
+            defaults = {axis.name: axis.map_forward(axis.default) for axis in doc.axes}
+            merged = {}
             for dss_mapping in dss_doc.avar2_mappings:
                 mapping = self._convert_avar2_mapping(dss_mapping, dss_doc)
-                doc.axisMappings.append(mapping)
+                key = tuple(sorted(
+                    (name, round(value, 6)) for name, value in mapping.inputLocation.items()
+                    if not _same_value(value, defaults.get(name))
+                ))
+                into = merged.get(key) if key else None  # rows at the default stay apart
+                if into is None:
+                    merged[key] = mapping
+                    doc.axisMappings.append(mapping)
+                    continue
+                into.outputLocation.update(mapping.outputLocation)
+                if not into.description and mapping.description:
+                    into.description = mapping.description
 
         # Convert sources
         for dss_source, name in zip(dss_doc.sources, self._source_names(dss_doc)):
