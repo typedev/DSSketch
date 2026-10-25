@@ -35,7 +35,8 @@ class FontDataProvider(Protocol):
     """What DSSketch asks the host about the fonts (None = unknown)
 
     Optional: `source_exists(source) -> Optional[bool]`; with it a missing
-    source UFO is reported.
+    source UFO is reported. `units_per_em(source) -> Optional[float]`; with it
+    masters whose UPM differs from the base source's are reported.
     """
 
     def family_name(self) -> Optional[str]:
@@ -68,6 +69,9 @@ class FontData:
         return None
 
     def source_exists(self, source: str) -> Optional[bool]:
+        return None
+
+    def units_per_em(self, source: str) -> Optional[float]:
         return None
 
 
@@ -127,6 +131,10 @@ class DefconFontData(FontData):
     def layer_names(self, source: str) -> Optional[Collection[str]]:
         font = self._font(source)
         return list(font.layers.layerOrder) if font is not None else None
+
+    def units_per_em(self, source: str) -> Optional[float]:
+        font = self._font(source)
+        return font.info.unitsPerEm if font is not None else None
 
 
 def source_path(doc: DSSDocument, source: DSSSource) -> str:
@@ -223,12 +231,37 @@ def check(doc: DSSDocument, provider) -> List[Tuple[str, str, Optional[int]]]:
                         f"Layers: {', '.join(layers)}",
                         source.line,
                     ))
+        out.extend(_check_units_per_em(doc, provider))
         glyphs = default_master_glyphs(provider, doc)
         if glyphs is not None:
             for rule in doc.rules:
                 out.extend(_check_rule(rule, glyphs))
     except Exception:
         pass
+    return out
+
+
+def _check_units_per_em(doc: DSSDocument, provider) -> List[Tuple[str, str, Optional[int]]]:
+    """Every master has the base source's UPM: interpolation takes the outlines
+    as drawn, so a master on another grid comes out scaled"""
+    base = next((s for s in doc.sources if s.is_base), None)
+    if base is None:
+        return []
+    upm = _call(provider, "units_per_em", source_path(doc, base))
+    if not upm:
+        return []
+    out = []
+    for source in doc.sources:
+        if source is base:
+            continue
+        other = _call(provider, "units_per_em", source_path(doc, source))
+        if other and other != upm:
+            out.append((
+                "error",
+                f"Source '{source.name}' has {other:g} units per em; the base source '{base.name}' has "
+                f"{upm:g}. Masters must share one UPM: interpolation takes the outlines as drawn.",
+                source.line,
+            ))
     return out
 
 

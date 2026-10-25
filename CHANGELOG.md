@@ -11,6 +11,7 @@ All notable changes to DSSketch will be documented in this file.
   - two masters at one location, compared after clamping, layers and sparse masters included (error, 5.69; varLib: "Locations must be unique"), quick fix: remove the later one;
   - a rule condition whose minimum is above its maximum (warning, 5.70; the rule never applies), quick fix: swap them.
   As with any new error, a `Sketch` edit that would create one is refused (removing an axis that collapses two masters onto one location)
+- **Masters on another UPM than the base source** (error, 5.71), with font data: interpolation takes outlines as drawn, so such a master comes out scaled. `FontDataProvider` gains an optional `units_per_em(source)`; `DefconFontData` reads it from the UFO
 - DS → DSSketch reports avar2 mappings that name an axis by its tag instead of its name (0.4; fontTools rejects them, the sketch reads the tag as that axis)
 
 ### Fixed

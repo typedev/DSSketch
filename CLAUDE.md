@@ -1787,7 +1787,8 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   style names and glyph sets (`_glyphs_of`); never `defcon` directly any more.
   Every provider call goes through `_call()`, which swallows host exceptions
 - `diagnose()` / `complete()` / `Sketch.parse()` take `font_data=`; **without
-  it they never read the disk**. `check(doc, provider)` adds codes 5.49–5.53;
+  it they never read the disk**. `check(doc, provider)` adds codes 5.49–5.53
+  and 5.71 (a master's `units_per_em` differs from the base source's);
   a rule is named in double quotes in those messages so the message is placed
   on the glyph (placement takes the first single-quoted word)
 - Parsed explicit rules (`dollar > dollar.alt`) have `substitutions` and no

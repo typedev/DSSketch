@@ -123,6 +123,7 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (68, "SOURCE_OUT_OF_RANGE", r"^Source '.*': .* is outside the axis's design range", "A master outside the axis's design range"),
     (69, "SOURCE_DUPLICATE_LOCATION", r"^Sources '.*' and '.*' are at the same location", "Two masters at one location"),
     (70, "RULE_CONDITION_EMPTY", r"condition on '.*' has minimum .* above maximum", "A rule condition with minimum above maximum"),
+    (71, "SOURCE_UPM_MISMATCH", r"^Source '.*' has [\d.]+ units per em; the base source", "A master on another UPM than the base (font data)"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition

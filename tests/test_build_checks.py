@@ -89,3 +89,15 @@ def test_designspace_avar2_named_by_tag_is_reported():
     _, report = dssketch.convert_designspace_to_dss_string(doc, return_report=True)
     issue = report.find(CATEGORY_AXES, AXIS_AVAR2_NAMED_BY_TAG)
     assert issue and issue.raw_data["tags"] == ["wght"]
+
+
+def test_units_per_em_with_font_data():
+    class Host(dssketch.FontData):
+        def units_per_em(self, source):
+            return 2048 if "Black" in source else 1000
+
+    text = BASE
+    found = [d for d in diagnose(text, font_data=Host()) if d.code == "5.71"]
+    assert [(d.severity, d.line) for d in found] == [("error", 10)]
+    assert "2048 units per em" in found[0].message and "'T-Regular' has 1000" in found[0].message
+    assert not [d for d in diagnose(text) if d.code == "5.71"]  # no font data: not checked
