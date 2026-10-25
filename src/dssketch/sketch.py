@@ -1887,6 +1887,23 @@ class Sketch:
             return self._result([self._replace(header.fields["mode"], mode)])
         return self._result([self._append_to_line(header, " " + mode)])
 
+    def set_rules_processing(self, last: bool) -> EditResult:
+        """`rules last` (substitutions after the other features) or plain `rules`"""
+        header = self.structure.section_header("rules")
+        if header is None:
+            if not last:
+                return EditResult([], self._text, self)
+            return self._result([self._new_section("rules", "rules last", [])])
+        current = header.values.get("mode") == "last"
+        if current == last:
+            return EditResult([], self._text, self)
+        if "mode" in header.fields:
+            if last:
+                return self._result([self._replace(header.fields["mode"], "last")])
+            keyword, mode = header.fields["keyword"], header.fields["mode"]
+            return self._result([TextEdit(header.number, keyword.end_col, header.number, mode.end_col, "")])
+        return self._result([self._append_to_line(header, " last")])
+
     def _labels(self) -> Dict[str, str]:
         return {m.label: a.tag for a in self.document.axes for m in a.mappings if m.label}
 

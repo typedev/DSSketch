@@ -283,7 +283,7 @@
       </include>
     </context>
     <context id="rules-section">
-      <start>^(rules)\b()</start>
+      <start>^(rules)(?:\s+(first|last))?\b</start>
       <end>^(?=[^\s#])</end>
       <include>
         <context sub-pattern="1" where="start" style-ref="keyword"/>

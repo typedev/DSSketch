@@ -23,7 +23,7 @@ PUBLISHED = {
     "ELIDED_FALLBACK_EMPTY": 48, "SOURCE_UFO_MISSING": 49, "SOURCE_LAYER_MISSING": 50,
     "RULE_GLYPH_MISSING": 51, "RULE_TARGET_MISSING": 52, "RULE_MATCHES_NOTHING": 53,
     "AVAR2_DEFAULT_INPUT": 54, "AVAR2_OUTPUT_OUT_OF_RANGE": 55, "AVAR2_DUPLICATE_INPUT": 56,
-    "AVAR2_OUTPUT_ONLY_VISIBLE": 57, "AVAR2_HIDDEN_INPUT": 58,
+    "AVAR2_OUTPUT_ONLY_VISIBLE": 57, "AVAR2_HIDDEN_INPUT": 58, "RULES_MODE_UNKNOWN": 59,
 }
 
 
@@ -106,6 +106,7 @@ def variant(old, new):
         ("AVAR2_DUPLICATE_INPUT", GOOD + "avar2\n    [wght=Black] > wght=800\n    [wght=900] > wght=850\n"),
         ("AVAR2_OUTPUT_ONLY_VISIBLE", variant("    ital discrete", "    XOPQ 0:50:100\n    ital discrete") + "avar2\n    [wght=Black] > XOPQ=80\n"),
         ("AVAR2_HIDDEN_INPUT", GOOD + "axes hidden\n    XOPQ 0:50:100\navar2\n    [XOPQ=80] > wght=800\n"),
+        ("RULES_MODE_UNKNOWN", GOOD + "rules lats\n    a > a.alt (weight >= Black)\n"),
     ],
 )
 def test_message_gets_its_code(name, text):

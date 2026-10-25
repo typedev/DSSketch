@@ -612,6 +612,14 @@ Rules define glyph substitutions based on axis conditions. The syntax is:
 - `*` matches all glyphs but only creates substitutions where target exists
 - Example: `* > .rvrn` only creates rules for glyphs that have .rvrn variants
 
+**`rules last`** (1.5.x) = DesignSpace `<rules processing="last">`: varLib puts
+the rules in `rclt` (after the other features) instead of `rvrn` (before them).
+`DSSDocument.rules_processing_last`; carried both ways (no longer reported as
+dropped; `RULES_PROCESSING_LAST_DROPPED` stays reserved), `rules first` is
+accepted as the default, anything else is `RULES_MODE_UNKNOWN` (5.59).
+`Sketch.set_rules_processing(last)`; `apply_designspace` carries it. Tests:
+`tests/test_rules_last.py`
+
 **Target Validation:**
 - System checks if target glyphs exist in UFO files
 - Skips invalid substitutions with warnings

@@ -114,7 +114,7 @@ class Line:
 
     - family / suffix / elidedfallback / path: `value`; lang: `value`, `code.0`, `code.1` …
     - section: `keyword`; sources adds `order` (the brackets) and `order.0` …;
-      instances adds `mode` (auto / off)
+      instances adds `mode` (auto / off), rules `mode` (first / last)
     - axis: `name`, `tag`, `min`, `default`, `max`, `discrete`, `display_name`
       (`range` covers min..max or `discrete`)
     - mapping: `user`, `label`, `design`, `flag.elidable`
@@ -322,6 +322,10 @@ def _header_line(make, code, section, state) -> Optional[Line]:
                 line.put(f"order.{i}", t)
     elif section == "instances":
         mode = next((t for t in rest if t.type == KEYWORD and t.text in ("auto", "off")), None)
+        if mode is not None:
+            line.put("mode", mode)
+    elif section == "rules":
+        mode = next((t for t in rest if t.type == KEYWORD and t.text in ("first", "last")), None)
         if mode is not None:
             line.put("mode", mode)
     elif section == "avar2_matrix" and len(code) > 2:

@@ -246,7 +246,7 @@ class _Tokenizer:
         if line == "rules" or line.startswith("rules "):
             self.section = "rules"
             self.in_skip = False
-            return keywords("rules")
+            return keywords("rules", "first", "last")
         if line == "avar2 vars" or line.startswith("avar2 vars "):
             self.section = "avar2_vars"
             return keywords("avar2", "vars")
@@ -621,9 +621,11 @@ _WORD_HEAD = re.compile(r"[^\s\[\](){},:=\"'@$<>=&]*")
 # Section and document keywords, as a line at column 0 starts them
 _LINE_KEYWORDS = (
     "family", "suffix", "elidedfallback", "path", "lang", "axes", "axes hidden", "sources",
-    "rules", "instances auto", "instances off", "avar2", "avar2 vars", "avar2 matrix",
+    "rules", "rules last", "instances auto", "instances off", "avar2", "avar2 vars", "avar2 matrix",
 )
-_HEADER_FOLLOWERS = {"axes": ("hidden",), "instances": ("auto", "off"), "avar2": ("vars", "matrix")}
+_HEADER_FOLLOWERS = {
+    "axes": ("hidden",), "instances": ("auto", "off"), "rules": ("last",), "avar2": ("vars", "matrix"),
+}
 _SOURCE_FLAGS = ("@base", "@sparse", "@layer=")
 _COMPARISONS = (">=", "<=", "==", "<", ">")
 

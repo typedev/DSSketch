@@ -193,6 +193,9 @@ class DSSDocument:
     sources: List[DSSSource] = field(default_factory=list)
     instances: List[DSSInstance] = field(default_factory=list)
     rules: List[DSSRule] = field(default_factory=list)
+    # `rules last`: substitutions after the other OpenType features (DesignSpace
+    # processing="last"; varLib puts them in rclt instead of rvrn)
+    rules_processing_last: bool = False
     variable_fonts: List[Dict] = field(default_factory=list)
     lib: Dict = field(default_factory=dict)
     instances_auto: bool = False  # Flag for automatic instance generation

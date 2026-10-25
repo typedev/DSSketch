@@ -403,6 +403,9 @@ class _Applier:
             keys = list(keyed(self.doc.rules))
             if key in keys and keys.index(key) != position:
                 self.run(f"move rule {key[0]}", lambda sk, i=keys.index(key), p=position: sk.move_rule(i, p))
+        last = self.target.rules_processing_last
+        if self.target.rules and self.doc.rules_processing_last != last:
+            self.run("rules last" if last else "rules", lambda sk: sk.set_rules_processing(last))
 
     def add_rule(self, rule: DSSRule):
         name = None if (rule.name.startswith("rule") and rule.name[4:].isdigit()) else rule.name

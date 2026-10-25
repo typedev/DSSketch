@@ -89,14 +89,15 @@ def test_document_level_losses():
     assert r.find(CATEGORY_DOCUMENT, DOCUMENT_LOCATION_LABELS_DROPPED).raw_data["labels"] == ["Reading"]
 
 
-def test_rules_processing_last_is_reported():
+def test_rules_processing_last_is_carried_not_reported():
     d = _base_doc()
     rule = RuleDescriptor()
     rule.name, rule.subs = "r", [("a", "a.alt")]
     rule.conditionSets = [[{"name": "weight", "minimum": 600, "maximum": 900}]]
     d.addRule(rule)
     d.rulesProcessingLast = True
-    assert _report(d).find(CATEGORY_RULES, RULES_PROCESSING_LAST_DROPPED)
+    assert not _report(d).find(CATEGORY_RULES, RULES_PROCESSING_LAST_DROPPED)
+    assert "\nrules last\n" in dssketch.convert_designspace_to_dss_string(d)
 
 
 def test_stat_label_extras_are_reported():

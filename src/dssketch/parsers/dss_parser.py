@@ -276,6 +276,13 @@ class DSSParser:
         elif line == "rules" or line.startswith("rules "):
             self.current_section = "rules"
             self.in_skip_subsection = False  # Reset skip subsection flag
+            mode = line[len("rules"):].strip()
+            if mode == "last":
+                self.document.rules_processing_last = True
+            elif mode and mode != "first":
+                self.validator.errors.append(
+                    f"rules: unknown mode '{mode}'. Use `rules` (first, the default) or `rules last`"
+                )
 
         # avar2 support: variables (must be checked BEFORE "avar2" since "avar2 vars" starts with "avar2 ")
         elif line == "avar2 vars" or line.startswith("avar2 vars "):

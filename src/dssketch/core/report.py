@@ -132,7 +132,8 @@ SOURCE_STYLE_NAME_DUPLICATE = 1
 
 #: DS -> DSS: rules processing="last" (substitutions applied after other
 #: features, `rclt` instead of `rvrn`) is not expressed; the sketch's rules
-#: build with the default, first-in-line processing.
+#: build with the default, first-in-line processing. No longer emitted since
+#: `rules last` carries it (1.5.x); the code stays reserved.
 RULES_PROCESSING_LAST_DROPPED = 0
 
 #: DSS -> DS: an explicit rule names a glyph the default master lacks; the rule

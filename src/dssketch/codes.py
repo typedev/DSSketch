@@ -105,6 +105,7 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (56, "AVAR2_DUPLICATE_INPUT", r"^avar2 mapping \[.*\] has the same input location", "Two avar2 rows at one input location"),
     (57, "AVAR2_OUTPUT_ONLY_VISIBLE", r"^Axis '.*' is visible but only avar2 outputs drive it", "A visible axis driven only by avar2"),
     (58, "AVAR2_HIDDEN_INPUT", r"^avar2 input uses hidden axis", "A hidden axis as an avar2 input"),
+    (59, "RULES_MODE_UNKNOWN", r"^rules: unknown mode", "A rules header mode other than `last`"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition

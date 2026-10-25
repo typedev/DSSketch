@@ -190,6 +190,7 @@ class DSSToDesignSpace:
             rule = self._convert_rule(dss_rule, doc)
             if rule:
                 doc.addRule(rule)
+        doc.rulesProcessingLast = dss_doc.rules_processing_last
 
         # Always named: without it the STAT-derived name of the all-elided
         # location is empty, and fontmake gives that VF instance an empty name

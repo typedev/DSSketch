@@ -568,6 +568,18 @@ rules
 instances auto
 ```
 
+**When rules apply: `rules last`.** By default the substitutions run before
+every other OpenType feature (fontTools puts them in `rvrn`): `dollar` becomes
+`dollar.heavy` first, and `smcp`, `liga` … then work on `dollar.heavy`, so the
+alternates need their own feature entries. Write `rules last` to run them after
+the other features instead (`rclt`, DesignSpace `processing="last"`); the rules
+then have to name what those features produce (`dollar.sc > dollar.sc.heavy`).
+
+```dssketch
+rules last
+    dollar dollar.sc > .heavy (weight >= Bold)
+```
+
 ### Font with UFO Layers
 ```dssketch
 # Using layers to store intermediate masters in single UFO files

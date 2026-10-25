@@ -234,7 +234,7 @@ def language_spec() -> str:
         "sources-section", r"^(sources)\b()",
         ["axis-order", "comment", "source-name", "coordinates"] + common, kw,
     )
-    section("rules-section", r"^(rules)\b()", ["comment", "rule-head", "condition"] + common, kw)
+    section("rules-section", r"^(rules)(?:\s+(first|last))?\b", ["comment", "rule-head", "condition"] + common, kw)
     section(
         "instances-section", r"^(instances)(?:\s+(auto|off))?\b",
         ["comment", "line-keyword", "skip-label"], kw,

@@ -26,7 +26,6 @@ from ..core.report import (
     CATEGORY_AXES,
     CATEGORY_DOCUMENT,
     CATEGORY_INSTANCES,
-    CATEGORY_RULES,
     CATEGORY_SOURCES,
     DOCUMENT_ELIDED_FALLBACK_DROPPED,
     DOCUMENT_LIB_DROPPED,
@@ -37,7 +36,6 @@ from ..core.report import (
     INSTANCE_FIELDS_DROPPED,
     INSTANCE_RENAMED,
     INSTANCE_UNREACHABLE,
-    RULES_PROCESSING_LAST_DROPPED,
     SEVERITY_INFO,
     SEVERITY_WARNING,
     SOURCE_FIELDS_DROPPED,
@@ -136,6 +134,7 @@ class DesignSpaceToDSS:
         # Convert rules
         for rule in ds_doc.rules:
             dss_doc.rules.extend(self._convert_rule(rule, ds_doc))
+        dss_doc.rules_processing_last = bool(ds_doc.rulesProcessingLast and dss_doc.rules)
 
         # elidedFallbackName: written only when it is not the one DSS -> DS
         # derives anyway (the weight's elidable label, else Regular)
@@ -254,17 +253,6 @@ class DesignSpaceToDSS:
                 description=f"{len(names)} <variable-font> definitions dropped: {', '.join(names)}",
                 details="Without them a build produces the default set of variable fonts.",
                 raw_data={"variable_fonts": names},
-            ))
-
-        # -- rules ---------------------------------------------------------
-        if ds_doc.rulesProcessingLast and ds_doc.rules:
-            report.add(ConversionIssue(
-                category=CATEGORY_RULES, code=RULES_PROCESSING_LAST_DROPPED, severity=SEVERITY_WARNING,
-                description='rules processing="last" dropped',
-                details=(
-                    "The DesignSpace applies its substitutions after other features "
-                    "(rclt); a build from the sketch applies them first (rvrn)."
-                ),
             ))
 
         # -- axes: STAT label data -----------------------------------------

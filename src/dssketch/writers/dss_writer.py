@@ -152,7 +152,7 @@ class DSSWriter:
 
         # Rules section
         if dss_doc.rules:
-            lines.append("rules")
+            lines.append("rules last" if dss_doc.rules_processing_last else "rules")
             for rule in dss_doc.rules:
                 lines.extend(self._format_rule(rule, dss_doc.axes))
             lines.append("")
