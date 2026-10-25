@@ -21,8 +21,11 @@ from fontTools.designspaceLib import (
     DesignSpaceDocument,
     DiscreteAxisDescriptor,
     InstanceDescriptor,
+    RangeAxisSubsetDescriptor,
     RuleDescriptor,
     SourceDescriptor,
+    ValueAxisSubsetDescriptor,
+    VariableFontDescriptor,
 )
 
 # Import instances module
@@ -30,7 +33,7 @@ from ..core.instances import TooManyInstances, createInstance, createInstances, 
 
 # Import models from core
 from ..core.translations import Translations
-from ..core.models import elided_fallback_name
+from ..core.models import auto_variable_fonts, elided_fallback_name
 from ..core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 
 # Import validation components
@@ -207,6 +210,11 @@ class DSSToDesignSpace:
             # Explicit instances: what `instances auto` does not reproduce
             for dss_instance in dss_doc.instances:
                 doc.addInstance(self._convert_instance(dss_instance, dss_doc, doc))
+
+        # Variable fonts: `variable-fonts auto` and the blocks (none without the section)
+        fonts = (auto_variable_fonts(dss_doc) if dss_doc.variable_fonts_auto else []) + list(dss_doc.variable_fonts)
+        for font in fonts:
+            doc.addVariableFont(self._convert_variable_font(font, dss_doc))
 
         # Convert rules
         for dss_rule in dss_doc.rules:
@@ -640,6 +648,21 @@ class DSSToDesignSpace:
         instance.localisedStyleMapFamilyName = dict(localized.get("stylemapfamily", {}))
         instance.localisedStyleMapStyleName = dict(localized.get("stylemapstyle", {}))
         return instance
+
+    @staticmethod
+    def _convert_variable_font(font, dss_doc: DSSDocument) -> VariableFontDescriptor:
+        names = {axis.name: dss_axis_name(axis) for axis in dss_doc.axes + dss_doc.hidden_axes}
+        subsets = []
+        for subset in font.axes:
+            name = names.get(subset.axis, subset.axis)
+            if subset.kind == "value":
+                subsets.append(ValueAxisSubsetDescriptor(name=name, userValue=subset.value))
+            elif subset.kind == "range":
+                subsets.append(RangeAxisSubsetDescriptor(
+                    name=name, userMinimum=subset.minimum, userDefault=subset.default, userMaximum=subset.maximum))
+            else:
+                subsets.append(RangeAxisSubsetDescriptor(name=name))
+        return VariableFontDescriptor(name=font.name, filename=font.filename, axisSubsets=subsets)
 
     def _convert_rule(
         self, dss_rule: DSSRule, doc: DesignSpaceDocument

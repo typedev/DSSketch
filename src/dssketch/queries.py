@@ -71,6 +71,20 @@ class InstanceInfo:
     span: Optional["object"] = None  # structure.Span of the block's name line
 
 
+@dataclass(frozen=True)
+class VariableFontInfo:
+    """One variable font the sketch builds: from `variable-fonts auto` or a block.
+    `axes` per DesignSpace axis name: "full", a frozen user value, or a
+    (minimum, default, maximum) user range; an axis it leaves out is frozen at
+    its default and listed as that value"""
+
+    name: str
+    filename: Optional[str]
+    axes: Dict[str, object]
+    auto: bool = False  # made by `variable-fonts auto`
+    span: Optional["object"] = None  # structure.Span of a block's name line
+
+
 # -- axes -----------------------------------------------------------------------
 
 
@@ -351,6 +365,37 @@ def _instances(doc: DSSDocument, structure=None, family_name: Optional[str] = No
         return []
 
 
+def _variable_fonts(doc: DSSDocument, structure=None) -> List[VariableFontInfo]:
+    """What DSS -> DS writes as <variable-fonts>, in that order. Never raises"""
+    try:
+        from .core.models import auto_variable_fonts
+
+        fonts = [(f, True) for f in (auto_variable_fonts(doc) if doc.variable_fonts_auto else [])]
+        fonts += [(f, False) for f in doc.variable_fonts]
+        axes = all_axes(doc)
+        out = []
+        for font, auto in fonts:
+            given = {s.axis: s for s in font.axes}
+            described = {}
+            for axis in axes:
+                subset = given.get(axis.name)
+                if subset is None:
+                    described[axis_name(axis)] = axis.default
+                elif subset.kind == "full":
+                    described[axis_name(axis)] = "full"
+                elif subset.kind == "value":
+                    described[axis_name(axis)] = subset.value
+                else:
+                    default = subset.default if subset.default is not None else axis.default
+                    described[axis_name(axis)] = (subset.minimum, default, subset.maximum)
+            line = structure.line(font.line) if structure is not None and font.line else None
+            out.append(VariableFontInfo(font.name, font.filename, described, auto,
+                                        line.span if line is not None else None))
+        return out
+    except Exception:
+        return []
+
+
 # -- outline --------------------------------------------------------------------
 
 
@@ -359,7 +404,7 @@ class Symbol:
     """One entry of the structure panel
 
     kind: family, suffix, elidedfallback, path, lang, section, axis, mapping,
-    source, rule, skip, instance, avar2-var, avar2-row. `span` covers the item with what
+    source, rule, skip, instance, variable-font, avar2-var, avar2-row. `span` covers the item with what
     it owns (an axis with its mappings, a section with its items); `name_span`
     the word to select. `path` is the item path `Sketch.span()` / `item_at()`
     use (None where there is none)."""
@@ -398,6 +443,7 @@ def _outline(sketch) -> List[Symbol]:
     sources = by_line(doc.sources)
     rules = {r.line: i for i, r in enumerate(doc.rules) if r.line}
     instances = {x.line: i for i, x in enumerate(doc.instances) if x.line}
+    vfonts = {x.line: i for i, x in enumerate(doc.variable_fonts) if x.line}
     avar2 = {m.line: i for i, m in enumerate(doc.avar2_mappings) if m.line}
 
     def item(line: st.Line) -> Optional[Symbol]:
@@ -456,6 +502,12 @@ def _outline(sketch) -> List[Symbol]:
             _, last = structure.owned_lines(line.number)
             return Symbol("instance", v.get("name", ""), whole(line, last), line.fields.get("name"),
                           fields.get("location", ""), ("instance", index) if index is not None else None)
+        if line.kind == st.VARIABLE_FONT:
+            index = vfonts.get(line.number)
+            fields = {c.values.get("key"): c.values.get("value", "") for c in structure.children(line.number)}
+            _, last = structure.owned_lines(line.number)
+            return Symbol("variable-font", v.get("name", ""), whole(line, last), line.fields.get("name"),
+                          fields.get("axes", ""), ("variable_font", index) if index is not None else None)
         if line.kind == st.AVAR2_VAR:
             return Symbol("avar2-var", v.get("name", ""), line.span, line.fields.get("name"), v.get("value", ""),
                           ("avar2_var", v.get("name", "").lstrip("$")))
@@ -696,6 +748,11 @@ def source_locations(sketch_or_text) -> List[SourceLocation]:
 def rule_regions(sketch_or_text) -> List[RuleRegion]:
     """`Sketch.rule_regions()` on a Sketch or a text"""
     return _sketch(sketch_or_text).rule_regions()
+
+
+def variable_fonts(sketch_or_text) -> List[VariableFontInfo]:
+    """`Sketch.variable_fonts()` on a Sketch or a text"""
+    return _sketch(sketch_or_text).variable_fonts()
 
 
 def substitutions_at(sketch_or_text, location, glyph_names=None, space: str = "design") -> Dict[str, str]:

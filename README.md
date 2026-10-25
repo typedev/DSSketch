@@ -1000,6 +1000,33 @@ names, localized names as `lang` gives them) are left to it, a generated positio
 reproduces none of them, the sketch lists them all under a plain `instances`.
 Converting back gives the same instances.
 
+### Variable Fonts (`variable-fonts`)
+
+Which variable fonts a build makes from one design space (DesignSpace 5
+`<variable-fonts>`). `variable-fonts auto` makes one font per value of the
+discrete axes — every continuous axis whole, hidden ones too, the discrete ones
+frozen — named after the family and the discrete labels (an `@elidable` label
+left out; `suffix` appended). Blocks add the rest:
+
+```dssketch
+variable-fonts auto              # SuperFont, SuperFont-Italic
+    SuperFont-Text               # a sub-range, the italic axis frozen
+        axes: wght=Light:Bold, ital=Upright
+        filename: SuperFont-Text.ttf
+```
+
+- `axes:` lists `wght` (the whole axis), `ital=Italic` (frozen at a value) and
+  `opsz=10:14:24` or `wght=Light:Bold` (a sub-range; without a middle value the
+  axis default). Values are user space, as in the axis ranges; labels stand for
+  their user value
+- An axis a block leaves out is frozen at its default, as in DesignSpace; a
+  discrete axis left out is warned about
+- Without a `variable-fonts` section no `<variable-fonts>` is written and the
+  build decides (fontTools makes the same split as `auto`, named `VF-ital1`…)
+- Converting a DesignSpace writes `variable-fonts auto` when every font `auto`
+  makes is there, plus a block for each other font; otherwise every font is a
+  block. A variable font's `lib` is reported, not carried
+
 ### Skip Rule Validation
 
 DSSketch validates skip rules at **two levels** to ensure correctness and provide helpful feedback:

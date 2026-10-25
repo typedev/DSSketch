@@ -18,7 +18,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
-from .core.models import INSTANCE_KEYS, LOCALIZED_KEYS
+from .core.models import INSTANCE_KEYS, LOCALIZED_KEYS, VARIABLE_FONT_KEYS
 from .codes import code_id, plain_message
 from .utils.comments import comment_start, strip_comment
 from .utils.dss_validator import DSSValidator
@@ -151,6 +151,8 @@ class _Tokenizer:
         self.skip_indent = 0
         self.in_instance = False  # in an explicit instance block
         self.instance_indent = 0
+        self.in_vfont = False  # in a variable font block
+        self.vfont_indent = 0
         # Every name and tag of a declared axis, lower case: rule conditions
         # and avar2 refer to axes by either
         self.axis_refs: Set[str] = set(_AXIS_ALIASES) | set(_AXIS_ALIASES.values())
@@ -190,6 +192,7 @@ class _Tokenizer:
             "axes": self._axis_line,
             "sources": self._source_line,
             "instances": self._instance_line,
+            "variable_fonts": self._variable_font_line,
             "rules": self._rule_line,
             "avar2_vars": self._avar2_line,
             "avar2": self._avar2_line,
@@ -198,7 +201,7 @@ class _Tokenizer:
         if handler is None:
             # Outside any section the parser only checks for keyword typos
             return [(a.start, a.end, UNKNOWN) for a in atoms]
-        if handler == self._instance_line:
+        if handler in (self._instance_line, self._variable_font_line):
             return handler(line, atoms)
         return handler(atoms)
 
@@ -243,6 +246,10 @@ class _Tokenizer:
             for a in atoms[1:]:
                 out.append((a.start, a.end, AXIS_TAG if a.kind == "word" else _default_type(a)))
             return out
+        if line == "variable-fonts" or line.startswith("variable-fonts "):
+            self.section = "variable_fonts"
+            self.in_vfont = False
+            return keywords("variable-fonts", "auto")
         if line == "instances" or line.startswith("instances "):
             self.section = "instances"
             self.in_skip = False
@@ -450,6 +457,46 @@ class _Tokenizer:
             else:
                 out.append((a.start, a.end, _default_type(a)))
         return out
+
+    # -- variable fonts ---------------------------------------------------------
+
+    def _variable_font_line(self, line: str, atoms: List[_Atom]):
+        """A block name, then `axes: wght, ital=Italic, opsz=10:24` / `filename: …`
+        indented deeper (as the parser reads them)"""
+        indent = len(line) - len(line.lstrip())
+        if self.in_vfont and indent > self.vfont_indent:
+            key = atoms[0]
+            if key.kind != "word" or len(atoms) < 2 or atoms[1].text != ":":
+                return [(a.start, a.end, UNKNOWN) for a in atoms]
+            known = key.text in VARIABLE_FONT_KEYS
+            out = [(key.start, key.end, KEYWORD if known else UNKNOWN), (atoms[1].start, atoms[1].end, PUNCTUATION)]
+            rest = atoms[2:]
+            if not rest:
+                return out
+            if key.text != "axes":
+                if len(rest) == 1 and rest[0].kind == "string":
+                    return out + [(rest[0].start, rest[0].end, STRING)]
+                return out + [(rest[0].start, rest[0].end if len(rest) == 1 else rest[-1].end, TEXT if known else UNKNOWN)]
+            after_eq = False
+            for a in rest:
+                if a.kind == "punct":
+                    if a.text in ("=", ":"):
+                        after_eq = True
+                    elif a.text == ",":
+                        after_eq = False
+                    out.append((a.start, a.end, PUNCTUATION))
+                elif a.kind == "word":
+                    out.append((a.start, a.end, _value_type(a.text) if after_eq else AXIS_TAG))
+                else:
+                    out.append((a.start, a.end, _default_type(a)))
+            return out
+        self.in_vfont = False
+        if indent == 0:
+            return [(a.start, a.end, UNKNOWN) for a in atoms]
+        self.in_vfont, self.vfont_indent = True, indent
+        if len(atoms) == 1 and atoms[0].kind == "string":
+            return [(atoms[0].start, atoms[0].end, STRING)]
+        return [(atoms[0].start, atoms[-1].end, TEXT)]
 
     # -- rules ------------------------------------------------------------------
 
@@ -663,10 +710,11 @@ _WORD_HEAD = re.compile(r"[^\s\[\](){},:=\"'@$<>=&]*")
 # Section and document keywords, as a line at column 0 starts them
 _LINE_KEYWORDS = (
     "family", "suffix", "elidedfallback", "path", "lang", "axes", "axes hidden", "sources",
-    "rules", "rules last", "instances auto", "instances off", "avar2", "avar2 vars", "avar2 matrix",
+    "rules", "rules last", "variable-fonts", "variable-fonts auto", "instances auto", "instances off", "avar2", "avar2 vars", "avar2 matrix",
 )
 _HEADER_FOLLOWERS = {
     "axes": ("hidden",), "instances": ("auto", "off"), "rules": ("last",), "avar2": ("vars", "matrix"),
+    "variable-fonts": ("auto",),
 }
 _SOURCE_FLAGS = ("@base", "@sparse", "@layer=")
 _COMPARISONS = (">=", "<=", "==", "<", ">")
@@ -840,6 +888,8 @@ def _complete(text: str, line: int, column: int, font_data=None) -> List[Complet
         return _complete_rules(ctx, atoms, last, offer, font_data)
     if section == "instances":
         return _complete_instances(ctx, lines, line, atoms, words, last, indent, offer)
+    if section == "variable_fonts":
+        return _complete_variable_fonts(ctx, lines, line, atoms, words, last, indent, offer)
     if section in ("avar2", "avar2_matrix"):
         return _complete_avar2(ctx, section, atoms, words, last, offer)
     return []
@@ -876,6 +926,34 @@ def _complete_instances(ctx, lines, line, atoms, words, last, indent, offer) -> 
         return []
     if not atoms:
         return offer([("skip", "")], KEYWORD)
+    return []
+
+
+def _complete_variable_fonts(ctx, lines, line, atoms, words, last, indent, offer) -> List[Completion]:
+    """In a variable font block its keys; in `axes:` the axes and, after
+    `axis=` or `:`, that axis's labels (user values)"""
+    tok = ctx.tokenizer
+    if not (tok.in_vfont and indent > tok.vfont_indent):
+        return []
+    if not atoms:
+        used = set()
+        for raw in reversed(lines[:line - 1]):
+            if len(raw) - len(raw.lstrip()) <= tok.vfont_indent and raw.strip():
+                break
+            used.add(raw.strip().split(":", 1)[0].strip())
+        return offer([(k, "") for k in VARIABLE_FONT_KEYS if k not in used], KEYWORD)
+    if words[:1] != ["axes"] or len(atoms) < 2 or atoms[1].text != ":":
+        return []
+    if last is not None and last.text in ("=", ":") and len(atoms) > 2:
+        # the axis is the word before the last `=`
+        k = len(atoms) - 1
+        while k > 2 and atoms[k].text != "=":
+            k -= 1
+        axis = ctx.axis(atoms[k - 1].text) if k > 2 and atoms[k].text == "=" else None
+        return offer(ctx.labels(axis, space="user"), LABEL) if axis is not None else []
+    if last is not None and last.text in (":", ","):
+        listed = {a.text for a in atoms[2:] if a.kind == "word"}
+        return offer([r for r in ctx.axis_refs(hidden=True) if r[0] not in listed], AXIS_TAG)
     return []
 
 

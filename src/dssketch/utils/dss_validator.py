@@ -30,7 +30,8 @@ class DSSValidator:
     """Comprehensive DSS document validator"""
 
     # Valid keywords for better error detection
-    VALID_KEYWORDS = {"family", "suffix", "elidedfallback", "lang", "path", "axes", "sources", "instances", "rules"}
+    VALID_KEYWORDS = {"family", "suffix", "elidedfallback", "lang", "path", "axes", "sources", "instances", "rules",
+                      "variable-fonts"}
 
     # Maximum Levenshtein distance for typo suggestions (1-2 character edits)
     MAX_TYPO_DISTANCE = 2
@@ -451,6 +452,66 @@ class DSSValidator:
                 at=mapping,
             )
 
+    def _validate_variable_fonts(self, document: DSSDocument):
+        """Variable font blocks: axes given, names unique (with `auto`'s), values
+        inside the axis (a discrete one at one of its values), every discrete
+        axis listed (left out it is frozen at its default, rarely meant)"""
+        from types import SimpleNamespace
+
+        from ..core.models import auto_variable_fonts
+
+        names = {}
+        if document.variable_fonts_auto:
+            at = SimpleNamespace(line=document.variable_fonts_line)
+            for font in auto_variable_fonts(document):
+                names[font.name] = at
+        axes = {a.name: a for a in list(document.axes) + list(document.hidden_axes)}
+        for font in document.variable_fonts:
+            if font.name in names:
+                self._error(
+                    f"Variable font '{font.name}' is named twice"
+                    + (" (variable-fonts auto makes one of that name)" if names[font.name].__class__ is SimpleNamespace else ""),
+                    at=font,
+                )
+            names.setdefault(font.name, font)
+            if not font.axes:
+                self._error(f"Variable font '{font.name}' has no axes (axes: wght, ital=Italic, …)", at=font)
+                continue
+            listed = {s.axis for s in font.axes}
+            for subset in font.axes:
+                axis = axes.get(subset.axis)
+                if axis is None:
+                    continue
+                if axis.is_discrete:
+                    if subset.value not in (axis.values or ()):
+                        self._error(
+                            f"Variable font '{font.name}': {axis.tag}={subset.value:g} is not a value of the "
+                            f"discrete axis ({', '.join(f'{v:g}' for v in axis.values or ())})",
+                            at=font,
+                        )
+                    continue
+                ends = [v for v in (subset.value, subset.minimum, subset.default, subset.maximum) if v is not None]
+                if any(not axis.minimum <= v <= axis.maximum for v in ends):
+                    self._warning(
+                        f"Variable font '{font.name}': {axis.tag} goes outside the axis range "
+                        f"[{axis.minimum:g}, {axis.maximum:g}]; fontTools clamps it",
+                        at=font,
+                    )
+                if subset.kind == "range" and not (
+                    subset.minimum <= (subset.default if subset.default is not None else subset.minimum) <= subset.maximum
+                ):
+                    self._error(
+                        f"Variable font '{font.name}': {axis.tag} range must be ordered min <= default <= max",
+                        at=font,
+                    )
+            for axis in document.axes:
+                if axis.is_discrete and axis.name not in listed:
+                    self._warning(
+                        f"Variable font '{font.name}' does not list discrete axis '{axis.tag}': it is frozen "
+                        f"at its default ({axis.default:g}). Write {axis.tag}=… to say which",
+                        at=font,
+                    )
+
     def _validate_instances_auto_size(self, document: DSSDocument):
         """`instances auto` within MAX_AUTO_INSTANCES (counted, never generated)"""
         if not document.instances_auto or document.instances_off or not document.axes:
@@ -566,6 +627,7 @@ class DSSValidator:
         self._validate_skip_labels(document)
         self._validate_instances_auto_size(document)
         self._validate_explicit_instances(document)
+        self._validate_variable_fonts(document)
 
         # Validate axes content
         for axis in document.axes + document.hidden_axes:

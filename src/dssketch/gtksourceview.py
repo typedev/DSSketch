@@ -282,6 +282,33 @@ def language_spec() -> str:
     w("      </include>")
     w("    </context>")
     match("instances-auto", r"^\s+(auto)\s*(?=#|$)", groups=[(1, "keyword")])
+    # variable-fonts: blocks like explicit instances; `axes:` lists axis,
+    # axis=value and axis=min:max (values after = or :)
+    match("vf-filename", r"^\s+(filename)\s*(:)\s*(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))?(?=\s*(?:#|$))",
+          groups=[(1, "keyword"), (2, "punctuation"), (3, "string"), (4, "text")])
+    match("vf-number", r"(?<=[=:])-?\d+(?:\.\d+)?(?=\s*(?:[,:#]|$))", "number")
+    match("vf-label", r"(?<=[=:])[^\s,:#=]+", "label")
+    match("vf-axis", r"[A-Za-z_][A-Za-z0-9_]*", "axis-tag")
+    w('    <context id="vf-axes" end-at-line-end="true">')
+    w("      <start>" + escape(r"^\s+(axes)\s*(:)") + "</start>")
+    w("      <include>")
+    w('        <context sub-pattern="1" where="start" style-ref="keyword"/>')
+    w('        <context sub-pattern="2" where="start" style-ref="punctuation"/>')
+    for ref in ("comment", "vf-number", "vf-label", "inner-punctuation", "vf-axis"):
+        w(f'        <context ref="{ref}"/>')
+    w("      </include>")
+    w("    </context>")
+    w('    <context id="vf-block">')
+    w("      <start>" + escape(r"^(?<vfind>[ \t]+)(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))(?=\s*(?:#|$))") + "</start>")
+    w("      <end>" + escape(block_end("vfind")) + "</end>")
+    w("      <include>")
+    w('        <context sub-pattern="2" where="start" style-ref="string"/>')
+    w('        <context sub-pattern="3" where="start" style-ref="text"/>')
+    for ref in ("comment", "vf-axes", "vf-filename"):
+        w(f'        <context ref="{ref}"/>')
+    w("      </include>")
+    w("    </context>")
+    section("vf-section", r"^(variable-fonts)(?:\s+(auto))?(?=\s|#|$)", ["comment", "vf-block"], kw)
     section(
         "instances-section", r"^(instances)(?:\s+(auto|off))?\b",
         ["comment", "skip-block", "instances-auto", "instance-block"], kw,
@@ -291,7 +318,7 @@ def language_spec() -> str:
     w('    <context id="dssketch" class="no-spell-check">')
     w("      <include>")
     for ref in ["comment", "document-line", "lang-line", "axes-section", "sources-section", "rules-section",
-                "instances-section", "avar2-section"] + common:
+                "instances-section", "vf-section", "avar2-section"] + common:
         w(f'        <context ref="{ref}"/>')
     w("      </include>")
     w("    </context>")

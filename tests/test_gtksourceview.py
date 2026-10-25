@@ -71,6 +71,10 @@ instances auto
     "Wide # 2"
         location: wght=700
         filename: instances/Wide.ufo
+variable-fonts auto
+    Sans-Text  # note
+        axes: wght=Thin:Regular:Black, opsz=8:14, ital=Italic, CNTR, XOUC=80
+        filename: "Sans Text.ttf"
 avar2 vars
     $XO = 50
 avar2

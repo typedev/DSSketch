@@ -808,6 +808,35 @@ error); queries/apply see an empty list. Tests: `tests/test_instances_limit.py`
   **Codes are append-only** — callers switch on `(category, code)`
 - **Tests**: `tests/test_explicit_instances.py`
 
+**`variable-fonts` (1.6.x, DesignSpace 5 `<variable-fonts>`):**
+- Model: `DSSDocument.variable_fonts` (`DSSVariableFont(name, axes, filename)`,
+  axes = `DSSAxisSubset(axis, kind="full"|"value"|"range", …)`, user space),
+  `variable_fonts_auto`, `variable_fonts_line`. `auto_variable_fonts(doc)` in
+  `core/models.py` = what `auto` makes: per combination of visible discrete
+  values, continuous axes (hidden too) whole, named
+  `Family-Label…[-suffix]`, elidable labels left out, a value without label
+  `tag+value`
+- Block syntax like explicit instances (indentation decides; parser,
+  tokenizer, structure kinds `variable-font` / `variable-font-field`, .lang
+  context `vf-block`): `axes:` (`wght`, `ital=Italic`, `opsz=10:14:24`,
+  labels = user values), `filename:`. An axis left out is frozen at its
+  default (fontTools `getVFUserRegion`)
+- DSS → DS: auto fonts then blocks, as `VariableFontDescriptor`s; no section,
+  nothing written (fontTools then splits by discrete axes itself)
+- DS → DSS (`_split_variable_fonts`): fonts compared by
+  `_variable_font_key` (name, file, per axis tag whole/value/range, left-out
+  axes at the default); every auto font present → `auto` + blocks for the rest,
+  else all blocks. Report 4.3 now only for a variable font's `lib`
+- Diagnostics 5.72–5.78 (malformed block, mode, column-0 text, duplicate name
+  incl. auto's, no axes, value off the axis / range unordered, discrete axis
+  left out). Sketch: `set_variable_fonts_mode`, `add_variable_font`,
+  `remove_variable_font`, `set_variable_font_name`, `set_variable_font_field`;
+  paths `("variable_font", i, field?)`, `("variable_font", i, "axes", tag)`;
+  `Sketch.variable_fonts()` → `VariableFontInfo` (axes by DesignSpace name:
+  "full", a value, or (min, default, max)); outline kind `variable-font`;
+  `apply_designspace` syncs mode and blocks (by name). Tests:
+  `tests/test_variable_fonts.py`
+
 **ConversionReport in both directions:**
 - **DS → DSS** (`DesignSpaceToDSS._report_dropped_data`): everything a sketch
   does not carry is reported, never silently dropped — document `<lib>`,

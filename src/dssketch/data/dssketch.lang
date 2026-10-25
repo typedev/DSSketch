@@ -368,6 +368,57 @@
         <context sub-pattern="1" style-ref="keyword"/>
       </include>
     </context>
+    <context id="vf-filename">
+      <match>^\s+(filename)\s*(:)\s*(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))?(?=\s*(?:#|$))</match>
+      <include>
+        <context sub-pattern="1" style-ref="keyword"/>
+        <context sub-pattern="2" style-ref="punctuation"/>
+        <context sub-pattern="3" style-ref="string"/>
+        <context sub-pattern="4" style-ref="text"/>
+      </include>
+    </context>
+    <context id="vf-number" style-ref="number">
+      <match>(?&lt;=[=:])-?\d+(?:\.\d+)?(?=\s*(?:[,:#]|$))</match>
+    </context>
+    <context id="vf-label" style-ref="label">
+      <match>(?&lt;=[=:])[^\s,:#=]+</match>
+    </context>
+    <context id="vf-axis" style-ref="axis-tag">
+      <match>[A-Za-z_][A-Za-z0-9_]*</match>
+    </context>
+    <context id="vf-axes" end-at-line-end="true">
+      <start>^\s+(axes)\s*(:)</start>
+      <include>
+        <context sub-pattern="1" where="start" style-ref="keyword"/>
+        <context sub-pattern="2" where="start" style-ref="punctuation"/>
+        <context ref="comment"/>
+        <context ref="vf-number"/>
+        <context ref="vf-label"/>
+        <context ref="inner-punctuation"/>
+        <context ref="vf-axis"/>
+      </include>
+    </context>
+    <context id="vf-block">
+      <start>^(?&lt;vfind&gt;[ \t]+)(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))(?=\s*(?:#|$))</start>
+      <end>^(?=[ \t]*[^\s#])(?!\%{vfind@start}[ \t])</end>
+      <include>
+        <context sub-pattern="2" where="start" style-ref="string"/>
+        <context sub-pattern="3" where="start" style-ref="text"/>
+        <context ref="comment"/>
+        <context ref="vf-axes"/>
+        <context ref="vf-filename"/>
+      </include>
+    </context>
+    <context id="vf-section">
+      <start>^(variable-fonts)(?:\s+(auto))?(?=\s|#|$)</start>
+      <end>^(?=[^\s#])</end>
+      <include>
+        <context sub-pattern="1" where="start" style-ref="keyword"/>
+        <context sub-pattern="2" where="start" style-ref="keyword"/>
+        <context ref="comment"/>
+        <context ref="vf-block"/>
+      </include>
+    </context>
     <context id="instances-section">
       <start>^(instances)(?:\s+(auto|off))?\b</start>
       <end>^(?=[^\s#])</end>
@@ -413,6 +464,7 @@
         <context ref="sources-section"/>
         <context ref="rules-section"/>
         <context ref="instances-section"/>
+        <context ref="vf-section"/>
         <context ref="avar2-section"/>
         <context ref="comment"/>
         <context ref="string"/>

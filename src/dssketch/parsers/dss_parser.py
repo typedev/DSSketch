@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 from ..core.mappings import Standards
 from ..core.translations import LANGUAGE_CODE
-from ..core.models import INSTANCE_KEYS, LOCALIZED_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
+from ..core.models import INSTANCE_KEYS, LOCALIZED_KEYS, VARIABLE_FONT_KEYS, DSSAxisSubset, DSSVariableFont, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
 from ..utils.comments import comment_start, strip_comment
 from ..utils.discrete import DiscreteAxisHandler
 from ..utils.dss_validator import DSSValidationError, DSSValidator
@@ -46,6 +46,9 @@ class DSSParser:
         self.in_skip_subsection = False  # Track if we're parsing skip subsection
         self.skip_indent = 0
         self.current_instance = None  # the explicit instance block being read
+        self.current_variable_font = None  # the variable font block being read
+        self.variable_font_indent = 0
+        self.variable_font_keys = set()
         self.instance_indent = 0
         self.instance_keys = set()
         self.discrete_labels = DiscreteAxisHandler.load_discrete_labels()
@@ -153,7 +156,8 @@ class DSSParser:
     def _stamp_line(self, line_no: int):
         """Give what this line declared its line number (new objects are appended)"""
         doc = self.document
-        lists = [doc.axes, doc.hidden_axes, doc.sources, doc.rules, doc.avar2_mappings, doc.instances]
+        lists = [doc.axes, doc.hidden_axes, doc.sources, doc.rules, doc.avar2_mappings, doc.instances,
+                 doc.variable_fonts]
         if self.current_axis is not None:
             lists.append(self.current_axis.mappings)
         for items in lists:
@@ -271,6 +275,18 @@ class DSSParser:
                 # Convert tags to full axis names
                 self.source_axis_order = [self._tag_to_axis_name(tag) for tag in axis_tags]
 
+        elif line == "variable-fonts" or line.startswith("variable-fonts "):
+            self.current_section = "variable_fonts"
+            self.document.variable_fonts_line = self.current_line_no
+            self.current_variable_font = None
+            mode = line[len("variable-fonts"):].strip()
+            if mode == "auto":
+                self.document.variable_fonts_auto = True
+            elif mode:
+                self.validator.errors.append(
+                    f"variable-fonts: unknown mode '{mode}'. Use `variable-fonts` (blocks only) or `variable-fonts auto`"
+                )
+
         elif line == "instances" or line.startswith("instances "):
             self.current_section = "instances"
             self.document.instances_line = self.current_line_no
@@ -335,6 +351,9 @@ class DSSParser:
 
         elif self.current_section == "instances":
             self._parse_instance_line(line)
+
+        elif self.current_section == "variable_fonts":
+            self._parse_variable_font_line(line)
 
         elif self.current_section == "rules":
             self._parse_rule_line(line)
@@ -1264,6 +1283,115 @@ class DSSParser:
                 continue
             location[axis.name] = number
         return location
+
+    def _parse_variable_font_line(self, line: str):
+        """A variable font block: a name line, then `axes:` / `filename:` deeper"""
+        indent = len(line) - len(line.lstrip())
+        text = line.strip()
+        if not text:
+            return
+        font = self.current_variable_font
+        if font is not None and indent > self.variable_font_indent:
+            key, colon, value = text.partition(":")
+            key = key.strip()
+            if not colon or " " in key:
+                self.validator.errors.append(f"Variable font '{font.name}': expected 'key: value', got '{text}'")
+                return
+            if key not in VARIABLE_FONT_KEYS:
+                self.validator.errors.append(
+                    f"Variable font '{font.name}': unknown key '{key}'. Keys: {', '.join(VARIABLE_FONT_KEYS)}"
+                )
+                return
+            if key in self.variable_font_keys:
+                self.validator.errors.append(f"Variable font '{font.name}': key '{key}' given twice")
+                return
+            self.variable_font_keys.add(key)
+            value = self._extract_quoted_or_plain_value(value)
+            if not value:
+                self.validator.errors.append(f"Variable font '{font.name}': key '{key}' has no value")
+            elif key == "filename":
+                font.filename = value
+            else:
+                font.axes = self._parse_axis_subsets(font, value)
+            return
+        if indent == 0:
+            self.validator.warnings.append(
+                f"Variable font line ignored: '{text}'. A variable font is a name indented under "
+                f"`variable-fonts`, with `axes: …` below it."
+            )
+            return
+        font = DSSVariableFont(name=self._extract_quoted_or_plain_value(text))
+        self.document.variable_fonts.append(font)
+        self.current_variable_font = font
+        self.variable_font_indent = indent
+        self.variable_font_keys = set()
+
+    def _parse_axis_subsets(self, font, value: str) -> List[DSSAxisSubset]:
+        """`wght, ital=Italic, opsz=10:14:24`: user space, a label for its user value"""
+        out, seen = [], set()
+        axes = self.document.axes + self.document.hidden_axes
+        for part in value.split(","):
+            part = part.strip()
+            name, eq, raw = part.partition("=")
+            name, raw = name.strip(), raw.strip()
+            axis = next((a for a in axes if name in (a.tag, a.name, a.display_name)), None) or next(
+                (a for a in axes if name.lower() in (a.tag.lower(), a.name.lower(), (a.display_name or "").lower())),
+                None,
+            )
+            if not name or (eq and not raw):
+                self.validator.errors.append(
+                    f"Variable font '{font.name}': axes expects 'axis', 'axis=value' or 'axis=min:max', got '{part}'"
+                )
+                continue
+            if axis is None:
+                self.validator.errors.append(
+                    f"Variable font '{font.name}': unknown axis '{name}'. Available axes: "
+                    f"{', '.join(a.tag for a in axes)}"
+                )
+                continue
+            if axis.name in seen:
+                self.validator.errors.append(f"Variable font '{font.name}': axis '{axis.tag}' given twice")
+                continue
+            seen.add(axis.name)
+            if not eq:
+                if axis.is_discrete:
+                    self.validator.errors.append(
+                        f"Variable font '{font.name}': discrete axis '{axis.tag}' takes one value "
+                        f"({axis.tag}=…), not its whole range"
+                    )
+                    continue
+                out.append(DSSAxisSubset(axis=axis.name, kind="full"))
+                continue
+            values = []
+            for piece in raw.split(":"):
+                piece = piece.strip()
+                try:
+                    values.append(float(piece))
+                except ValueError:
+                    mapping = next((m for m in axis.mappings if m.label == piece), None)
+                    if mapping is None:
+                        labels = [m.label for m in axis.mappings if m.label]
+                        self.validator.errors.append(
+                            f"Variable font '{font.name}': unknown label '{piece}' for axis '{axis.tag}'"
+                            + (f". Available labels: {', '.join(labels)}" if labels else "")
+                        )
+                        values = None
+                        break
+                    values.append(mapping.user_value)
+            if values is None:
+                continue
+            if len(values) == 1:
+                out.append(DSSAxisSubset(axis=axis.name, kind="value", value=values[0]))
+            elif len(values) in (2, 3) and not axis.is_discrete:
+                low, high = values[0], values[-1]
+                default = values[1] if len(values) == 3 else None
+                out.append(DSSAxisSubset(axis=axis.name, kind="range", minimum=low, default=default, maximum=high))
+            else:
+                self.validator.errors.append(
+                    f"Variable font '{font.name}': '{part}' is not a value or a range"
+                    + (" (a discrete axis takes one value)" if axis.is_discrete else "")
+                )
+        return out
 
     def _parse_condition_string(self, condition_str: str) -> List[dict]:
         """Parse condition string like 'weight >= 480' or 'weight >= Bold'

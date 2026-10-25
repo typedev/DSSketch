@@ -89,6 +89,8 @@ SKIP = "skip"                  # the `skip` keyword line
 SKIP_ENTRY = "skip-entry"
 INSTANCE = "instance"          # an explicit instance block's name line
 INSTANCE_FIELD = "instance-field"  # `key: value` under it
+VARIABLE_FONT = "variable-font"  # a variable font block's name line
+VARIABLE_FONT_FIELD = "variable-font-field"  # `axes:` / `filename:` under it
 RULE = "rule"
 AVAR2_VAR = "avar2-var"
 AVAR2_ROW = "avar2-row"        # a linear mapping or a matrix data row
@@ -98,12 +100,12 @@ OTHER = "other"                # not understood (the parser warns or errors)
 
 ITEM_KINDS = frozenset({
     FAMILY, SUFFIX, ELIDED_FALLBACK, PATH, LANG, AXIS, MAPPING, SOURCE_LINE, SKIP, SKIP_ENTRY, RULE,
-    AVAR2_VAR, AVAR2_ROW, AVAR2_HEADER, INSTANCE, INSTANCE_FIELD,
+    AVAR2_VAR, AVAR2_ROW, AVAR2_HEADER, INSTANCE, INSTANCE_FIELD, VARIABLE_FONT, VARIABLE_FONT_FIELD,
 })
 
 # Section names (Line.section), as the parser keeps them
 SECTION_NAMES = (
-    "family", "axes", "axes_hidden", "sources", "instances", "rules",
+    "family", "axes", "axes_hidden", "sources", "instances", "variable_fonts", "rules",
     "avar2_vars", "avar2", "avar2_matrix",
 )
 
@@ -126,6 +128,8 @@ class Line:
       `flag.base`, `flag.sparse`, `flag.layer` (the flag through its value),
       `layer` (the value)
     - skip-entry: `value`
+    - variable-font: `name`; variable-font-field: `key`, `value` and, for
+      `axes`, `axis.<axis as written>` (its value, or the axis name alone)
     - instance: `name` (quotes stripped from the value); instance-field: `key`,
       `value` and, for `location`, `location.<axis as written>` (the value)
     - rule: `pattern`, `target`, `conditions` (every group with its
@@ -246,6 +250,7 @@ class _State:
         self.in_block: Optional[int] = None  # the avar2 row whose { } is open
         self.in_skip = False
         self.instance_line: Optional[int] = None  # the explicit instance block open
+        self.vfont_line: Optional[int] = None  # the variable font block open
 
 
 def _code_tokens(tokens: List[Token]) -> List[Token]:
@@ -277,6 +282,7 @@ def _classify(number, raw, indent, tokens, before, section, state) -> Line:
         "axes_hidden": _axis_or_mapping,
         "sources": _source_line,
         "instances": _instances_line,
+        "variable_fonts": _variable_fonts_line,
         "rules": _rule_line,
         "avar2_vars": _avar2_var_line,
         "avar2": _avar2_line,
@@ -315,6 +321,7 @@ def _header_line(make, code, section, state) -> Optional[Line]:
     state.in_block = None
     state.in_skip = False
     state.instance_line = None
+    state.vfont_line = None
     line = make(SECTION, section)
     line.values["section"] = section
     two_words = section in ("axes_hidden", "avar2_vars", "avar2_matrix") and len(code) > 1
@@ -329,6 +336,10 @@ def _header_line(make, code, section, state) -> Optional[Line]:
                 line.put(f"order.{i}", t)
     elif section == "instances":
         mode = next((t for t in rest if t.type == KEYWORD and t.text in ("auto", "off")), None)
+        if mode is not None:
+            line.put("mode", mode)
+    elif section == "variable_fonts":
+        mode = next((t for t in rest if t.type == KEYWORD and t.text == "auto"), None)
         if mode is not None:
             line.put("mode", mode)
     elif section == "rules":
@@ -516,6 +527,48 @@ def _instances_line(make, code, state) -> Line:
         state.instance_line = line.number
         return line
     state.instance_line = None
+    return make(OTHER)
+
+
+# -- variable fonts -------------------------------------------------------------
+
+
+def _variable_fonts_line(make, code, state) -> Line:
+    first = code[0]
+    if (state.vfont_line is not None and len(code) > 1 and first.type in (KEYWORD, UNKNOWN)
+            and code[1].type == PUNCTUATION and code[1].text == ":"):
+        line = make(VARIABLE_FONT_FIELD)
+        line.parent = state.vfont_line
+        line.put("key", first)
+        rest = code[2:]
+        if rest:
+            line.put("value", rest[0], rest[-1])
+            if len(rest) == 1 and rest[0].type == STRING:
+                line.values["value"] = rest[0].text[1:-1] if len(rest[0].text) > 1 else ""
+        if first.text == "axes":
+            k = 0
+            while k < len(rest):
+                t = rest[k]
+                if t.type == AXIS_TAG:
+                    end = k
+                    while end + 1 < len(rest) and rest[end + 1].text != ",":
+                        end += 1
+                    if end > k:  # `axis=value`, `axis=a:b`: the value part
+                        line.put(f"axis.{t.text}", rest[k + 2] if k + 2 <= end else rest[end], rest[end])
+                    else:
+                        line.put(f"axis.{t.text}", t)
+                    k = end + 1
+                else:
+                    k += 1
+        return line
+    if first.column > 0 and len(code) == 1 and first.type in (TEXT, STRING):
+        line = make(VARIABLE_FONT)
+        line.put("name", first)
+        if first.type == STRING:
+            line.values["name"] = first.text[1:-1] if len(first.text) > 1 else ""
+        state.vfont_line = line.number
+        return line
+    state.vfont_line = None
     return make(OTHER)
 
 

@@ -49,6 +49,28 @@ from ..core.report import (
 from ..utils.logging import DSSketchLogger
 
 
+def _variable_font_key(font, axes) -> tuple:
+    """A variable font as it builds: name, file, and per axis (by tag) whole /
+    frozen value / range (an axis left out frozen at its default)"""
+    given = {s.axis: s for s in font.axes}
+    out = []
+    for axis in axes:
+        s = given.get(axis.name)
+        if s is None:
+            out.append((axis.tag, "value", round(float(axis.default), 6)))
+        elif s.kind == "value":
+            out.append((axis.tag, "value", round(float(s.value), 6)))
+        else:
+            low = axis.minimum if s.kind == "full" else s.minimum
+            high = axis.maximum if s.kind == "full" else s.maximum
+            default = axis.default if s.kind == "full" or s.default is None else s.default
+            if (low, default, high) == (axis.minimum, axis.default, axis.maximum):
+                out.append((axis.tag, "full"))
+            else:
+                out.append((axis.tag, "range", low, default, high))
+    return (font.name, font.filename or None, tuple(out))
+
+
 class DesignSpaceToDSS:
     """Convert DesignSpace to DSS format"""
 
@@ -146,6 +168,9 @@ class DesignSpaceToDSS:
         # Convert rules
         for rule in ds_doc.rules:
             dss_doc.rules.extend(self._convert_rule(rule, ds_doc))
+
+        if ds_doc.variableFonts:
+            self._split_variable_fonts(ds_doc, dss_doc)
         dss_doc.rules_processing_last = bool(ds_doc.rulesProcessingLast and dss_doc.rules)
 
         # elidedFallbackName: written only when it is not the one DSS -> DS
@@ -267,12 +292,13 @@ class DesignSpaceToDSS:
                 details="Document-level location labels become STAT format 4 entries.",
                 raw_data={"labels": names},
             ))
-        if ds_doc.variableFonts:
-            names = [vf.name for vf in ds_doc.variableFonts]
+        with_lib = [vf.name for vf in ds_doc.variableFonts if getattr(vf, "lib", None)]
+        if with_lib:
+            names = with_lib
             report.add(ConversionIssue(
                 category=CATEGORY_DOCUMENT, code=DOCUMENT_VARIABLE_FONTS_DROPPED, severity=SEVERITY_WARNING,
-                description=f"{len(names)} <variable-font> definitions dropped: {', '.join(names)}",
-                details="Without them a build produces the default set of variable fonts.",
+                description=f"The lib of {len(names)} <variable-font> definitions dropped: {', '.join(names)}",
+                details="The variable fonts themselves are carried (`variable-fonts`); their lib is not.",
                 raw_data={"variable_fonts": names},
             ))
 
@@ -792,6 +818,51 @@ class DesignSpaceToDSS:
                     output_axes.add(axis_name)
 
         return output_axes
+
+    def _split_variable_fonts(self, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument) -> None:
+        """`variable-fonts auto` for the fonts it makes, blocks for the rest.
+
+        A font is compared as a whole: name, file name and what it does with
+        every axis (an axis left out is frozen at its default; a range over the
+        whole axis with its default is the whole axis). When every font `auto`
+        makes is in the document, the section is `auto` plus a block per other
+        font; else every font is a block.
+        """
+        from ..core.models import DSSAxisSubset, DSSVariableFont, auto_variable_fonts
+
+        axes = list(dss_doc.axes) + list(dss_doc.hidden_axes)
+        by_ds_name = {}
+        for axis in axes:
+            by_ds_name[axis.name] = axis
+            if axis.display_name:
+                by_ds_name[axis.display_name] = axis
+
+        def block(vf) -> DSSVariableFont:
+            subsets = []
+            for subset in vf.axisSubsets:
+                axis = by_ds_name.get(subset.name)
+                name = axis.name if axis is not None else subset.name
+                if hasattr(subset, "userValue"):
+                    subsets.append(DSSAxisSubset(axis=name, kind="value", value=subset.userValue))
+                elif subset.userMinimum == float("-inf") and subset.userMaximum == float("inf") \
+                        and subset.userDefault is None:
+                    subsets.append(DSSAxisSubset(axis=name, kind="full"))
+                else:
+                    low = axis.minimum if subset.userMinimum == float("-inf") and axis else subset.userMinimum
+                    high = axis.maximum if subset.userMaximum == float("inf") and axis else subset.userMaximum
+                    subsets.append(DSSAxisSubset(axis=name, kind="range", minimum=low,
+                                                 default=subset.userDefault, maximum=high))
+            return DSSVariableFont(name=vf.name, axes=subsets, filename=vf.filename)
+
+        fonts = [block(vf) for vf in ds_doc.variableFonts]
+        auto = auto_variable_fonts(dss_doc)
+        keys = [_variable_font_key(f, axes) for f in fonts]
+        auto_keys = [_variable_font_key(f, axes) for f in auto]
+        if auto_keys and all(k in keys for k in auto_keys):
+            dss_doc.variable_fonts_auto = True
+            dss_doc.variable_fonts = [f for f, k in zip(fonts, keys) if k not in auto_keys]
+        else:
+            dss_doc.variable_fonts = fonts
 
     def _report_avar2_tags(self, ds_doc: DesignSpaceDocument) -> None:
         """avar2 rows that name an axis by its tag: a DesignSpace names axes by

@@ -39,7 +39,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 from . import structure as st
 from .core.mappings import Standards
-from .core.models import INSTANCE_KEYS, LOCALIZED_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSRule, DSSSource
+from .core.models import INSTANCE_KEYS, LOCALIZED_KEYS, VARIABLE_FONT_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSRule, DSSSource
 from .structure import Span
 
 Number = Union[int, float]
@@ -562,6 +562,27 @@ class Sketch:
                 return next((span for name, span in field_line.fields.items()
                              if name.startswith("location.") and self._axis_ref_tag(name[9:]) == path[3]), None)
             return field_line.fields.get("value")
+        if kind == "variable_font":
+            line = self._line_of(doc.variable_fonts[path[1]])
+            if line is None or line.kind != st.VARIABLE_FONT:
+                return None
+            if len(path) == 2:
+                return line.span
+            if path[2] == "name":
+                return line.fields.get("name")
+            field_line = next((c for c in self.structure.children(line.number)
+                               if c.kind == st.VARIABLE_FONT_FIELD and c.values.get("key") == path[2]), None)
+            if field_line is None:
+                return None
+            if path[2] == "axes" and len(path) > 3:
+                return next((span for name, span in field_line.fields.items()
+                             if name.startswith("axis.") and self._axis_ref_tag(name[5:]) == path[3]), None)
+            return field_line.fields.get("value")
+        if kind == "variable_fonts":
+            header = self.structure.section_header("variable_fonts")
+            if header is None:
+                return None
+            return header.fields.get("mode") if field_name == "mode" else header.span
         if kind == "section":
             header = self.structure.section_header(path[1])
             return header.span if header is not None else None
@@ -640,6 +661,13 @@ class Sketch:
             self._instances = queries._instances(self.document, self.structure, family)
         return list(self._instances)
 
+    def variable_fonts(self) -> list:
+        """queries.VariableFontInfo per variable font DSS -> DS writes (`auto`'s,
+        then the blocks); empty without a `variable-fonts` section"""
+        from . import queries
+
+        return queries._variable_fonts(self.document, self.structure)
+
     def apply_designspace(self, ds_doc) -> Tuple["EditResult", Any]:
         """The edits that make this text describe a (changed) DesignSpace
         document, and a ConversionReport of what was not written (avar2,
@@ -692,6 +720,9 @@ class Sketch:
                                                  postscript filename stylemapfamily
                                                  stylemapstyle
           ("instance", index, "location", tag)
+          ("variable_fonts", "mode"?)
+          ("variable_font", index, field?)      field: name axes filename
+          ("variable_font", index, "axes", tag)
           ("avar2_var", name, field?)           field: name value
           ("avar2", index, "input" | "output", tag) / ("avar2", index, field?)
         Never raises.
@@ -728,6 +759,9 @@ class Sketch:
             if section == "instances":
                 name = field_at(line.fields)
                 return ("instances", "mode") if name == "mode" else ("instances",)
+            if section == "variable_fonts":
+                name = field_at(line.fields)
+                return ("variable_fonts", "mode") if name == "mode" else ("variable_fonts",)
             return ("section", section)
         if kind == st.AXIS:
             axis = next((a for a in self._all_axes() if a.line == line_no), None)
@@ -764,6 +798,20 @@ class Sketch:
             return ("skip", " ".join(line.values.get("value", "").split()))
         if kind == st.SKIP:
             return ("instances",)
+        if kind in (st.VARIABLE_FONT, st.VARIABLE_FONT_FIELD):
+            head = line.number if kind == st.VARIABLE_FONT else line.parent
+            index = next((i for i, x in enumerate(doc.variable_fonts) if x.line == head), None)
+            if index is None:
+                return None
+            if kind == st.VARIABLE_FONT:
+                return ("variable_font", index, "name")
+            key = line.values.get("key")
+            name = field_at(line.fields)
+            if key == "axes" and name and name.startswith("axis."):
+                tag = self._axis_ref_tag(name[5:])
+                if tag:
+                    return ("variable_font", index, "axes", tag)
+            return ("variable_font", index, key) if key in VARIABLE_FONT_KEYS else ("variable_font", index)
         if kind in (st.INSTANCE, st.INSTANCE_FIELD):
             head = line.number if kind == st.INSTANCE else line.parent
             index = next((i for i, x in enumerate(doc.instances) if x.line == head), None)
@@ -897,7 +945,8 @@ class Sketch:
 
     def _new_section(self, section: str, header: str, body: List[str]) -> TextEdit:
         """A section that does not exist yet, at its place in the usual order"""
-        order = ["axes", "axes_hidden", "sources", "rules", "instances", "avar2_vars", "avar2", "avar2_matrix"]
+        order = ["axes", "axes_hidden", "sources", "rules", "instances", "variable_fonts", "avar2_vars", "avar2",
+                 "avar2_matrix"]
         rank = order.index(section)
         after = 0
         for line in self.structure.lines:
@@ -2345,6 +2394,102 @@ class Sketch:
         if self.structure.section_header("avar2_vars") is None:
             return self._result([self._new_section("avar2_vars", "avar2 vars", [entry])])
         return self._result([self._insert_lines(self._section_end("avar2_vars"), [entry])])
+
+    # -- variable fonts ---------------------------------------------------------
+
+    def _variable_font_line(self, index: int):
+        fonts = self.document.variable_fonts
+        if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(fonts):
+            raise EditError("unknown-key", f"No variable font {index}")
+        font = fonts[index]
+        line = self._line_of(font)
+        if line is None or line.kind != st.VARIABLE_FONT:
+            raise EditError("target-has-errors", f"Variable font {index} has no line")
+        self._check_target(line)
+        return font, line
+
+    def _variable_font_axes(self, axes) -> str:
+        """`axes:` text from a list (`"wght"`, `"ital=Italic"`) or a dict {axis:
+        None (whole) | value | (min, max) | (min, default, max)}, or the text"""
+        if isinstance(axes, str):
+            text = axes.strip()
+        elif isinstance(axes, dict):
+            parts = []
+            for axis, value in axes.items():
+                if value is None:
+                    parts.append(str(axis))
+                elif isinstance(value, (tuple, list)):
+                    parts.append(f"{axis}=" + ":".join(v if isinstance(v, str) else format_number(v) for v in value))
+                else:
+                    parts.append(f"{axis}={value if isinstance(value, str) else format_number(value)}")
+            text = ", ".join(parts)
+        else:
+            text = ", ".join(str(a).strip() for a in axes)
+        if not text or any(c in text for c in "#()[]\""):
+            raise EditError("invalid-value", f"Not a variable font axes list: {axes!r}")
+        return text
+
+    def set_variable_fonts_mode(self, mode: Optional[str]) -> EditResult:
+        """`variable-fonts auto`, or None for blocks only; adds the section"""
+        if mode not in ("auto", None):
+            raise EditError("invalid-value", "mode is 'auto' or None")
+        header = self.structure.section_header("variable_fonts")
+        if header is None:
+            return self._result([self._new_section("variable_fonts", "variable-fonts auto" if mode else "variable-fonts", [])])
+        if "mode" in header.fields:
+            if mode == "auto":
+                return EditResult([], self._text, self)
+            keyword, word = header.fields["keyword"], header.fields["mode"]
+            return self._result([TextEdit(header.number, keyword.end_col, header.number, word.end_col, "")])
+        if mode is None:
+            return EditResult([], self._text, self)
+        return self._result([self._append_to_line(header, " auto")])
+
+    def add_variable_font(self, name: str, axes, filename: Optional[str] = None) -> EditResult:
+        """Add a variable font block (creates `variable-fonts` without auto)"""
+        if not isinstance(name, str) or not name.strip():
+            raise EditError("invalid-value", "A variable font needs a name")
+        heads = self.structure.of_kind(st.VARIABLE_FONT)
+        unit = self.structure.indent_unit
+        head = heads[0].indent if heads else unit
+        fields = [c for c in self.structure.children(heads[0].number) if c.kind == st.VARIABLE_FONT_FIELD] if heads else []
+        inner = fields[0].indent if fields else head + unit
+        texts = [head + self._instance_text(name.strip()), f"{inner}axes: {self._variable_font_axes(axes)}"]
+        if filename:
+            texts.append(f"{inner}filename: {self._instance_text(filename)}")
+        header = self.structure.section_header("variable_fonts")
+        if header is None:
+            return self._result([self._new_section("variable_fonts", "variable-fonts", texts)])
+        return self._result([self._insert_lines(self._section_end("variable_fonts"), texts)])
+
+    def remove_variable_font(self, index: int) -> EditResult:
+        _, line = self._variable_font_line(index)
+        return self._result([self._remove_item(line)])
+
+    def set_variable_font_name(self, index: int, name: str) -> EditResult:
+        _, line = self._variable_font_line(index)
+        if not isinstance(name, str) or not name.strip():
+            raise EditError("invalid-value", "A variable font needs a name")
+        return self._result([self._replace(line.fields["name"], self._instance_text(name.strip()))])
+
+    def set_variable_font_field(self, index: int, key: str, value) -> EditResult:
+        """`axes` (a list, dict or text) or `filename`; None removes `filename`"""
+        _, line = self._variable_font_line(index)
+        if key not in VARIABLE_FONT_KEYS:
+            raise EditError("invalid-value", f"Unknown variable font key '{key}'. Keys: {', '.join(VARIABLE_FONT_KEYS)}")
+        field_line = next((c for c in self.structure.children(line.number)
+                           if c.kind == st.VARIABLE_FONT_FIELD and c.values.get("key") == key), None)
+        if value is None:
+            if key == "axes":
+                raise EditError("not-applicable", "A variable font keeps its axes")
+            return self._result([self._remove_item(field_line)]) if field_line else EditResult([], self._text, self)
+        text = self._variable_font_axes(value) if key == "axes" else self._instance_text(str(value))
+        if field_line is not None and "value" in field_line.fields:
+            return self._result([self._replace(field_line.fields["value"], text)])
+        fields = [c for c in self.structure.children(line.number) if c.kind == st.VARIABLE_FONT_FIELD]
+        indent = fields[0].indent if fields else line.indent + self.structure.indent_unit
+        after = fields[-1].number if (fields and key == "filename") else line.number
+        return self._result([self._insert_lines(after, [f"{indent}{key}: {text}"])])
 
     def set_rules_processing(self, last: bool) -> EditResult:
         """`rules last` (substitutions after the other features) or plain `rules`"""

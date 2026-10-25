@@ -131,6 +131,32 @@ INSTANCE_KEYS = ("location", "family", "style", "postscript", "filename", "style
 LOCALIZED_KEYS = ("family", "style", "stylemapfamily", "stylemapstyle")
 
 
+# The keys of a variable font block
+VARIABLE_FONT_KEYS = ("axes", "filename")
+
+
+@dataclass
+class DSSAxisSubset:
+    """One axis of a variable font (user space): the whole axis, one value
+    (`ital=Italic`), or a sub-range (`opsz=10:14:24`; default None = the axis's)"""
+    axis: str  # the sketch's axis name
+    kind: str  # "full", "value" or "range"
+    value: Optional[float] = None
+    minimum: Optional[float] = None
+    default: Optional[float] = None
+    maximum: Optional[float] = None
+
+
+@dataclass
+class DSSVariableFont:
+    """A variable font block under `variable-fonts` (DesignSpace 5 <variable-font>).
+    An axis it does not list is frozen at its default, as in DesignSpace"""
+    name: str
+    axes: List[DSSAxisSubset] = field(default_factory=list)
+    filename: Optional[str] = None
+    line: Optional[int] = field(default=None, compare=False, repr=False)
+
+
 @dataclass
 class DSSInstance:
     """An explicit instance: a block under `instances`, beside `skip`
@@ -222,7 +248,11 @@ class DSSDocument:
     # `rules last`: substitutions after the other OpenType features (DesignSpace
     # processing="last"; varLib puts them in rclt instead of rvrn)
     rules_processing_last: bool = False
-    variable_fonts: List[Dict] = field(default_factory=list)
+    # `variable-fonts`: explicit blocks; `variable-fonts auto` adds one font per
+    # value of the discrete axes (auto_variable_fonts). No section: none written
+    variable_fonts: List[DSSVariableFont] = field(default_factory=list)
+    variable_fonts_auto: bool = False
+    variable_fonts_line: Optional[int] = field(default=None, compare=False, repr=False)
     lib: Dict = field(default_factory=dict)
     instances_auto: bool = False  # Flag for automatic instance generation
     instances_off: bool = False  # Flag to disable instance generation entirely
@@ -234,6 +264,33 @@ class DSSDocument:
     avar2_vars: Dict[str, float] = field(default_factory=dict)  # Variable definitions: $name -> value
     avar2_vars_counts: Dict[str, int] = field(default_factory=dict)  # Variable frequency counts: $name -> count
     avar2_mappings: List[DSSAvar2Mapping] = field(default_factory=list)  # avar2 mappings
+
+
+def auto_variable_fonts(doc: "DSSDocument") -> List[DSSVariableFont]:
+    """What `variable-fonts auto` makes: one font per combination of values of
+    the visible discrete axes, every continuous axis whole (hidden ones too:
+    avar2 needs them), the discrete ones frozen. Named Family-Label…[-suffix]
+    after the discrete labels, an @elidable one left out (MyFont, MyFont-Italic)"""
+    import itertools
+
+    base = (doc.family or "VF").replace(" ", "")
+    discrete = [a for a in doc.axes if a.is_discrete]
+    continuous = [a for a in list(doc.axes) + list(doc.hidden_axes) if not a.is_discrete]
+
+    def word(axis, value):
+        mapping = next((m for m in axis.mappings if m.label and abs(m.user_value - value) < 1e-9), None)
+        if mapping is None:
+            return f"{axis.tag}{value:g}"
+        return None if mapping.elidable else mapping.label
+
+    out = []
+    for values in itertools.product(*[list(a.values or ()) for a in discrete]):
+        words = [w for w in (word(a, v) for a, v in zip(discrete, values)) if w]
+        name = "-".join([base] + words + ([doc.suffix] if doc.suffix else []))
+        axes = [DSSAxisSubset(axis=a.name, kind="full") for a in continuous]
+        axes += [DSSAxisSubset(axis=a.name, kind="value", value=v) for a, v in zip(discrete, values)]
+        out.append(DSSVariableFont(name=name, axes=axes))
+    return out
 
 
 def elided_fallback_name(doc: "DSSDocument") -> str:

@@ -124,11 +124,22 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (69, "SOURCE_DUPLICATE_LOCATION", r"^Sources '.*' and '.*' are at the same location", "Two masters at one location"),
     (70, "RULE_CONDITION_EMPTY", r"condition on '.*' has minimum .* above maximum", "A rule condition with minimum above maximum"),
     (71, "SOURCE_UPM_MISMATCH", r"^Source '.*' has [\d.]+ units per em; the base source", "A master on another UPM than the base (font data)"),
+    # -- variable fonts (1.6.x) --------------------------------------------------
+    (72, "VARIABLE_FONT_INVALID", r"^Variable font '.*': (expected 'key: value'|unknown key|key '.*' (given twice|has no value)|axes expects|unknown axis|unknown label|axis '.*' given twice|discrete axis '.*' takes one value|'.*' is not a value or a range)",
+     "A malformed key or axis in a variable font block"),
+    (73, "VARIABLE_FONTS_MODE_UNKNOWN", r"^variable-fonts: unknown mode", "A variable-fonts header mode other than `auto`"),
+    (74, "VARIABLE_FONT_LINE_IGNORED", r"^Variable font line ignored", "Text at column 0 in the variable-fonts section"),
+    (75, "VARIABLE_FONT_DUPLICATE", r"^Variable font '.*' is named twice", "Two variable fonts with one name"),
+    (76, "VARIABLE_FONT_NO_AXES", r"^Variable font '.*' has no axes", "A variable font block without axes"),
+    (77, "VARIABLE_FONT_VALUE_INVALID", r"^Variable font '.*': .* (is not a value of the discrete axis|goes outside the axis range|range must be ordered)",
+     "A variable font value off its axis"),
+    (78, "VARIABLE_FONT_DISCRETE_UNLISTED", r"^Variable font '.*' does not list discrete axis", "A discrete axis a variable font leaves out"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition
 # value: Label 'X' not found …" is about a rule, not a source)
-_FIRST = ("RULE_CONDITION", "AXIS_RANGE_LABEL", "INSTANCE_FIELD_INVALID", "INSTANCE_LOCATION_INVALID")
+_FIRST = ("RULE_CONDITION", "AXIS_RANGE_LABEL", "INSTANCE_FIELD_INVALID", "INSTANCE_LOCATION_INVALID",
+          "VARIABLE_FONT_INVALID")
 
 CODES: Dict[str, Code] = {}
 _PATTERNS = []

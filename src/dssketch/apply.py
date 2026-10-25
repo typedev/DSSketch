@@ -567,6 +567,53 @@ class _Applier:
                           avar2_mappings=[mapping])
         return self.avar2_rows(doc)[0][0]
 
+    def variable_fonts(self, ds_doc):
+        """`variable-fonts auto` and the blocks, as DS -> DSS describes the
+        DesignSpace's <variable-fonts>; left alone when the text builds them already"""
+        from .converters.designspace_to_dss import _variable_font_key
+
+        def built(doc):
+            from .core.models import auto_variable_fonts
+
+            axes = list(doc.axes) + list(doc.hidden_axes)
+            fonts = (auto_variable_fonts(doc) if doc.variable_fonts_auto else []) + list(doc.variable_fonts)
+            return sorted(_variable_font_key(f, axes) for f in fonts)
+
+        if built(self.doc) == built(self.target):
+            return
+        target = self.target
+        has_section = self.sketch.structure.section_header("variable_fonts") is not None
+        if target.variable_fonts_auto != self.doc.variable_fonts_auto and (has_section or target.variable_fonts_auto
+                                                                          or target.variable_fonts):
+            mode = "auto" if target.variable_fonts_auto else None
+            self.run("variable-fonts mode", lambda sk: sk.set_variable_fonts_mode(mode))
+        wanted = {f.name: f for f in target.variable_fonts}
+        for index in reversed(range(len(self.doc.variable_fonts))):
+            if self.doc.variable_fonts[index].name not in wanted:
+                self.run(f"remove variable font {self.doc.variable_fonts[index].name}",
+                         lambda sk, i=index: sk.remove_variable_font(i))
+        from .writers.dss_writer import DSSWriter
+
+        writer = DSSWriter()
+        for name, font in wanted.items():
+            axes_text = writer._format_variable_font(font, target)[1].split("axes:", 1)[1].strip()
+            names = [f.name for f in self.doc.variable_fonts]
+            if name not in names:
+                self.run(f"add variable font {name}",
+                         lambda sk, n=name, a=axes_text, fn=font.filename: sk.add_variable_font(n, a, fn))
+                continue
+            index = names.index(name)
+            mine = self.doc.variable_fonts[index]
+            mine_axes = list(self.doc.axes) + list(self.doc.hidden_axes)
+            target_axes = list(target.axes) + list(target.hidden_axes)
+            if _variable_font_key(mine, mine_axes)[2] != _variable_font_key(font, target_axes)[2]:
+                self.run(f"axes of variable font {name}",
+                         lambda sk, i=index, a=axes_text: sk.set_variable_font_field(i, "axes", a))
+            if (mine.filename or None) != (font.filename or None):
+                self.run(f"filename of variable font {name}",
+                         lambda sk, i=index, fn=font.filename: sk.set_variable_font_field(i, "filename", fn))
+        self.finish()
+
     def instances(self, ds_doc, original: Sketch):
         """`instances auto/off`, the `skip` entries and the explicit blocks, as
         DS -> DSS describes the DesignSpace's instances
@@ -828,6 +875,7 @@ def apply_designspace(sketch: Sketch, ds_doc) -> Tuple[EditResult, ConversionRep
     applier.finish()
     applier.avar2()
     applier.instances(ds_doc, sketch)
+    applier.variable_fonts(ds_doc)
 
     final = applier.sketch
     if final.text == sketch.text:

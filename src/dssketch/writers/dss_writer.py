@@ -168,6 +168,13 @@ class DSSWriter:
             for instance in dss_doc.instances:
                 lines.extend(self._format_instance(instance, dss_doc))
 
+        # Variable fonts: auto, then the blocks
+        if dss_doc.variable_fonts_auto or dss_doc.variable_fonts:
+            lines.append("")
+            lines.append("variable-fonts auto" if dss_doc.variable_fonts_auto else "variable-fonts")
+            for font in dss_doc.variable_fonts:
+                lines.extend(self._format_variable_font(font, dss_doc))
+
         return "\n".join(lines).strip()
 
     def _get_label_for_user_value(self, axis: DSSAxis, user_value: float) -> Optional[str]:
@@ -742,6 +749,33 @@ class DSSWriter:
                 lines.append(f"        {key}: {value if key == 'location' else self._instance_value(value)}")
             for language, name in sorted((instance.localized or {}).get(key, {}).items()):
                 lines.append(f"        {key}.{language}: {self._instance_value(name)}")
+        return lines
+
+    def _format_variable_font(self, font, dss_doc: DSSDocument) -> List[str]:
+        """A variable font block: `axes:` in user space, a label where one sits"""
+        axes = {a.name: a for a in dss_doc.axes + dss_doc.hidden_axes}
+
+        def value(axis, number):
+            if axis is not None and self.use_label_coordinates:
+                label = next((m.label for m in axis.mappings if m.label and m.user_value == number), None)
+                if label:
+                    return label
+            return self._format_number(number)
+
+        parts = []
+        for subset in font.axes:
+            axis = axes.get(subset.axis)
+            tag = axis.tag if axis is not None else subset.axis
+            if subset.kind == "full":
+                parts.append(tag)
+            elif subset.kind == "value":
+                parts.append(f"{tag}={value(axis, subset.value)}")
+            else:
+                ends = [subset.minimum] + ([subset.default] if subset.default is not None else []) + [subset.maximum]
+                parts.append(f"{tag}=" + ":".join(value(axis, v) for v in ends))
+        lines = [f"    {self._instance_value(font.name)}", f"        axes: {', '.join(parts)}"]
+        if font.filename:
+            lines.append(f"        filename: {self._instance_value(font.filename)}")
         return lines
 
     @staticmethod

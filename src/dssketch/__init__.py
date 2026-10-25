@@ -74,6 +74,8 @@ from .queries import (
     source_locations,
     substitutions_at,
     user_to_design,
+    variable_fonts,
+    VariableFontInfo,
 )
 from .syntax import Completion, Diagnostic, Token, complete, diagnose, tokenize
 from .writers.dss_writer import DSSWriter
