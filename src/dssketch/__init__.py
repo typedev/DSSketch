@@ -15,7 +15,13 @@ from .core.models import DSSAxis, DSSDocument, DSSInstance, DSSSource, DSSRule
 from .core.report import (
     AVAR2_UNKNOWN_AXIS,
     AXIS_LABEL_DATA_DROPPED,
+    APPLY_AVAR2_NOT_APPLIED,
+    APPLY_HIDDEN_CHANGED,
+    APPLY_INSTANCES_NOT_APPLIED,
+    APPLY_REFUSED,
+    APPLY_RULE_KEPT,
     AXIS_OUTPUT_ONLY_VISIBLE,
+    CATEGORY_APPLY,
     CATEGORY_AXES,
     CATEGORY_DOCUMENT,
     CATEGORY_INSTANCES,
@@ -55,6 +61,7 @@ from .fixes import Fix
 from .sketch import EditError, EditResult, Sketch, SourceKey, TextEdit, apply_edits
 from .structure import Span
 from .queries import (
+    apply_designspace,
     InstanceInfo,
     RuleRegion,
     SourceLocation,

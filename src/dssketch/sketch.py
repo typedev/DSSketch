@@ -310,6 +310,25 @@ class Sketch:
 
     # -- keys -------------------------------------------------------------------
 
+    def _apply_together(self, ops) -> "EditResult":
+        """Several operations as one: each runs unverified on the text the
+        previous one made, and only the end result is checked against this
+        text (a new axis maximum and the mapping at it are each refused alone)"""
+        current = self
+        for op in ops:
+            result = op(current._unverified())
+            current = Sketch(result.text, font_data=self.font_data)
+        if current.text == self._text:
+            return EditResult([], self._text, self, self.font_data)
+        parsed = current._parsed if current._parsed is not None else _parse(current.text)
+        messages = _new_errors((self._parser, self._parsed[1]), parsed)
+        if messages:
+            raise EditError("rejected", messages[0], messages)
+        from .apply import line_edits
+
+        final = Sketch(current.text, _parsed=parsed, font_data=self.font_data)
+        return EditResult(line_edits(self._text, current.text), current.text, final, self.font_data)
+
     def _all_axes(self) -> List[DSSAxis]:
         doc = self.document
         return list(doc.axes) + list(doc.hidden_axes)
@@ -597,6 +616,15 @@ class Sketch:
                 family = _call(self.font_data, "family_name")
             self._instances = queries._instances(self.document, self.structure, family)
         return list(self._instances)
+
+    def apply_designspace(self, ds_doc) -> Tuple["EditResult", Any]:
+        """The edits that make this text describe a (changed) DesignSpace
+        document, and a ConversionReport of what was not written (avar2,
+        instances, refused edits; see dssketch.apply). Comments and the
+        spelling of untouched lines survive. Needs fontTools"""
+        from .apply import apply_designspace
+
+        return apply_designspace(self, ds_doc)
 
     def outline(self) -> list:
         """queries.Symbol tree: header lines, then each section with its items

@@ -44,6 +44,8 @@ CATEGORY_RULES = 3
 CATEGORY_DOCUMENT = 4
 #: What the sketch's own validation said (DSS -> DS only)
 CATEGORY_SKETCH = 5
+#: What Sketch.apply_designspace() did not write into the text (1.5.x)
+CATEGORY_APPLY = 6
 
 CATEGORY_NAMES = {
     CATEGORY_AXES: "Axes",
@@ -52,6 +54,7 @@ CATEGORY_NAMES = {
     CATEGORY_RULES: "Rules",
     CATEGORY_DOCUMENT: "Document",
     CATEGORY_SKETCH: "Sketch",
+    CATEGORY_APPLY: "Apply",
 }
 
 # =============================================================================
@@ -179,6 +182,28 @@ DOCUMENT_TRANSLATIONS_DIFFER = 6
 #: DSS -> DS: a message from the sketch's validation, carried as text. Its
 #: severity is the validator's (error or warning).
 SKETCH_VALIDATION_MESSAGE = 0
+
+# =============================================================================
+# Issue codes — CATEGORY_APPLY (Sketch.apply_designspace)
+# =============================================================================
+
+#: An edit the sketch refused (a label still in use, a value the parser
+#: rejects); the rest was applied. raw_data has the operation and the error.
+APPLY_REFUSED = 0
+
+#: The avar2 mappings differ; avar2 is not edited (yet), the text keeps its own.
+APPLY_AVAR2_NOT_APPLIED = 1
+
+#: The instances differ from what the sketch generates; instances and `skip`
+#: are DSSketch-level and never rewritten from a DesignSpace.
+APPLY_INSTANCES_NOT_APPLIED = 2
+
+#: A pattern rule (`a* > .ss01`) kept as written although the DesignSpace's
+#: substitutions do not fit it.
+APPLY_RULE_KEPT = 3
+
+#: An axis moved between `axes` and `axes hidden`; not applied.
+APPLY_HIDDEN_CHANGED = 4
 
 
 # =============================================================================

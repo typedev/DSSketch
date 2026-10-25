@@ -1776,6 +1776,26 @@ _convert_axis` writes, so the two cannot drift. fontTools is imported only
 inside `createInstance(s)`. Example DesignSpaces were byte-identical before
 and after the refactor
 
+**`apply.py`** - `Sketch.apply_designspace(ds_doc)` (1.5.x, Font-Rover's spec item 8)
+- DS -> DSS the document, then compare with the sketch's document by key and
+  apply the difference with the Sketch's own operations: header, axes by tag
+  (range, discrete, DS name, mappings by user value — compared through
+  `spec_from_dss_axis`, so an axis whose labels/map mean the same is left
+  alone), sources by full path + layer, rules by (name, occurrence)
+- **A refused operation is deferred**, retried while any retry succeeds, then
+  all remaining ones are tried together (`Sketch._apply_together`: unverified
+  chain, one check at the end — a new axis maximum and the mapping at it are
+  each refused alone). What still fails is `APPLY_REFUSED`
+- `@base` is carried only for the source at every axis default (DS -> DSS marks
+  one per discrete value; the text need not)
+- A pattern rule is kept while the DS substitutions fit it (`APPLY_RULE_KEPT`
+  otherwise); conditions are written with the text's axis names
+- Not written, reported in `CATEGORY_APPLY` (6): avar2, instances (compared
+  with `Sketch.instances()`, skip applied), hidden <-> visible moves
+- The final EditResult has whole-line edits (`line_edits`, difflib) from the
+  original text to the final one. Every example round-trips with no edits and
+  no report (`tests/test_apply_designspace.py`)
+
 **`codes.py`** - Stable diagnostic codes (1.5.0)
 - `"5.N"` (category 5 = Sketch of the report scheme). Messages are recognised
   by wording (`classify()`), first match wins, `_FIRST` for messages that

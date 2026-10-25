@@ -659,6 +659,11 @@ def substitutions_at(sketch_or_text, location, glyph_names=None, space: str = "d
     return _sketch(sketch_or_text).substitutions_at(location, glyph_names, space)
 
 
+def apply_designspace(sketch_or_text, ds_doc):
+    """`Sketch.apply_designspace()` on a Sketch or a text: (EditResult, ConversionReport)"""
+    return _sketch(sketch_or_text).apply_designspace(ds_doc)
+
+
 def outline(sketch_or_text) -> List[Symbol]:
     """`Sketch.outline()` on a Sketch or a text"""
     return _sketch(sketch_or_text).outline()

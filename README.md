@@ -1594,6 +1594,25 @@ data's default master. The free functions `dssketch.expand_instances(text)`,
 `source_locations`, `rule_regions`, `substitutions_at`, `user_to_design`,
 `design_to_user`, `hover` and `outline` take a `Sketch` or a text. None of them raises.
 
+**Writing a changed DesignSpace back** (`apply_designspace`): an application
+that edits the `DesignSpaceDocument` (a validator's fix, a master moved on a
+map) gets the edits that make the text describe it, with the text's comments
+and spelling kept:
+
+```python
+result, report = sk.apply_designspace(ds_doc)   # or dssketch.apply_designspace(text, ds_doc)
+result.edits      # minimal TextEdits; result.text, result.sketch
+for issue in report.warnings:                   # what was not written
+    print(issue.id, issue.description)          # "6.1" The avar2 mappings differ …
+```
+
+Axes (range, name, mappings — a renamed label follows into its uses), sources
+(coordinates, `@base`, `@sparse`, added and removed) and rules (conditions,
+glyphs, added, removed, order) are written. A pattern rule (`a* > .ss01`) stays
+as written while the DesignSpace's substitutions fit it. avar2, instances and
+`skip` are not rewritten: the report (category 6, "Apply") says where they
+differ, as it does for an edit the sketch refuses.
+
 **Comments**: a comment starts at the first `#` outside quotes (`"Sans #1"` is a
 name). When a line is removed, the comments directly above it (no blank line
 between) go with it; a comment followed by a blank line stays.
