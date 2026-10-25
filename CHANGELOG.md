@@ -4,6 +4,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **Python 3.11 or newer is required** (was 3.8). Current fontTools needs 3.11 already, so on older Pythons DSSketch ran with an old fontTools; 3.8 and 3.9 are past their end of life and 3.10 reaches it this month. pip keeps installing DSSketch 1.5.x on older Pythons. CI tests 3.11–3.14
+
 ## [1.5.4] - 2026-10-25
 
 ### Performance

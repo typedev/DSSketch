@@ -9,16 +9,13 @@ description = "Human-friendly alternative to DesignSpace XML - provides simple, 
 authors = [{name = "Alexander Lubovenko", email = "lubovenko@gmail.com"}]
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 keywords = ["fonts", "designspace", "variable-fonts", "typography", "font-design", "ufo-fonts"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Text Processing :: Fonts",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -87,7 +84,7 @@ addopts = "-v"
 
 [tool.black]
 line-length = 100
-target-version = ['py38']
+target-version = ['py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -107,14 +104,14 @@ extend-exclude = '''
 line-length = 100
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "PT", "SIM", "PD"]
 ignore = ["E501", "B008", "B905", "N801", "N802", "N803", "N804", "N805", "N806", "N807", "N812", "N813", "N814", "N815", "N816", "N817", "N818", "W293"]
-target-version = "py38"
+target-version = "py311"
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401", "F403"]
 "tests/*" = ["S101"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false

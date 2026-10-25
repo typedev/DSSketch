@@ -2108,8 +2108,9 @@ Releases are published by CI, never by hand:
 
 A failed upload can be retried with "Re-run failed jobs"; a version already on
 PyPI can never be uploaded again, so fix forward with a new patch version.
-CI (`ci.yml`) runs the tests on Python 3.8–3.14: no `X | None` annotations or
-other syntax newer than `requires-python`.
+CI (`ci.yml`) runs the tests on Python 3.11–3.14 (`requires-python = ">=3.11"`
+since 1.6.0, as current fontTools): no syntax newer than 3.11. Run the full
+suite on 3.11 before every tag.
 
 ## Common Development Tasks
 
