@@ -309,8 +309,8 @@
       </include>
     </context>
     <context id="skip-block">
-      <start>^(?&lt;ind&gt;[ \t]+)(skip)\b</start>
-      <end>^(?=[ \t]*[^\s#])(?!\%{ind@start}[ \t])</end>
+      <start>^(?&lt;skipind&gt;[ \t]+)(skip)\b</start>
+      <end>^(?=[ \t]*[^\s#])(?!\%{skipind@start}[ \t])</end>
       <include>
         <context sub-pattern="2" where="start" style-ref="keyword"/>
         <context ref="comment"/>
@@ -352,8 +352,8 @@
       </include>
     </context>
     <context id="instance-block">
-      <start>^(?&lt;ind&gt;[ \t]+)(?!(?:skip|auto)\b)(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))(?=\s*(?:#|$))</start>
-      <end>^(?=[ \t]*[^\s#])(?!\%{ind@start}[ \t])</end>
+      <start>^(?&lt;blockind&gt;[ \t]+)(?!(?:skip|auto)\b)(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))(?=\s*(?:#|$))</start>
+      <end>^(?=[ \t]*[^\s#])(?!\%{blockind@start}[ \t])</end>
       <include>
         <context sub-pattern="2" where="start" style-ref="string"/>
         <context sub-pattern="3" where="start" style-ref="text"/>

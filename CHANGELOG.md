@@ -4,6 +4,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`dssketch.lang` made GtkSourceView highlight slowly**: the `skip` and explicit-instance contexts both named their indent group `ind`, and GtkSourceView, which joins sibling start patterns into one regex, could not compile it ("two named subpatterns have the same name") and fell back to slow highlighting. Each context has its own name now; the highlighting test fails on that warning (reported by Font-Rover)
+
 ## [1.5.3] - 2026-10-25
 
 ### Added

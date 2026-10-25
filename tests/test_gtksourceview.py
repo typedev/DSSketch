@@ -187,5 +187,8 @@ def test_highlighting_agrees_with_tokenize(tmp_path):
 
     result = subprocess.run([python, str(script), str(data_path)], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+    # GtkSourceView joins sibling start patterns into one regex; when that fails
+    # (e.g. two contexts naming a group alike) it warns and highlights slowly
+    assert "Cannot create a regex" not in result.stderr, result.stderr
     wrong = json.loads(result.stdout.strip().splitlines()[-1])
     assert wrong == [], wrong[:10]

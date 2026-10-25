@@ -238,10 +238,14 @@ def language_spec() -> str:
     section("rules-section", r"^(rules)(?:\s+(first|last))?\b", ["comment", "rule-head", "condition"] + common, kw)
     # `skip` and an explicit instance block run until a line indented no deeper
     # than they are (comments and blank lines do not end them), as in the parser
-    block_end = r"^(?=[ \t]*[^\s#])(?!\%{ind@start}[ \t])"
+    # GtkSourceView joins sibling start patterns into one regex, so each context
+    # names its indent group differently (PCRE2 rejects duplicate names, and the
+    # engine falls back to slow highlighting)
+    def block_end(group):
+        return r"^(?=[ \t]*[^\s#])(?!\%{" + group + r"@start}[ \t])"
     w('    <context id="skip-block">')
-    w("      <start>" + escape(r"^(?<ind>[ \t]+)(skip)\b") + "</start>")
-    w("      <end>" + escape(block_end) + "</end>")
+    w("      <start>" + escape(r"^(?<skipind>[ \t]+)(skip)\b") + "</start>")
+    w("      <end>" + escape(block_end("skipind")) + "</end>")
     w("      <include>")
     w('        <context sub-pattern="2" where="start" style-ref="keyword"/>')
     w('        <context ref="comment"/>')
@@ -266,9 +270,9 @@ def language_spec() -> str:
     w("      </include>")
     w("    </context>")
     w('    <context id="instance-block">')
-    w("      <start>" + escape(r"^(?<ind>[ \t]+)(?!(?:skip|auto)\b)(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))(?=\s*(?:#|$))")
+    w("      <start>" + escape(r"^(?<blockind>[ \t]+)(?!(?:skip|auto)\b)(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))(?=\s*(?:#|$))")
       + "</start>")
-    w("      <end>" + escape(block_end) + "</end>")
+    w("      <end>" + escape(block_end("blockind")) + "</end>")
     w("      <include>")
     w('        <context sub-pattern="2" where="start" style-ref="string"/>')
     w('        <context sub-pattern="3" where="start" style-ref="text"/>')
