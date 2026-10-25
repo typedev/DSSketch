@@ -308,6 +308,66 @@
         <context ref="punctuation"/>
       </include>
     </context>
+    <context id="skip-block">
+      <start>^(?&lt;ind&gt;[ \t]+)(skip)\b</start>
+      <end>^(?=[ \t]*[^\s#])(?!\%{ind@start}[ \t])</end>
+      <include>
+        <context sub-pattern="2" where="start" style-ref="keyword"/>
+        <context ref="comment"/>
+        <context ref="skip-label"/>
+      </include>
+    </context>
+    <context id="instance-field">
+      <match>^\s+(family|style|postscript|filename|stylemapfamily|stylemapstyle)\s*(:)\s*(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))?(?=\s*(?:#|$))</match>
+      <include>
+        <context sub-pattern="1" style-ref="keyword"/>
+        <context sub-pattern="2" style-ref="punctuation"/>
+        <context sub-pattern="3" style-ref="string"/>
+        <context sub-pattern="4" style-ref="text"/>
+      </include>
+    </context>
+    <context id="location-axis">
+      <match>\b([A-Za-z_][A-Za-z0-9_]*)\s*(=)</match>
+      <include>
+        <context sub-pattern="1" style-ref="axis-tag"/>
+        <context sub-pattern="2" style-ref="punctuation"/>
+      </include>
+    </context>
+    <context id="location-number" style-ref="number">
+      <match>(?&lt;==)\s*-?\d+(?:\.\d+)?(?=\s*(?:,|#|$))</match>
+    </context>
+    <context id="location-label" style-ref="label">
+      <match>(?&lt;==)\s*[^\s,#]+</match>
+    </context>
+    <context id="instance-location" end-at-line-end="true">
+      <start>^\s+(location)\s*(:)</start>
+      <include>
+        <context sub-pattern="1" where="start" style-ref="keyword"/>
+        <context sub-pattern="2" where="start" style-ref="punctuation"/>
+        <context ref="comment"/>
+        <context ref="location-axis"/>
+        <context ref="location-number"/>
+        <context ref="location-label"/>
+        <context ref="inner-punctuation"/>
+      </include>
+    </context>
+    <context id="instance-block">
+      <start>^(?&lt;ind&gt;[ \t]+)(?!(?:skip|auto)\b)(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))(?=\s*(?:#|$))</start>
+      <end>^(?=[ \t]*[^\s#])(?!\%{ind@start}[ \t])</end>
+      <include>
+        <context sub-pattern="2" where="start" style-ref="string"/>
+        <context sub-pattern="3" where="start" style-ref="text"/>
+        <context ref="comment"/>
+        <context ref="instance-location"/>
+        <context ref="instance-field"/>
+      </include>
+    </context>
+    <context id="instances-auto">
+      <match>^\s+(auto)\s*(?=#|$)</match>
+      <include>
+        <context sub-pattern="1" style-ref="keyword"/>
+      </include>
+    </context>
     <context id="instances-section">
       <start>^(instances)(?:\s+(auto|off))?\b</start>
       <end>^(?=[^\s#])</end>
@@ -315,8 +375,9 @@
         <context sub-pattern="1" where="start" style-ref="keyword"/>
         <context sub-pattern="2" where="start" style-ref="keyword"/>
         <context ref="comment"/>
-        <context ref="line-keyword"/>
-        <context ref="skip-label"/>
+        <context ref="skip-block"/>
+        <context ref="instances-auto"/>
+        <context ref="instance-block"/>
       </include>
     </context>
     <context id="avar2-section">

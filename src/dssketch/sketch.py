@@ -39,7 +39,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 from . import structure as st
 from .core.mappings import Standards
-from .core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSRule, DSSSource
+from .core.models import INSTANCE_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSRule, DSSSource
 from .structure import Span
 
 Number = Union[int, float]
@@ -539,6 +539,21 @@ class Sketch:
         if kind == "skip":
             line = self._skip_line(path[1])
             return line.span if line is not None else None
+        if kind == "instance":
+            line = self._line_of(doc.instances[path[1]])
+            if line is None or line.kind != st.INSTANCE:
+                return None
+            if len(path) == 2:
+                return line.span
+            if path[2] == "name":
+                return line.fields.get("name")
+            field_line = self._instance_field_line(line, path[2])
+            if field_line is None:
+                return None
+            if path[2] == "location" and len(path) > 3:
+                return next((span for name, span in field_line.fields.items()
+                             if name.startswith("location.") and self._axis_ref_tag(name[9:]) == path[3]), None)
+            return field_line.fields.get("value")
         if kind == "section":
             header = self.structure.section_header(path[1])
             return header.span if header is not None else None
@@ -665,6 +680,10 @@ class Sketch:
                                                  condition.N name
           ("instances", "mode"?)
           ("skip", entry)
+          ("instance", index, field?)           field: name location family style
+                                                 postscript filename stylemapfamily
+                                                 stylemapstyle
+          ("instance", index, "location", tag)
           ("avar2_var", name, field?)           field: name value
           ("avar2", index, "input" | "output", tag) / ("avar2", index, field?)
         Never raises.
@@ -737,6 +756,20 @@ class Sketch:
             return ("skip", " ".join(line.values.get("value", "").split()))
         if kind == st.SKIP:
             return ("instances",)
+        if kind in (st.INSTANCE, st.INSTANCE_FIELD):
+            head = line.number if kind == st.INSTANCE else line.parent
+            index = next((i for i, x in enumerate(doc.instances) if x.line == head), None)
+            if index is None:
+                return None
+            if kind == st.INSTANCE:
+                return ("instance", index, "name")
+            key = line.values.get("key")
+            name = field_at(line.fields)
+            if key == "location" and name and name.startswith("location."):
+                tag = self._axis_ref_tag(name[9:])
+                if tag:
+                    return ("instance", index, "location", tag)
+            return ("instance", index, key) if key in INSTANCE_KEYS else ("instance", index)
         if kind == st.AVAR2_VAR:
             name = field_at(line.fields)
             var = line.values.get("name", "")
@@ -1874,18 +1907,139 @@ class Sketch:
         prev = line.fields[f"condition.{position - 1}"]
         return self._result([TextEdit(line.number, prev.end_col, line.number, span.end_col, "")])
 
-    def set_instances_mode(self, mode: str) -> EditResult:
-        """`instances auto` or `instances off` (adds the section if missing)"""
-        if mode not in ("auto", "off"):
-            raise EditError("invalid-value", "mode is 'auto' or 'off'")
+    def set_instances_mode(self, mode: Optional[str]) -> EditResult:
+        """`instances auto`, `instances off`, or None for a plain `instances`
+        (explicit blocks only); adds the section if missing"""
+        if mode not in ("auto", "off", None):
+            raise EditError("invalid-value", "mode is 'auto', 'off' or None")
         header = self.structure.section_header("instances")
         if header is None:
-            return self._result([self._new_section("instances", f"instances {mode}", [])])
+            return self._result([self._new_section("instances", f"instances {mode}" if mode else "instances", [])])
         if "mode" in header.fields:
             if header.values["mode"] == mode:
                 return EditResult([], self._text, self)
+            if mode is None:
+                keyword, word = header.fields["keyword"], header.fields["mode"]
+                return self._result([TextEdit(header.number, keyword.end_col, header.number, word.end_col, "")])
             return self._result([self._replace(header.fields["mode"], mode)])
+        if mode is None:
+            return EditResult([], self._text, self)
         return self._result([self._append_to_line(header, " " + mode)])
+
+    # -- explicit instances ----------------------------------------------------
+
+    def _instance_line(self, index: int) -> Tuple[DSSInstance, st.Line]:
+        instances = self.document.instances
+        if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(instances):
+            raise EditError("unknown-key", f"No instance {index}")
+        instance = instances[index]
+        line = self._line_of(instance)
+        if line is None or line.kind != st.INSTANCE:
+            raise EditError("target-has-errors", f"Instance {index} has no line")
+        self._check_target(line)
+        return instance, line
+
+    def _instance_field_line(self, line: st.Line, key: str) -> Optional[st.Line]:
+        return next(
+            (c for c in self.structure.children(line.number)
+             if c.kind == st.INSTANCE_FIELD and c.values.get("key") == key),
+            None,
+        )
+
+    @staticmethod
+    def _instance_text(value: str) -> str:
+        """A name or value as a block writes it: quoted when the plain form
+        would read differently"""
+        if not value or "#" in value or value != value.strip() or value[:1] in "\"'":
+            return "'" + value + "'" if '"' in value else '"' + value + '"'
+        return value
+
+    def _instance_value(self, key: str, value) -> str:
+        if key not in INSTANCE_KEYS:
+            raise EditError("invalid-value", f"Unknown instance key '{key}'. Keys: {', '.join(INSTANCE_KEYS)}")
+        if key == "location":
+            if isinstance(value, dict):
+                if not value:
+                    raise EditError("invalid-value", "An empty location")
+                return ", ".join(f"{axis}={format_number(v) if not isinstance(v, str) else v}" for axis, v in value.items())
+            return str(value).strip()
+        if not isinstance(value, str) or not value.strip():
+            raise EditError("invalid-value", f"Instance key '{key}' needs a value")
+        return self._instance_text(value)
+
+    def _instance_indents(self) -> Tuple[str, str]:
+        """The indent of a block's name line and of its keys"""
+        unit = self.structure.indent_unit
+        heads = self.structure.of_kind(st.INSTANCE)
+        if heads:
+            fields = [c for c in self.structure.children(heads[0].number) if c.kind == st.INSTANCE_FIELD]
+            return heads[0].indent, fields[0].indent if fields else heads[0].indent + unit
+        return unit, unit * 2
+
+    def add_instance(self, name: str, location, **keys) -> EditResult:
+        """Add an explicit instance block at the end of the instances section
+
+        `location` is a dict {axis: design value or label} or the text
+        `wght=Bold, opsz=144`; `keys` are the other block keys (family, style,
+        postscript, filename, stylemapfamily, stylemapstyle). Creates an
+        `instances` section (without auto) if there is none.
+        """
+        if not isinstance(name, str) or not name.strip():
+            raise EditError("invalid-value", "An instance needs a name")
+        head, inner = self._instance_indents()
+        texts = [head + self._instance_text(name.strip()), f"{inner}location: {self._instance_value('location', location)}"]
+        for key in INSTANCE_KEYS[1:]:
+            if keys.get(key) is not None:
+                texts.append(f"{inner}{key}: {self._instance_value(key, keys.pop(key))}")
+        if keys:
+            raise EditError("invalid-value", f"Unknown instance key '{next(iter(keys))}'")
+        header = self.structure.section_header("instances")
+        if header is None:
+            return self._result([self._new_section("instances", "instances", texts)])
+        if header.values.get("mode") == "off":
+            raise EditError("not-applicable", "instances off: an explicit instance would be ignored")
+        return self._result([self._insert_lines(self._section_end("instances"), texts)])
+
+    def remove_instance(self, index: int) -> EditResult:
+        """Remove an explicit instance block with its comments"""
+        _, line = self._instance_line(index)
+        return self._result([self._remove_item(line)])
+
+    def set_instance_name(self, index: int, name: str) -> EditResult:
+        _, line = self._instance_line(index)
+        if not isinstance(name, str) or not name.strip():
+            raise EditError("invalid-value", "An instance needs a name")
+        return self._result([self._replace(line.fields["name"], self._instance_text(name.strip()))])
+
+    def set_instance_field(self, index: int, key: str, value) -> EditResult:
+        """Set a block key (location as a dict or text); None removes it.
+        The location cannot be removed"""
+        _, line = self._instance_line(index)
+        field_line = self._instance_field_line(line, key)
+        if value is None:
+            if key == "location":
+                raise EditError("not-applicable", "An instance keeps its location")
+            if key not in INSTANCE_KEYS:
+                raise EditError("invalid-value", f"Unknown instance key '{key}'")
+            if field_line is None:
+                return EditResult([], self._text, self)
+            return self._result([self._remove_item(field_line)])
+        text = self._instance_value(key, value)
+        if field_line is not None and "value" in field_line.fields:
+            if field_line.text("value") == text:
+                return EditResult([], self._text, self)
+            return self._result([self._replace(field_line.fields["value"], text)])
+        if field_line is not None:
+            return self._result([self._append_to_line(field_line, " " + text)])
+        fields = [c for c in self.structure.children(line.number) if c.kind == st.INSTANCE_FIELD]
+        _, inner = self._instance_indents()
+        indent = fields[0].indent if fields else inner
+        order = list(INSTANCE_KEYS)
+        before = [c for c in fields if c.values.get("key") in order and order.index(c.values["key"]) < order.index(key)]
+        after = (before[-1] if before else line).number
+        if not before and fields and key == "location":
+            after = line.number
+        return self._result([self._insert_lines(after, [f"{indent}{key}: {text}"])])
 
     def set_rules_processing(self, last: bool) -> EditResult:
         """`rules last` (substitutions after the other features) or plain `rules`"""

@@ -368,6 +368,66 @@ class DSSValidator:
                 at=mapping,
             )
 
+    def _validate_explicit_instances(self, document: DSSDocument):
+        """Explicit instance blocks: a location each, no doubles, none where
+        `instances auto` already puts an instance"""
+        if not document.instances:
+            return
+        if document.instances_off:
+            for instance in document.instances:
+                self._warning(f"Instance '{instance.name}' is ignored: instances off", at=instance)
+            return
+        seen = {}
+        for instance in document.instances:
+            if not instance.location:
+                self._error(
+                    f"Instance '{instance.name}' has no location (location: axis=value, …)", at=instance
+                )
+                continue
+            key = (instance.familyname or document.family, instance.stylename or instance.name)
+            if key in seen:
+                self._warning(
+                    f"Instance '{instance.name}' has the family and style name of instance "
+                    f"'{seen[key].name}' above it",
+                    at=instance,
+                )
+            seen.setdefault(key, instance)
+        if not document.instances_auto:
+            return
+        try:
+            from ..core.instances import dss_axis_name, instance_axis_order, plan_instances, spec_from_dss_axis
+
+            axes = list(document.axes) + list(document.hidden_axes)
+            specs = [spec_from_dss_axis(axis) for axis in axes]
+            order = instance_axis_order(document, [spec.name for spec in specs])
+            _, planned = plan_instances(specs, order, list(document.instances_skip), document)
+        except Exception:
+            return  # the generator's own problems are reported elsewhere
+
+        def position(location):
+            return tuple(round(v, 6) for v in location)
+
+        defaults = {dss_axis_name(axis): axis.get_design_value(axis.default) for axis in axes}
+        produced = {}
+        for item in planned:
+            if not item.skipped:
+                full = dict(defaults, **item.design_location)
+                produced.setdefault(position(full[name] for name in defaults), item.style_name)
+        for instance in document.instances:
+            if not instance.location:
+                continue
+            full = dict(defaults)
+            for axis in axes:
+                if axis.name in instance.location:
+                    full[dss_axis_name(axis)] = instance.location[axis.name]
+            auto = produced.get(position(full[name] for name in defaults))
+            if auto is not None:
+                self._warning(
+                    f"Instance '{instance.name}' is at the location of '{auto}', which "
+                    f"instances auto generates too; add '{auto}' to skip",
+                    at=instance,
+                )
+
     def _validate_skip_labels(self, document: DSSDocument):
         """Each word of a `skip` entry is an axis label (as instances.py checks
         at conversion; here it is placed on the entry's line)"""
@@ -398,6 +458,7 @@ class DSSValidator:
         self._validate_avar2(document)
         self._validate_rule_axes(document)
         self._validate_skip_labels(document)
+        self._validate_explicit_instances(document)
 
         # Validate axes content
         for axis in document.axes + document.hidden_axes:

@@ -52,10 +52,11 @@ class RuleRegion:
 
 @dataclass(frozen=True)
 class InstanceInfo:
-    """One instance `instances auto` generates, or one a `skip` entry removed"""
+    """One instance `instances auto` generates, one a `skip` entry removed, or
+    an explicit instance block (`explicit`, after the generated ones)"""
 
     index: Optional[int]  # position among the DesignSpace's instances; None when skipped
-    name: str  # what a `skip` entry writes to remove it (= style_name)
+    name: str  # what a `skip` entry writes to remove it (= style_name); a block's name
     style_name: str
     family_name: Optional[str]  # None when neither the sketch nor the font data says
     user_location: Dict[str, float]  # axis name -> user value (visible axes)
@@ -64,6 +65,8 @@ class InstanceInfo:
     skip_entry: Optional[str] = None  # the `skip` entry that removed it
     skip_span: Optional["object"] = None  # structure.Span of that entry
     group: Tuple[str, ...] = ()  # its labels on discrete axes (("Italic",)): one per VF
+    explicit: bool = False  # an explicit instance block
+    span: Optional["object"] = None  # structure.Span of the block's name line
 
 
 # -- axes -----------------------------------------------------------------------
@@ -275,41 +278,69 @@ def _substitutions_at(
 
 def _instances(doc: DSSDocument, structure=None, family_name: Optional[str] = None) -> List[InstanceInfo]:
     """What `instances auto` generates — the same names and locations as DSS ->
-    DS — and what its `skip` entries remove (marked skipped, with the entry).
-    Empty for `instances off` and for a sketch without `instances auto`"""
+    DS — and what its `skip` entries remove (marked skipped, with the entry),
+    then the explicit instance blocks. Empty for `instances off`"""
     try:
-        if doc.instances_off or not doc.instances_auto or not doc.axes:
+        if doc.instances_off or not doc.axes:
             return []
-        specs = [spec_from_dss_axis(axis) for axis in all_axes(doc)]
-        order = instance_axis_order(doc, [spec.name for spec in specs])
-        discrete = {spec.name for spec in specs if spec.discrete}
-        _, planned = plan_instances(specs, order, list(doc.instances_skip), doc)
-
-        lines = list(doc.instances_skip_lines) + [None] * len(doc.instances_skip)
-        entry_lines = dict(zip(doc.instances_skip, lines))
         family = doc.family or family_name or None
-
         out = []
         index = 0
-        for item in planned:
-            span = None
-            if item.skipped and structure is not None:
-                line = structure.line(entry_lines.get(item.style_name)) if entry_lines.get(item.style_name) else None
-                span = line.span if line is not None else None
+        if doc.instances_auto:
+            specs = [spec_from_dss_axis(axis) for axis in all_axes(doc)]
+            order = instance_axis_order(doc, [spec.name for spec in specs])
+            discrete = {spec.name for spec in specs if spec.discrete}
+            _, planned = plan_instances(specs, order, list(doc.instances_skip), doc)
+
+            lines = list(doc.instances_skip_lines) + [None] * len(doc.instances_skip)
+            entry_lines = dict(zip(doc.instances_skip, lines))
+            for item in planned:
+                span = None
+                if item.skipped and structure is not None:
+                    line = structure.line(entry_lines.get(item.style_name)) if entry_lines.get(item.style_name) else None
+                    span = line.span if line is not None else None
+                out.append(InstanceInfo(
+                    index=None if item.skipped else index,
+                    name=item.style_name,
+                    style_name=item.style_name,
+                    family_name=family,
+                    user_location=dict(item.user_location),
+                    design_location=dict(item.design_location),
+                    skipped=item.skipped,
+                    skip_entry=item.style_name if item.skipped else None,
+                    skip_span=span,
+                    group=tuple(label for name, label in zip(order, item.labels) if name in discrete),
+                ))
+                if not item.skipped:
+                    index += 1
+        for instance in doc.instances:
+            if not instance.location:
+                continue  # the block is in error; DSS -> DS would fail
+            user, design, group = {}, {}, []
+            for axis in doc.axes:
+                value = instance.location.get(axis.name, axis.get_design_value(axis.default))
+                design[axis_name(axis)] = value
+                user[axis_name(axis)] = axis.get_user_value(value)
+                if axis.is_discrete:
+                    mapping = next((m for m in axis.mappings if m.design_value == value and m.label), None)
+                    if mapping is not None:
+                        group.append(mapping.label)
+            for axis in doc.hidden_axes:
+                if axis.name in instance.location:
+                    design[axis_name(axis)] = instance.location[axis.name]
+            line = structure.line(instance.line) if structure is not None and instance.line else None
             out.append(InstanceInfo(
-                index=None if item.skipped else index,
-                name=item.style_name,
-                style_name=item.style_name,
-                family_name=family,
-                user_location=dict(item.user_location),
-                design_location=dict(item.design_location),
-                skipped=item.skipped,
-                skip_entry=item.style_name if item.skipped else None,
-                skip_span=span,
-                group=tuple(label for name, label in zip(order, item.labels) if name in discrete),
+                index=index,
+                name=instance.name,
+                style_name=instance.stylename or instance.name,
+                family_name=instance.familyname or family,
+                user_location=user,
+                design_location=design,
+                group=tuple(group),
+                explicit=True,
+                span=line.span if line is not None else None,
             ))
-            if not item.skipped:
-                index += 1
+            index += 1
         return out
     except Exception:
         return []
@@ -323,7 +354,7 @@ class Symbol:
     """One entry of the structure panel
 
     kind: family, suffix, elidedfallback, path, lang, section, axis, mapping,
-    source, rule, skip, avar2-var, avar2-row. `span` covers the item with what
+    source, rule, skip, instance, avar2-var, avar2-row. `span` covers the item with what
     it owns (an axis with its mappings, a section with its items); `name_span`
     the word to select. `path` is the item path `Sketch.span()` / `item_at()`
     use (None where there is none)."""
@@ -361,6 +392,7 @@ def _outline(sketch) -> List[Symbol]:
     mappings = {m.line: (a, m) for a in all_axes(doc) for m in a.mappings if m.line}
     sources = by_line(doc.sources)
     rules = {r.line: i for i, r in enumerate(doc.rules) if r.line}
+    instances = {x.line: i for i, x in enumerate(doc.instances) if x.line}
     avar2 = {m.line: i for i, m in enumerate(doc.avar2_mappings) if m.line}
 
     def item(line: st.Line) -> Optional[Symbol]:
@@ -413,6 +445,12 @@ def _outline(sketch) -> List[Symbol]:
         if line.kind == st.SKIP_ENTRY:
             entry = " ".join(v.get("value", "").split())
             return Symbol("skip", entry, line.span, line.fields.get("value"), path=("skip", entry))
+        if line.kind == st.INSTANCE:
+            index = instances.get(line.number)
+            fields = {c.values.get("key"): c.values.get("value", "") for c in structure.children(line.number)}
+            _, last = structure.owned_lines(line.number)
+            return Symbol("instance", v.get("name", ""), whole(line, last), line.fields.get("name"),
+                          fields.get("location", ""), ("instance", index) if index is not None else None)
         if line.kind == st.AVAR2_VAR:
             return Symbol("avar2-var", v.get("name", ""), line.span, line.fields.get("name"), v.get("value", ""),
                           ("avar2_var", v.get("name", "").lstrip("$")))

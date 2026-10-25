@@ -106,11 +106,21 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (57, "AVAR2_OUTPUT_ONLY_VISIBLE", r"^Axis '.*' is visible but only avar2 outputs drive it", "A visible axis driven only by avar2"),
     (58, "AVAR2_HIDDEN_INPUT", r"^avar2 input uses hidden axis", "A hidden axis as an avar2 input"),
     (59, "RULES_MODE_UNKNOWN", r"^rules: unknown mode", "A rules header mode other than `last`"),
+    # -- explicit instances (1.5.x) ---------------------------------------------
+    (60, "INSTANCE_FIELD_INVALID", r"^Instance '.*': (expected 'key: value'|unknown key|key '.*' (given twice|has no value))",
+     "A malformed, unknown, repeated or empty key in an instance block"),
+    (61, "INSTANCE_LOCATION_INVALID", r"^Instance '.*': (location expects|unknown axis|unknown label|axis '.*' given twice)",
+     "An instance location naming an unknown axis or label, or malformed"),
+    (62, "INSTANCE_NO_LOCATION", r"^Instance '.*' has no location", "An instance block without a location"),
+    (63, "INSTANCE_OFF_IGNORED", r"^Instance '.*' is ignored: instances off", "An instance block under `instances off`"),
+    (64, "INSTANCE_DUPLICATE", r"^Instance '.*' has the family and style name of", "Two instance blocks with one family and style name"),
+    (65, "INSTANCE_SHADOWS_AUTO", r"^Instance '.*' is at the location of '.*', which instances auto",
+     "An instance block where `instances auto` puts an instance too"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition
 # value: Label 'X' not found …" is about a rule, not a source)
-_FIRST = ("RULE_CONDITION", "AXIS_RANGE_LABEL")
+_FIRST = ("RULE_CONDITION", "AXIS_RANGE_LABEL", "INSTANCE_FIELD_INVALID", "INSTANCE_LOCATION_INVALID")
 
 CODES: Dict[str, Code] = {}
 _PATTERNS = []

@@ -22,6 +22,9 @@ Fixes exist for:
 - a rule condition on an unknown axis (the closest axis);
 - with font data, a rule glyph or target the default master lacks (the
   closest glyph it has), and a pattern rule that swaps nothing (remove it).
+- in an explicit instance block, a misspelt key, an unknown axis or label in
+  the location (the closest one), and a block where `instances auto` puts an
+  instance too (skip that one).
 
 Never raises: a fix that cannot be built is left out. Light: stdlib + PyYAML.
 """
@@ -303,6 +306,35 @@ def _rule_matches_nothing(sk: Sketch, d, quoted):
     return [_fix("Remove the rule", lambda: sk.remove_rule(index))]
 
 
+def _instance_field(sk: Sketch, d, quoted):
+    # Instance 'X': unknown key 'famly'. Did you mean 'family'?
+    if "unknown key" not in d.message or len(quoted) < 3:
+        return []
+    return [Fix(f"Change to '{quoted[2]}'", _replace_word(sk, d.line, quoted[1], quoted[2])[:1])]
+
+
+def _instance_location(sk: Sketch, d, quoted):
+    doc = sk.document
+    if "unknown label" in d.message and len(quoted) >= 3:
+        try:
+            axis = sk.axis(quoted[2])
+        except EditError:
+            return []
+        suggestion = _closest(quoted[1], {m.label for m in axis.mappings if m.label})
+    elif "unknown axis" in d.message and len(quoted) >= 2:
+        suggestion = _closest(quoted[1], {a.tag for a in doc.axes + doc.hidden_axes})
+    else:
+        return []
+    if suggestion is None:
+        return []
+    return [Fix(f"Change to '{suggestion}'", _replace_word(sk, d.line, quoted[1], suggestion)[:1])]
+
+
+def _instance_shadows_auto(sk: Sketch, d, quoted):
+    # Instance 'X' is at the location of 'Y', which instances auto generates too
+    return [_fix(f"Add '{quoted[1]}' to skip", lambda: sk.add_skip(quoted[1]))] if len(quoted) >= 2 else []
+
+
 _HANDLERS: Dict[str, Callable] = {
     "KEYWORD_TYPO": _keyword_typo,
     "AXIS_TAG_TYPO": _axis_tag_typo,
@@ -322,4 +354,7 @@ _HANDLERS: Dict[str, Callable] = {
     "RULE_GLYPH_MISSING": _rule_glyph_missing,
     "RULE_TARGET_MISSING": _rule_glyph_missing,
     "RULE_MATCHES_NOTHING": _rule_matches_nothing,
+    "INSTANCE_FIELD_INVALID": _instance_field,
+    "INSTANCE_LOCATION_INVALID": _instance_location,
+    "INSTANCE_SHADOWS_AUTO": _instance_shadows_auto,
 }

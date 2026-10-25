@@ -3,12 +3,11 @@
 from pathlib import Path
 
 import pytest
-from fontTools.designspaceLib import AxisLabelDescriptor, RuleDescriptor, SourceDescriptor
+from fontTools.designspaceLib import AxisLabelDescriptor, InstanceDescriptor, RuleDescriptor, SourceDescriptor
 
 import dssketch
 from dssketch import (
     APPLY_AVAR2_NOT_APPLIED,
-    APPLY_INSTANCES_NOT_APPLIED,
     APPLY_REFUSED,
     APPLY_RULE_KEPT,
     CATEGORY_APPLY,
@@ -213,16 +212,59 @@ def test_pattern_rule_kept_when_its_glyphs_fit():
     assert result.edits == [] and [c for c, _ in applied(report)] == [APPLY_RULE_KEPT]
 
 
+# -- instances ----------------------------------------------------------------------
+
+
+def test_removed_instances_become_skip_entries():
+    ds = to_ds()
+    ds.instances = ds.instances[:2]  # Thin, Thin Italic
+    result, report = apply(ds)
+    assert changed(TEXT, result.text) == [
+        "+    skip", "+        Regular", "+        Italic", "+        Black", "+        Black Italic",
+    ]
+    assert applied(report) == []
+
+
+def test_untouched_instances_follow_a_new_label():
+    ds = to_ds()
+    axis(ds, "wght").axisLabels.insert(2, AxisLabelDescriptor(name="Bold", userValue=700))
+    axis(ds, "wght").map = [(100, 100), (400, 400), (700, 650), (900, 900)]
+    result, _ = apply(ds)
+    assert "skip" not in result.text  # Bold and Italic Bold are new instances, not skipped
+
+
+def test_added_and_edited_instance_blocks():
+    ds = to_ds()
+    extra = InstanceDescriptor()
+    extra.familyName, extra.styleName, extra.location = "A Display", "Book", {"Weight": 330, "italic": 0}
+    ds.addInstance(extra)
+    result, report = apply(ds)
+    assert result.text.endswith(
+        "instances auto\n"
+        "    Book\n"
+        "        location: wght=330, ital=Upright\n"
+        "        family: A Display\n"
+        "        style: Book\n"
+    )  # the DesignSpace sets no PostScript name or file name: they stay derived
+    assert applied(report) == []
+
+    # the block written by hand without the derived keys: only what changed is set
+    text = TEXT + "    Book\n        location: wght=330\n        family: A Display\n"
+    ds = to_ds(text)
+    ds.instances[-1].postScriptFontName = "ADisplay-BookPro"
+    result, report = apply(ds, text)
+    assert changed(text, result.text) == ["+        postscript: ADisplay-BookPro"]
+
+    ds = to_ds(text)
+    ds.instances = ds.instances[:-1]
+    result, _ = apply(ds, text)
+    assert result.text == TEXT
+
+
 # -- not written ------------------------------------------------------------------
 
 
-def test_instances_and_avar2_are_reported():
-    ds = to_ds()
-    ds.instances = ds.instances[:2]
-    result, report = apply(ds)
-    assert result.edits == []
-    assert APPLY_INSTANCES_NOT_APPLIED in [c for c, _ in applied(report)]
-
+def test_avar2_is_reported():
     path = EXAMPLES / "avar2.dssketch"
     text = path.read_text(encoding="utf-8")
     ds = dssketch.convert_to_designspace(str(path))

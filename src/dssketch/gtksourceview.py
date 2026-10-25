@@ -20,6 +20,7 @@ from typing import List
 from xml.sax.saxutils import escape
 
 from . import syntax
+from .core.models import INSTANCE_KEYS
 
 LANG_PATH = Path(__file__).parent / "data" / "dssketch.lang"
 
@@ -235,9 +236,50 @@ def language_spec() -> str:
         ["axis-order", "comment", "source-name", "coordinates"] + common, kw,
     )
     section("rules-section", r"^(rules)(?:\s+(first|last))?\b", ["comment", "rule-head", "condition"] + common, kw)
+    # `skip` and an explicit instance block run until a line indented no deeper
+    # than they are (comments and blank lines do not end them), as in the parser
+    block_end = r"^(?=[ \t]*[^\s#])(?!\%{ind@start}[ \t])"
+    w('    <context id="skip-block">')
+    w("      <start>" + escape(r"^(?<ind>[ \t]+)(skip)\b") + "</start>")
+    w("      <end>" + escape(block_end) + "</end>")
+    w("      <include>")
+    w('        <context sub-pattern="2" where="start" style-ref="keyword"/>')
+    w('        <context ref="comment"/>')
+    w('        <context ref="skip-label"/>')
+    w("      </include>")
+    w("    </context>")
+    keys = "|".join(k for k in INSTANCE_KEYS if k != "location")
+    match(
+        "instance-field", r"^\s+(" + keys + r")\s*(:)\s*(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))?(?=\s*(?:#|$))",
+        groups=[(1, "keyword"), (2, "punctuation"), (3, "string"), (4, "text")],
+    )
+    match("location-axis", r"\b([A-Za-z_][A-Za-z0-9_]*)\s*(=)", groups=[(1, "axis-tag"), (2, "punctuation")])
+    match("location-number", r"(?<==)\s*-?\d+(?:\.\d+)?(?=\s*(?:,|#|$))", "number")
+    match("location-label", r"(?<==)\s*[^\s,#]+", "label")
+    w('    <context id="instance-location" end-at-line-end="true">')
+    w("      <start>" + escape(r"^\s+(location)\s*(:)") + "</start>")
+    w("      <include>")
+    w('        <context sub-pattern="1" where="start" style-ref="keyword"/>')
+    w('        <context sub-pattern="2" where="start" style-ref="punctuation"/>')
+    for ref in ("comment", "location-axis", "location-number", "location-label", "inner-punctuation"):
+        w(f'        <context ref="{ref}"/>')
+    w("      </include>")
+    w("    </context>")
+    w('    <context id="instance-block">')
+    w("      <start>" + escape(r"^(?<ind>[ \t]+)(?!(?:skip|auto)\b)(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))(?=\s*(?:#|$))")
+      + "</start>")
+    w("      <end>" + escape(block_end) + "</end>")
+    w("      <include>")
+    w('        <context sub-pattern="2" where="start" style-ref="string"/>')
+    w('        <context sub-pattern="3" where="start" style-ref="text"/>')
+    for ref in ("comment", "instance-location", "instance-field"):
+        w(f'        <context ref="{ref}"/>')
+    w("      </include>")
+    w("    </context>")
+    match("instances-auto", r"^\s+(auto)\s*(?=#|$)", groups=[(1, "keyword")])
     section(
         "instances-section", r"^(instances)(?:\s+(auto|off))?\b",
-        ["comment", "line-keyword", "skip-label"], kw,
+        ["comment", "skip-block", "instances-auto", "instance-block"], kw,
     )
     section("avar2-section", r"^(avar2)(?:\s+(vars|matrix))?\b", ["coordinates"] + common, kw)
 

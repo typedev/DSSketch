@@ -940,6 +940,43 @@ instances auto
 # Result: 315 total combinations - 14 skipped = 301 instances generated
 ```
 
+### Explicit Instances
+
+`instances auto` covers the instances the axis labels generate, and `skip` leaves
+some out. An instance the generator does not make — a position between labels,
+a hand-made name, its own family, PostScript or style-map name — is written as a
+block next to `skip`, every key spelled out:
+
+```dssketch
+instances auto
+    skip
+        Display Thin
+    Display Bold                      # the block's name
+        location: opsz=Display, wght=700
+        family: MyFont Display
+        style: Bold
+        postscript: MyFontDisplay-Bold
+        filename: instances/MyFontDisplay-Bold.ufo
+```
+
+- `location` is required: design space, like source coordinates, a label for its
+  design value; an axis left out is at its default. Hidden axes may be given
+- `style` defaults to the block's name, `family` to the document's, `postscript`
+  to `Family-Style` (spaces removed), `filename` to `instances/<postscript>.ufo`;
+  `stylemapfamily` and `stylemapstyle` are written only when set
+- A name or value with `#`, quotes or edge spaces is quoted: `"Wide # 2"`
+- `instances` without `auto` holds only blocks; under `instances off` they are
+  ignored (with a warning)
+- A block where `instances auto` puts an instance too is a warning; the quick
+  fix adds that instance to `skip`
+
+**Converting a DesignSpace** writes this form: the instances `instances auto`
+reproduces (same position, style and family name, PostScript name, no style-map
+names) are left to it, a generated position the DesignSpace lacks becomes a
+`skip` entry, and every other instance becomes a block. When the generator
+reproduces none of them, the sketch lists them all under a plain `instances`.
+Converting back gives the same instances.
+
 ### Skip Rule Validation
 
 DSSketch validates skip rules at **two levels** to ensure correctness and provide helpful feedback:
@@ -1539,6 +1576,9 @@ sk.add_skip("Thin Italic")
 sk.add_rule("dollar", "dollar.alt", "weight >= Bold", name="heavy dollar")
 sk.move_rule(2, 0)                            # rules apply in order
 sk.add_rule_condition(0, "italic == 1")       # also set_rule_condition / remove_rule_condition
+sk.add_instance("Display Bold", {"opsz": "Display", "wght": 700}, family="MyFont Display")
+sk.set_instance_field(0, "postscript", "MyFontDisplay-Bold")   # None removes a key
+sk.set_rules_processing(True)                 # `rules last`
 
 sk.item_at(18, 20)   # ("source", SourceKey("Font-Bold.ufo"), "coord", "wght")
 sk.span(("mapping", "wght", "Bold", "design"))   # Span(line, col, end_line, end_col)
@@ -1546,7 +1586,7 @@ sk.span(("mapping", "wght", "Bold", "design"))   # Span(line, col, end_line, end
 
 Objects are addressed by stable keys — an axis by its tag, a mapping by axis and
 label, a source by `SourceKey(filename, layer)` (or a name that is unique), a
-rule by its position in the rules section, a `skip` entry by its text. Values follow the document's own spelling
+rule or an explicit instance by its position, a `skip` entry by its text. Values follow the document's own spelling
 (`prefer="keep"`: a label where the neighbouring lines write labels), or
 `prefer="label"` / `"number"`.
 
@@ -1620,10 +1660,14 @@ for issue in report.warnings:                   # what was not written
 
 Axes (range, name, mappings — a renamed label follows into its uses), sources
 (coordinates, `@base`, `@sparse`, added and removed) and rules (conditions,
-glyphs, added, removed, order) are written. A pattern rule (`a* > .ss01`) stays
-as written while the DesignSpace's substitutions fit it. avar2, instances and
-`skip` are not rewritten: the report (category 6, "Apply") says where they
-differ, as it does for an edit the sketch refuses.
+glyphs, added, removed, order, `rules last`) are written. A pattern rule
+(`a* > .ss01`) stays as written while the DesignSpace's substitutions fit it.
+Instances are written as a conversion would describe them (`instances
+auto/off`, `skip` entries, explicit blocks), but only when the DesignSpace's
+instances differ from what the text generates: an axis label added in the
+DesignSpace makes new instances, not `skip` entries. avar2 is not rewritten:
+the report (category 6, "Apply") says where it differs, as it does for an edit
+the sketch refuses.
 
 **Comments**: a comment starts at the first `#` outside quotes (`"Sans #1"` is a
 name). When a line is removed, the comments directly above it (no blank line

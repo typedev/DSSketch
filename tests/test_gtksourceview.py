@@ -55,12 +55,19 @@ sources [wght, opsz, CNTR, ital, slnt]
     Font-Regular @base
     Font-Bold wght=900, CNTR=Sharp @layer 'bold#2'
     Font-Bold.ufo [Black, Text, Sharp, Italic, Slant] @layer=fg
-rules
+rules last
     dollar cent* > .rvrn (Regular <= weight <= Black && CONTRAST >= 50) "heavy #1"  # note
     a > a.alt (ital == 1)
 instances auto
     skip
         Black Italic
+    Display Black  # note
+        location: wght=Black, opsz=144, XOUC=80
+        family: "Sans Pro Display"
+        postscript: SansProDisplay-Black  # note
+    "Wide # 2"
+        location: wght=700
+        filename: instances/Wide.ufo
 avar2 vars
     $XO = 50
 avar2

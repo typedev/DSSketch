@@ -14,8 +14,11 @@ a sketch (DS -> DSS); the two documents are compared item by item:
   A pattern rule (`a* > .ss01`) is kept as long as the DesignSpace's
   substitutions fit its pattern
 
-Not written, and said so in the report: avar2 (not edited yet), instances and
-`skip` (DSSketch-level; a DesignSpace records only their result), an axis that
+- instances as DS -> DSS describes them: `instances auto/off`, the `skip`
+  entries for generated positions the DesignSpace lacks, explicit blocks (by
+  name and occurrence) for what the generator does not reproduce
+
+Not written, and said so in the report: avar2 (not edited yet), an axis that
 moved between `axes` and `axes hidden`, an edit the sketch refuses (the rest is
 applied). What DS -> DSS itself cannot carry (document lib, …) is reported as
 the converter reports it.
@@ -472,27 +475,175 @@ class _Applier:
                       "The avar2 mappings differ; avar2 is not edited, the text keeps its own",
                       current=len(self.doc.avar2_mappings), designspace=len(self.target.avar2_mappings))
 
-    def instances(self, ds_doc):
-        """Instances are DSSketch-level: compare what the text generates (its
-        `skip` applied) with the DesignSpace's, by name and position"""
-        def key(name, location):
-            return name, tuple(sorted((k, round(float(v), 4)) for k, v in location.items()))
+    def instances(self, ds_doc, original: Sketch):
+        """`instances auto/off`, the `skip` entries and the explicit blocks, as
+        DS -> DSS describes the DesignSpace's instances
 
-        mine = self.sketch.instances()
-        if self.doc.instances_off or self.doc.instances_auto:
-            ours = {key(i.style_name, i.design_location) for i in mine if not i.skipped}
-        else:
-            ours = None  # explicit instances: not generated, nothing to compare
-        theirs = {key(i.styleName or "", dict(i.location)) for i in ds_doc.instances}
-        if ours is None or ours == theirs:
+        Left alone when the DesignSpace has exactly the instances the original
+        text generates: its instances were not edited, and an axis label added
+        in the DesignSpace makes new instances rather than `skip` entries.
+        """
+        if self.full_keys(original, ds_doc) == self.designspace_full_keys(ds_doc):
+            return
+        target = self.target
+        want = "off" if target.instances_off else ("auto" if target.instances_auto else None)
+        has_section = self.sketch.structure.section_header("instances") is not None
+        have = "off" if self.doc.instances_off else ("auto" if self.doc.instances_auto else None)
+        if want != have and not (want == "off" and not has_section):
+            self.run(f"instances {want or ''}".strip(), lambda sk: sk.set_instances_mode(want))
+
+        wanted_skip = list(target.instances_skip) if want == "auto" else []
+        skipping = {i.skip_entry for i in self.sketch.instances() if i.skipped}
+        for entry in list(self.doc.instances_skip):
+            if entry not in wanted_skip and (entry in skipping or want != "auto"):
+                self.run(f"remove skip {entry}", lambda sk, e=entry: sk.remove_skip(e))
+        for entry in wanted_skip:
+            if entry not in self.doc.instances_skip:
+                self.run(f"skip {entry}", lambda sk, e=entry: sk.add_skip(e))
+
+        def keyed(instances):
+            out, seen = {}, {}
+            for instance in instances:
+                n = seen.get(instance.name, 0)
+                seen[instance.name] = n + 1
+                out[(instance.name, n)] = instance
+            return out
+
+        wanted = keyed(target.instances) if want != "off" else {}
+        for key in reversed(list(keyed(self.doc.instances))):
+            if key not in wanted:
+                index = list(keyed(self.doc.instances)).index(key)
+                self.run(f"remove instance {key[0]}", lambda sk, i=index: sk.remove_instance(i))
+        for key, instance in wanted.items():
+            keys = list(keyed(self.doc.instances))
+            location = self.instance_location(instance)
+            if key not in keys:
+                fields = {k: v for k, v in self.instance_fields(instance).items() if v}
+                self.run(f"add instance {instance.name}",
+                         lambda sk, n=instance.name, loc=location, f=fields: sk.add_instance(n, loc, **f))
+                continue
+            index = keys.index(key)
+            mine = self.doc.instances[index]
+            if self.location_by_tag(self.doc, mine) != self.location_by_tag(target, instance):
+                self.run(f"location of instance {instance.name}",
+                         lambda sk, i=index, loc=location: sk.set_instance_field(i, "location", loc))
+            for name, value in self.instance_fields(instance).items():
+                if self.effective(self.doc, mine, name) != self.effective(target, instance, name):
+                    self.run(f"{name} of instance {instance.name}",
+                             lambda sk, i=index, n=name, v=value: sk.set_instance_field(i, n, v or None))
+        self.finish()
+        self.check_instances(ds_doc)
+
+    @staticmethod
+    def instance_fields(instance) -> Dict[str, Optional[str]]:
+        return {
+            "family": instance.familyname or None,
+            "style": instance.stylename or None,
+            "postscript": instance.postscriptname,
+            "filename": instance.filename,
+            "stylemapfamily": instance.stylemapfamilyname,
+            "stylemapstyle": instance.stylemapstylename,
+        }
+
+    @staticmethod
+    def effective(doc: DSSDocument, instance, name: str) -> Optional[str]:
+        """A block key as DSS -> DS reads it: what the block leaves out derived"""
+        family = instance.familyname or doc.family
+        style = instance.stylename or instance.name
+        postscript = instance.postscriptname or f"{family.replace(' ', '')}-{style.replace(' ', '')}"
+        return {
+            "family": family,
+            "style": style,
+            "postscript": postscript,
+            "filename": instance.filename or f"instances/{postscript}.ufo",
+            "stylemapfamily": instance.stylemapfamilyname,
+            "stylemapstyle": instance.stylemapstylename,
+        }[name]
+
+    @staticmethod
+    def location_by_tag(doc: DSSDocument, instance) -> Dict[str, float]:
+        """Full design location by tag: visible axes at their default when left out"""
+        out = {}
+        for axis in doc.axes:
+            out[axis.tag] = round(float(instance.location.get(axis.name, axis.get_design_value(axis.default))), 4)
+        for axis in doc.hidden_axes:
+            if axis.name in instance.location:
+                out[axis.tag] = round(float(instance.location[axis.name]), 4)
+        return out
+
+    def instance_location(self, instance) -> Dict[str, object]:
+        """The target block's location as the text writes it: tags, a label of
+        the text's axis where one sits at the value"""
+        out = {}
+        for tag, value in self.location_by_tag(self.target, instance).items():
+            axis = self.axis_of(self.doc, tag)
+            label = next((m.label for m in axis.mappings if m.label and _same(m.design_value, value)), None) \
+                if axis is not None else None
+            out[tag] = label or value
+        return out
+
+    @staticmethod
+    def _postscript(family: str, style: str) -> str:
+        return f"{family.replace(' ', '')}-{style.replace(' ', '')}"
+
+    def full_keys(self, sketch: Sketch, ds_doc) -> list:
+        """Every instance a text makes, with the names DSS -> DS gives it"""
+        doc = sketch.document
+        blocks = iter([b for b in doc.instances if b.location])  # as instances() lists them
+        out = []
+        for info in sketch.instances():
+            if info.skipped:
+                continue
+            name, position = self._instance_key(ds_doc, info.style_name, info.design_location)
+            if info.explicit:
+                block = next(blocks)
+                names = (self.effective(doc, block, "family"), self.effective(doc, block, "postscript"),
+                         block.stylemapfamilyname or "", block.stylemapstylename or "")
+            else:
+                family = info.family_name or ""
+                names = (family, self._postscript(family, name), "", "")
+            out.append((name, position) + names)
+        return sorted(out)
+
+    def designspace_full_keys(self, ds_doc) -> list:
+        default = ds_doc.findDefault() if ds_doc.sources else None
+        default_family = (default.familyName if default else None) or self.target.family or ""
+        out = []
+        for i in ds_doc.instances:
+            name, position = self._instance_key(ds_doc, i.styleName or "", i.getFullDesignLocation(ds_doc))
+            family = i.familyName or default_family
+            out.append((name, position, family, i.postScriptFontName or self._postscript(family, name),
+                        i.styleMapFamilyName or "", i.styleMapStyleName or ""))
+        return sorted(out)
+
+    @staticmethod
+    def _instance_key(ds_doc, name, location):
+        defaults = {a.name: a.map_forward(a.default) for a in ds_doc.axes}
+        full = dict(defaults, **{k: v for k, v in location.items() if k in defaults})
+        return name, tuple(sorted((k, round(float(v), 4)) for k, v in full.items()))
+
+    def instance_keys(self, sketch: Sketch, ds_doc):
+        """(style name, full design position) of every instance a text generates"""
+        return {self._instance_key(ds_doc, i.style_name, i.design_location)
+                for i in sketch.instances() if not i.skipped}
+
+    def designspace_keys(self, ds_doc):
+        return {self._instance_key(ds_doc, i.styleName or "", i.getFullDesignLocation(ds_doc))
+                for i in ds_doc.instances}
+
+    def check_instances(self, ds_doc):
+        """Compare what the text now generates with the DesignSpace, by name and
+        full design position; report what still differs"""
+        ours, theirs = self.instance_keys(self.sketch, ds_doc), self.designspace_keys(ds_doc)
+        if ours == theirs:
             return
         missing = sorted(name for name, _ in theirs - ours)
         extra = sorted(name for name, _ in ours - theirs)
         self.note(
             APPLY_INSTANCES_NOT_APPLIED, SEVERITY_WARNING,
             f"Instances differ from what the text generates ({len(missing)} only in the DesignSpace, "
-            f"{len(extra)} only in the text); instances and skip entries are not rewritten",
-            details="Edit the axes' labels, `instances auto/off` or the `skip` entries to match.",
+            f"{len(extra)} only in the text)",
+            details="Some instance edits were refused; see the other entries.",
             only_designspace=missing, only_text=extra,
         )
 
@@ -555,7 +706,7 @@ def apply_designspace(sketch: Sketch, ds_doc) -> Tuple[EditResult, ConversionRep
     applier.header()
     applier.finish()
     applier.avar2()
-    applier.instances(ds_doc)
+    applier.instances(ds_doc, sketch)
 
     final = applier.sketch
     if final.text == sketch.text:

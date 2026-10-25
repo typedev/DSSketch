@@ -34,8 +34,6 @@ from ..core.report import (
     DOCUMENT_VARIABLE_FONTS_DROPPED,
     INSTANCE_EXTRA,
     INSTANCE_FIELDS_DROPPED,
-    INSTANCE_RENAMED,
-    INSTANCE_UNREACHABLE,
     SEVERITY_INFO,
     SEVERITY_WARNING,
     SOURCE_FIELDS_DROPPED,
@@ -123,10 +121,7 @@ class DesignSpaceToDSS:
 
         # Convert instances (optional - can be auto-generated)
         if ds_doc.instances:
-            for instance in ds_doc.instances:
-                dss_instance = self._convert_instance(instance, ds_doc)
-                dss_doc.instances.append(dss_instance)
-            self._report_instances_auto_fit(ds_doc, dss_doc)
+            self._split_instances(ds_doc, dss_doc)
         else:
             # No instances in original - set instances_off to preserve this
             dss_doc.instances_off = True
@@ -310,9 +305,8 @@ class DesignSpaceToDSS:
             ))
 
         # -- instances -----------------------------------------------------
+        # Style-map and PostScript names go into explicit instance blocks
         fields = {
-            "styleMapFamilyName": "style-map family name",
-            "styleMapStyleName": "style-map style name",
             "localisedFamilyName": "localized family names",
             "localisedStyleName": "localized style names",
             "localisedStyleMapFamilyName": "localized style-map family names",
@@ -330,20 +324,12 @@ class DesignSpaceToDSS:
                 set(instance.localisedStyleName) - set(dss_doc.languages) - {"en"}
             ):
                 present.remove("localisedStyleName")
-            # instances auto writes Family-Style; only a different name is lost
-            generated = (
-                f"{(instance.familyName or dss_doc.family or '').replace(' ', '')}-"
-                f"{(instance.styleName or '').replace(' ', '')}"
-            )
-            if instance.postScriptFontName and instance.postScriptFontName != generated:
-                present.append("postScriptFontName")
             for f in present:
                 counts[f] = counts.get(f, 0) + 1
             if present:
                 refs.append(InstanceRef(style_name=instance.styleName or instance.name or "?",
                                         location=dict(instance.getFullDesignLocation(ds_doc))))
         if counts:
-            fields["postScriptFontName"] = "PostScript name"
             summary = ", ".join(f"{fields[f]} ({n})" for f, n in sorted(counts.items()))
             report.add(ConversionIssue(
                 category=CATEGORY_INSTANCES, code=INSTANCE_FIELDS_DROPPED, severity=SEVERITY_INFO,
@@ -589,15 +575,30 @@ class DesignSpaceToDSS:
         return True
 
     def _convert_instance(
-        self, instance: InstanceDescriptor, ds_doc: DesignSpaceDocument
+        self, instance: InstanceDescriptor, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument
     ) -> DSSInstance:
-        """Convert DesignSpace instance to DSS instance"""
+        """An explicit instance block; every key the DesignSpace has is written"""
+        names = {}
+        for axis in dss_doc.axes + dss_doc.hidden_axes:
+            names[axis.name] = axis.name
+            if axis.display_name:
+                names[axis.display_name] = axis.name
+        full = instance.getFullDesignLocation(ds_doc)
+        hidden = {a.name for a in ds_doc.axes if getattr(a, "hidden", False)}
+        location = {}
+        for axis in ds_doc.axes:
+            if axis.name in hidden and axis.name not in (instance.location or {}):
+                continue  # a hidden axis only where the instance sets it
+            location[names.get(axis.name, axis.name)] = full[axis.name]
         return DSSInstance(
-            name=instance.styleName or "",
+            name=instance.styleName or instance.name or "",
             familyname=instance.familyName or "",
             stylename=instance.styleName or "",
             filename=instance.filename,
-            location=dict(instance.location),
+            location=location,
+            postscriptname=instance.postScriptFontName,
+            stylemapfamilyname=instance.styleMapFamilyName,
+            stylemapstylename=instance.styleMapStyleName,
         )
 
     def _convert_rule(self, rule: RuleDescriptor, ds_doc: DesignSpaceDocument) -> List[DSSRule]:
@@ -744,161 +745,83 @@ class DesignSpaceToDSS:
 
         return output_axes
 
-    def _report_instances_auto_fit(
-        self, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument
-    ) -> None:
-        """Report how well `instances auto` reproduces the declared instances.
+    def _split_instances(self, ds_doc: DesignSpaceDocument, dss_doc: DSSDocument) -> None:
+        """Describe the DesignSpace's instances as `instances auto`, `skip` and blocks
 
-        The sketch normally says `instances auto` rather than listing instances,
-        on the assumption that the generator rebuilds them from the axis labels.
-        This checks that assumption against the DesignSpace we just read and
-        reports where it does not hold.
-
-        Instances are matched by **design-space position**, not by style name.
-        Names diverge for reasons that are not losses - elidable rules change
-        them - whereas a position either survives or it does not. Comparing by
-        name produces large numbers of phantom losses.
-
-        Purely diagnostic: it never alters the document. In particular it does
-        not synthesise a `skip` block. `skip` is an instruction to the
-        generator and a DesignSpace records only the result of applying it, so
-        the intent behind an absent instance cannot be recovered from the file.
-        Extra instances are reported so a human can write that block.
+        An instance `instances auto` reproduces (same design position, style
+        and family name, PostScript name and no style-map names) is left to the
+        generator; a generated position the DesignSpace lacks becomes a `skip`
+        entry; every other instance is written as an explicit block. When the
+        generator reproduces none of them, the sketch lists them all without
+        `auto`. Positions are compared in full design space, so an omitted
+        dimension equals the axis default. The file name is not compared: the
+        generator writes its own.
         """
         try:
-            generated, _ = createInstances(ds_doc, dss_doc)
-        except Exception as exc:  # diagnostics must never break a conversion
-            DSSketchLogger.debug(f"Could not verify `instances auto`: {exc}")
-            return
-
-        defaults = {axis.name: axis.default for axis in ds_doc.axes}
+            generated = createInstances(ds_doc, dss_doc)[0].instances
+        except Exception as exc:  # the generator failing leaves every instance explicit
+            DSSketchLogger.debug(f"Could not run `instances auto`: {exc}")
+            generated = []
 
         def position(instance) -> tuple:
-            # An omitted dimension means the axis default, so drop defaults to
-            # make "absent" and "explicitly at default" compare equal.
-            return tuple(
-                sorted(
-                    (name, value)
-                    for name, value in instance.location.items()
-                    if defaults.get(name) != value
-                )
-            )
+            full = instance.getFullDesignLocation(ds_doc)
+            return tuple(sorted((name, round(value, 6)) for name, value in full.items()))
 
-        declared = {position(i): i.styleName for i in ds_doc.instances}
-        produced = {position(i): i.styleName for i in generated.instances}
+        default = ds_doc.findDefault() if ds_doc.sources else None
+        default_family = (default.familyName if default else None) or dss_doc.family
+        produced = {}
+        for instance in generated:
+            produced.setdefault(position(instance), instance)
 
-        missing = [declared[p] for p in declared if p not in produced]
-        renamed = [
-            (declared[p], produced[p])
-            for p in declared
-            if p in produced and declared[p] != produced[p]
-        ]
-        extra = [produced[p] for p in produced if p not in declared]
+        reproduced_at, explicit = set(), []
+        for instance in ds_doc.instances:
+            where = position(instance)
+            auto = produced.get(where)
+            if (
+                auto is not None
+                and where not in reproduced_at
+                and instance.styleName == auto.styleName
+                and (instance.familyName or default_family) == auto.familyName
+                and instance.postScriptFontName in (None, auto.postScriptFontName)
+                and not instance.styleMapFamilyName
+                and not instance.styleMapStyleName
+            ):
+                reproduced_at.add(where)
+            else:
+                explicit.append(instance)
 
-        if missing:
-            refs = [
-                InstanceRef(style_name=name, location=dict(loc))
-                for loc, name in ((p, declared[p]) for p in declared if p not in produced)
-            ]
-            issue = self.report.add(
-                ConversionIssue(
-                    category=CATEGORY_INSTANCES,
-                    code=INSTANCE_UNREACHABLE,
-                    severity=SEVERITY_WARNING,
-                    description=(
-                        f"`instances auto` does not reach {len(missing)} of the "
-                        f"{len(declared)} instances declared in the DesignSpace"
-                    ),
-                    details=(
-                        "The sketch will not describe this design space completely. "
-                        "These positions are not produced by any combination of the "
-                        "axis labels, so they cannot be regenerated."
-                    ),
-                    suggested_fix=(
-                        "Add axis labels that land on these positions, or keep the "
-                        "instances listed explicitly."
-                    ),
-                    instances=sorted(refs, key=lambda r: r.style_name),
-                    raw_data={"declared": len(declared), "unreachable": len(missing)},
-                )
-            )
-            DSSketchLogger.warning(f"{issue.description}: {self._sample(missing)}")
+        if not reproduced_at:
+            dss_doc.instances_auto = False
+            dss_doc.instances = [self._convert_instance(i, ds_doc, dss_doc) for i in ds_doc.instances]
+            return
 
-        if renamed:
-            refs = [
-                InstanceRef(
-                    style_name=declared[p],
-                    location=dict(p),
-                    other_style_name=produced[p],
-                )
-                for p in declared
-                if p in produced and declared[p] != produced[p]
-            ]
-            issue = self.report.add(
-                ConversionIssue(
-                    category=CATEGORY_INSTANCES,
-                    code=INSTANCE_RENAMED,
-                    severity=SEVERITY_WARNING,
-                    description=(
-                        f"{len(renamed)} instance(s) keep their position but are "
-                        f"named differently by the generator"
-                    ),
-                    details=(
-                        "The DesignSpace may predate a change in the elidable naming "
-                        "rules. The positions themselves are intact."
-                    ),
-                    suggested_fix=(
-                        "Regenerate the DesignSpace from its sketch so the names agree."
-                    ),
-                    instances=sorted(refs, key=lambda r: r.style_name),
-                    raw_data={"declared": len(declared), "renamed": len(renamed)},
-                )
-            )
-            DSSketchLogger.warning(
-                issue.description
-                + " - the DesignSpace may predate a change in the elidable rules: "
-                + ", ".join(f"'{was}' -> '{now}'" for was, now in renamed[:3])
-                + (f" (+{len(renamed) - 3} more)" if len(renamed) > 3 else "")
-            )
+        dss_doc.instances_auto = True
+        dss_doc.instances = [self._convert_instance(i, ds_doc, dss_doc) for i in explicit]
+        kept_names = {produced[p].styleName for p in reproduced_at}
+        stuck = []
+        for where, auto in produced.items():
+            if where in reproduced_at:
+                continue
+            if auto.styleName in kept_names:
+                stuck.append(auto)  # a skip entry would remove the kept one too
+            elif auto.styleName not in dss_doc.instances_skip:
+                dss_doc.instances_skip.append(auto.styleName)
 
-        if extra:
-            refs = [
-                InstanceRef(style_name=name, location=dict(loc))
-                for loc, name in ((p, produced[p]) for p in produced if p not in declared)
-            ]
-            issue = self.report.add(
-                ConversionIssue(
-                    category=CATEGORY_INSTANCES,
-                    code=INSTANCE_EXTRA,
-                    severity=SEVERITY_INFO,
-                    description=(
-                        f"`instances auto` generates {len(extra)} instance(s) beyond "
-                        f"the {len(declared)} in the DesignSpace"
-                    ),
-                    details=(
-                        "The DesignSpace was filtered. A sketch expresses that with an "
-                        "`instances auto` / `skip` block, which cannot be recovered "
-                        "from a DesignSpace: `skip` instructs the generator, while a "
-                        "DesignSpace records only the result of applying it."
-                    ),
-                    suggested_fix=(
-                        "If the omission is intentional, list these under "
-                        "`instances auto` / `skip`."
-                    ),
-                    instances=sorted(refs, key=lambda r: r.style_name),
-                    raw_data={"declared": len(declared), "extra": len(extra)},
-                )
-            )
-            DSSketchLogger.info(
-                issue.description
-                + ". If that is intentional, add them to an `instances auto` / "
-                + f"`skip` block: {self._sample(extra)}"
-            )
-
-        if not self.report.of_category(CATEGORY_INSTANCES):
-            DSSketchLogger.debug(
-                f"`instances auto` reproduces all {len(declared)} declared instances"
-            )
+        if stuck:
+            issue = self.report.add(ConversionIssue(
+                category=CATEGORY_INSTANCES, code=INSTANCE_EXTRA, severity=SEVERITY_WARNING,
+                description=(
+                    f"`instances auto` generates {len(stuck)} instance(s) the DesignSpace "
+                    f"does not have, under a name it keeps elsewhere"
+                ),
+                details="A `skip` entry names an instance, so it would remove the kept one too.",
+                instances=sorted(
+                    (InstanceRef(style_name=i.styleName, location=dict(i.location)) for i in stuck),
+                    key=lambda r: r.style_name,
+                ),
+                raw_data={"extra": len(stuck)},
+            ))
+            DSSketchLogger.warning(f"{issue.description}: {self._sample([i.styleName for i in stuck])}")
 
     @staticmethod
     def _sample(names: list, limit: int = 5) -> str:

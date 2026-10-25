@@ -750,57 +750,63 @@ sources [wght, wdth]
 - **Example**: `wght 100:400:900` without labels → instances at wght100, wght400, wght900
 - Useful for quick prototyping without defining full axis mappings
 
-**`instances auto` Fit Report (DS → DSSketch):**
-- **Purpose**: `instances auto` is written on the assumption that the generator
-  reproduces the instances a DesignSpace declares. The converter now checks it.
-- **Code**: `DesignSpaceToDSS._report_instances_auto_fit()` in
-  `converters/designspace_to_dss.py`, called from `convert()` when the source
-  document has instances. Reuses `createInstances()` — no roundtrip needed.
-- **Matched by design-space position, never by style name.** Names diverge for
-  reasons that are not losses (elidable rules); a position either survives or it
-  does not. Dimensions sitting at their axis default are dropped before
-  comparing, so an omitted dimension and an explicit default compare equal.
-- **Three outcomes:**
-  - declared position the generator never reaches → WARNING (real loss)
-  - same position, different style name → WARNING (naming drift)
-  - positions the generator adds → INFO (the DS was filtered; that is what a
-    `skip` block expresses)
-- **Purely diagnostic.** It never alters the document, and in particular never
-  synthesises a `skip` block. `skip` is an instruction to the generator; a
-  DesignSpace records only the result of applying it, so the intent behind an
-  absent instance cannot be recovered from the file. See
-  `notes/roundtrip-fidelity-issues.md`.
+**Explicit instances and DS → DSS instances (1.5.x, decided 2026-10-24):**
+- **Format**: blocks under `instances` beside `skip`; a name line, then
+  `key: value` lines indented deeper (`INSTANCE_KEYS` in `core/models.py`:
+  location, family, style, postscript, filename, stylemapfamily, stylemapstyle).
+  `location` is required, design space (labels = design values, as in source
+  coordinates), keyed by axis tag/name, hidden axes allowed; an axis left out is
+  its default. Derived on DSS → DS (`DSSToDesignSpace._convert_instance`): style
+  = name, family = default master's, postscript = `Family-Style` (spaces
+  removed), filename = `instances/<postscript>.ufo`. `DSSDocument.instances`
+  holds ONLY these blocks (`DSSInstance`, `line` stamped); `instances` without
+  `auto` = blocks only; `instances off` ignores them (warning)
+- **Indentation decides**, the same in parser, tokenizer, structure, completion
+  and .lang: `skip` / a name line open a subsection; a deeper line belongs to it
+  (skip entry, block key); a line at their indent opens the next one. Column-0
+  text in the section is still INSTANCE_LINE_IGNORED. The .lang uses
+  `\%{ind@start}` back-references for that
+- **DS → DSS** (`DesignSpaceToDSS._split_instances`): runs `createInstances()`;
+  a DS instance is reproduced when its full design position (getFullDesignLocation,
+  so an omitted axis = default), style name, family (or the default master's),
+  PostScript name (or none) match and it has no style-map names. Generated
+  positions not reproduced → `skip` entries (by generated name). Everything
+  else → blocks with every key the DS has. None reproduced → plain `instances`.
+  A generated name that is also a kept instance cannot be skipped →
+  INSTANCE_EXTRA (warning). File names are not compared. **This reverses the
+  2026-09-28 "never synthesise skip"**: the maintainer chose exact instance
+  round-trips. All example DesignSpaces round-trip their instances
+- Codes 2.0/2.1 are no longer emitted (reserved); 2.3 now only for data a block
+  has no key for (localized names, lib, glyphs, location label)
+- Diagnostics 5.60–5.65: INSTANCE_FIELD_INVALID, INSTANCE_LOCATION_INVALID,
+  INSTANCE_NO_LOCATION, INSTANCE_OFF_IGNORED, INSTANCE_DUPLICATE (same family +
+  style), INSTANCE_SHADOWS_AUTO (validator plans `instances auto` with
+  `plan_instances`; fix: add the generated one to skip)
+- Sketch: `add_instance(name, location, **keys)`, `remove_instance`,
+  `set_instance_name`, `set_instance_field(index, key, value|None)` (location
+  cannot be removed), `set_instances_mode(None)` = plain `instances`; paths
+  `("instance", index, field?)`, `("instance", index, "location", tag)`;
+  structure kinds `instance` / `instance-field`; outline kind `instance`;
+  `Sketch.instances()` lists blocks after the generated ones (`explicit=True`,
+  `span`), in the DesignSpace's order
 - **Silent unless logging is set up** — `DSSketchLogger` is a no-op until
   `setup_logger()` runs, which only the CLI does. The library never writes
-  files next to its input (`convert_to_designspace()` stopped calling it in
-  1.5.0; `tests/test_library_no_files.py`).
-- **Failure is contained**: the report is wrapped so a diagnostic can never
-  break a conversion.
-- **Structured report**: findings are recorded in `DesignSpaceToDSS.report`
-  (a `ConversionReport` from `core/report.py`), not only logged. Reach it from
-  the API with `return_report=True`:
-  ```python
-  sketch, report = dssketch.convert_designspace_to_dss_string(ds, return_report=True)
-  for issue in report.warnings:
-      print(issue.id, issue.description)          # "2.0", "..."
-      for ref in issue.instances:
-          print(ref.style_name, ref.location)     # design-space position
-  ```
-  Each `ConversionIssue` has `category`, `code`, `severity`, `description`,
-  `details`, `suggested_fix`, `instances` (`InstanceRef`) and `raw_data`, plus
-  `id` (`"2.0"`), `category_name`, `severity_name` and `to_dict()`. Structure
-  follows the DesignSpace validator in Font Rover.
-  **Codes are append-only** — callers switch on `(category, code)`, so never
-  renumber one.
-- **Tests**: `tests/test_instances_auto_fit.py` (17 tests)
+  files next to its input (`tests/test_library_no_files.py`)
+- **Structured report**: `DesignSpaceToDSS.report` (`ConversionReport`,
+  `core/report.py`), reached with `return_report=True`. Each `ConversionIssue`
+  has `category`, `code`, `severity`, `description`, `details`,
+  `suggested_fix`, `instances` (`InstanceRef`), `raw_data`, `id`, `to_dict()`.
+  **Codes are append-only** — callers switch on `(category, code)`
+- **Tests**: `tests/test_explicit_instances.py`
 
 **ConversionReport in both directions:**
 - **DS → DSS** (`DesignSpaceToDSS._report_dropped_data`): everything a sketch
   does not carry is reported, never silently dropped — document `<lib>`,
-  `elidedFallbackName`, location labels, `<variable-fonts>`, rules
-  `processing="last"`, STAT label extras, per-source overrides (family name,
-  mutes), per-instance data (`instances auto` regenerates PostScript names, so
-  only a *different* one counts). Plus `AXIS_OUTPUT_ONLY_VISIBLE`, below
+  location labels, `<variable-fonts>`, STAT label extras, per-source overrides
+  (family name, mutes), per-instance data a block has no key for (localized
+  names, lib, glyphs). `elidedFallbackName`, rules `processing="last"`,
+  PostScript and style-map names are carried now. Plus
+  `AXIS_OUTPUT_ONLY_VISIBLE`, below
 - **DSS → DS** (`DSSToDesignSpace.report`, via `_report()`, which also logs):
   explicit rule glyph not in the default master, wildcard substitutions skipped
   (one issue per rule), rule left out as empty, unknown avar2 axis (ERROR),
@@ -810,7 +816,7 @@ sources [wght, wdth]
   ds, report = dssketch.convert_dss_string_to_designspace(text, return_report=True)
   ds, report = dssketch.convert_to_designspace("font.dssketch", return_report=True)
   ```
-- Categories: 0 Axes, 1 Sources, 2 Instances, 3 Rules, 4 Document, 5 Sketch
+- Categories: 0 Axes, 1 Sources, 2 Instances, 3 Rules, 4 Document, 5 Sketch, 6 Apply
 - Tests: `tests/test_conversion_report_coverage.py`
 
 **Naming contract with compilers (agreed with TDKit, 2026-09-28):**
@@ -1798,8 +1804,13 @@ and after the refactor
   one per discrete value; the text need not)
 - A pattern rule is kept while the DS substitutions fit it (`APPLY_RULE_KEPT`
   otherwise); conditions are written with the text's axis names
-- Not written, reported in `CATEGORY_APPLY` (6): avar2, instances (compared
-  with `Sketch.instances()`, skip applied), hidden <-> visible moves
+- Instances: written as DS -> DSS describes them (mode, `skip`, blocks keyed by
+  name + occurrence; a block's left-out keys compared as derived), but only
+  when the DS instances differ (names, positions, family, PostScript,
+  style-map) from what the ORIGINAL text generates: a label added in the DS
+  then makes new instances instead of skip entries. A skip entry that skips
+  nothing is kept. Still different afterwards → `APPLY_INSTANCES_NOT_APPLIED`
+- Not written, reported in `CATEGORY_APPLY` (6): avar2, hidden <-> visible moves
 - The final EditResult has whole-line edits (`line_edits`, difflib) from the
   original text to the final one. Every example round-trips with no edits and
   no report (`tests/test_apply_designspace.py`)

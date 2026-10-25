@@ -125,14 +125,27 @@ class DSSSource:
     spans: Dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
 
 
+# The keys of an explicit instance block, in the order the writer uses
+INSTANCE_KEYS = ("location", "family", "style", "postscript", "filename", "stylemapfamily", "stylemapstyle")
+
+
 @dataclass
 class DSSInstance:
-    """Represents an instance in DSS format"""
+    """An explicit instance: a block under `instances`, beside `skip`
+
+    Written for what `instances auto` does not reproduce. Empty fields are
+    derived on the way to DesignSpace: style = name, family = the document's,
+    PostScript name = Family-Style, filename = instances/<PostScript name>.ufo.
+    """
     name: str
     familyname: str
     stylename: str
     filename: Optional[str] = None
     location: Dict[str, float] = field(default_factory=dict)  # axis_name -> design_value
+    postscriptname: Optional[str] = None
+    stylemapfamilyname: Optional[str] = None
+    stylemapstylename: Optional[str] = None
+    line: Optional[int] = field(default=None, compare=False, repr=False)
 
 
 @dataclass

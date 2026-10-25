@@ -117,15 +117,18 @@ def test_source_overrides_are_reported():
     assert issue and "muted kerning" in issue.details and "1 muted glyphs" in issue.details
 
 
-def test_instance_data_is_reported_but_generated_postscript_names_are_not():
+def test_instance_data_without_a_key_is_reported_postscript_and_style_map_names_are_carried():
     d = _base_doc()
     for style, w, ps in (("Thin", 100, "Fam-Thin"), ("Black", 900, "FamPro-Heavy")):
         inst = InstanceDescriptor()
         inst.familyName, inst.styleName, inst.location, inst.postScriptFontName = "Fam", style, {"weight": w}, ps
         d.addInstance(inst)
     d.instances[0].styleMapStyleName = "regular"
+    d.instances[1].lib = {"com.example": 1}
     issue = _report(d).find(CATEGORY_INSTANCES, INSTANCE_FIELDS_DROPPED)
-    assert issue.raw_data["fields"] == {"postScriptFontName": 1, "styleMapStyleName": 1}
+    assert issue.raw_data["fields"] == {"lib": 1}
+    text = dssketch.convert_designspace_to_dss_string(d)
+    assert "postscript: FamPro-Heavy" in text and "stylemapstyle: regular" in text
 
 
 # -- hidden axes -------------------------------------------------------------------

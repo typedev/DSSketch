@@ -24,6 +24,8 @@ PUBLISHED = {
     "RULE_GLYPH_MISSING": 51, "RULE_TARGET_MISSING": 52, "RULE_MATCHES_NOTHING": 53,
     "AVAR2_DEFAULT_INPUT": 54, "AVAR2_OUTPUT_OUT_OF_RANGE": 55, "AVAR2_DUPLICATE_INPUT": 56,
     "AVAR2_OUTPUT_ONLY_VISIBLE": 57, "AVAR2_HIDDEN_INPUT": 58, "RULES_MODE_UNKNOWN": 59,
+    "INSTANCE_FIELD_INVALID": 60, "INSTANCE_LOCATION_INVALID": 61, "INSTANCE_NO_LOCATION": 62,
+    "INSTANCE_OFF_IGNORED": 63, "INSTANCE_DUPLICATE": 64, "INSTANCE_SHADOWS_AUTO": 65,
 }
 
 
@@ -91,7 +93,7 @@ def variant(old, new):
         ("SOURCE_UNKNOWN_LABEL", variant("T-Black [Black, Upright]", "T-Black [Bolt, Upright]")),
         ("SOURCE_OFF_MAPPING", variant("T-Black [Black, Upright]", "T-Black [Black, Upright]\n    T-Mid [600, Upright]")),
         ("RULE_CONDITION", variant("weight >= Black", "weight >= Bolt")),
-        ("INSTANCE_LINE_IGNORED", variant("instances auto", "instances auto\n    T Bold")),
+        ("INSTANCE_LINE_IGNORED", variant("instances auto", "instances auto\nT Bold")),
         ("AVAR2_UNDEFINED_VAR", GOOD + "avar2\n    [wght=Black] > wght=$NOPE\n"),
         ("AVAR2_UNKNOWN_LABEL", GOOD + "avar2\n    [wght=Bolt] > wght=700\n"),
         ("AVAR2_SYNTAX", GOOD + "avar2\n    wght=Bolt > wght=700\n"),
@@ -107,6 +109,15 @@ def variant(old, new):
         ("AVAR2_OUTPUT_ONLY_VISIBLE", variant("    ital discrete", "    XOPQ 0:50:100\n    ital discrete") + "avar2\n    [wght=Black] > XOPQ=80\n"),
         ("AVAR2_HIDDEN_INPUT", GOOD + "axes hidden\n    XOPQ 0:50:100\navar2\n    [XOPQ=80] > wght=800\n"),
         ("RULES_MODE_UNKNOWN", GOOD + "rules lats\n    a > a.alt (weight >= Black)\n"),
+        ("INSTANCE_FIELD_INVALID", variant("instances auto", "instances auto\n    Wide\n        locaton: wght=700")),
+        ("INSTANCE_FIELD_INVALID", variant("instances auto", "instances auto\n    Wide\n        location wght=700")),
+        ("INSTANCE_LOCATION_INVALID", variant("instances auto", "instances auto\n    Wide\n        location: wdth=700")),
+        ("INSTANCE_LOCATION_INVALID", variant("instances auto", "instances auto\n    Wide\n        location: wght=Bolt")),
+        ("INSTANCE_NO_LOCATION", variant("instances auto", "instances auto\n    Wide\n        style: Wide")),
+        ("INSTANCE_OFF_IGNORED", variant("instances auto", "instances off\n    Wide\n        location: wght=700")),
+        ("INSTANCE_DUPLICATE", variant("instances auto", "instances\n    Wide\n        location: wght=700\n"
+                                       "    Wide\n        location: wght=800")),
+        ("INSTANCE_SHADOWS_AUTO", variant("instances auto", "instances auto\n    Wide\n        location: wght=Black")),
     ],
 )
 def test_message_gets_its_code(name, text):

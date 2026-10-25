@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
+from .core.models import INSTANCE_KEYS
 from .codes import code_id, plain_message
 from .utils.comments import comment_start, strip_comment
 from .utils.dss_validator import DSSValidator
@@ -147,6 +148,9 @@ class _Tokenizer:
     def __init__(self):
         self.section = None
         self.in_skip = False
+        self.skip_indent = 0
+        self.in_instance = False  # in an explicit instance block
+        self.instance_indent = 0
         # Every name and tag of a declared axis, lower case: rule conditions
         # and avar2 refer to axes by either
         self.axis_refs: Set[str] = set(_AXIS_ALIASES) | set(_AXIS_ALIASES.values())
@@ -242,10 +246,12 @@ class _Tokenizer:
         if line == "instances" or line.startswith("instances "):
             self.section = "instances"
             self.in_skip = False
+            self.in_instance = False
             return keywords("instances", "auto", "off")
         if line == "rules" or line.startswith("rules "):
             self.section = "rules"
             self.in_skip = False
+            self.in_instance = False
             return keywords("rules", "first", "last")
         if line == "avar2 vars" or line.startswith("avar2 vars "):
             self.section = "avar2_vars"
@@ -395,19 +401,54 @@ class _Tokenizer:
     # -- instances --------------------------------------------------------------
 
     def _instance_line(self, line: str, atoms: List[_Atom]):
-        if line.strip().startswith("skip"):
-            self.in_skip = True
+        # Indentation decides, as in the parser: `skip` and an instance name open
+        # a subsection, a deeper line belongs to it
+        indent = len(line) - len(line.lstrip())
+        if atoms[0].kind == "word" and atoms[0].text == "skip":
+            self.in_skip, self.skip_indent, self.in_instance = True, indent, False
             return [(a.start, a.end, KEYWORD if k == 0 else UNKNOWN) for k, a in enumerate(atoms)]
         if self.in_skip:
-            if line.startswith("    "):
+            if indent > self.skip_indent:
                 return [
                     (a.start, a.end, LABEL if a.kind == "word" else _default_type(a)) for a in atoms
                 ]
             self.in_skip = False
+        if self.in_instance and indent > self.instance_indent:
+            return self._instance_field(atoms)
+        self.in_instance = False
         if line.strip() == "auto":
             return [(atoms[0].start, atoms[0].end, KEYWORD)]
-        # An explicit instance: the parser warns and ignores it
-        return [(a.start, a.end, UNKNOWN) for a in atoms]
+        if indent == 0:  # the parser warns and ignores it
+            return [(a.start, a.end, UNKNOWN) for a in atoms]
+        self.in_instance, self.instance_indent = True, indent
+        if len(atoms) == 1 and atoms[0].kind == "string":
+            return [(atoms[0].start, atoms[0].end, STRING)]
+        return [(atoms[0].start, atoms[-1].end, TEXT)]
+
+    def _instance_field(self, atoms: List[_Atom]):
+        """`key: value` in an instance block"""
+        key = atoms[0]
+        if key.kind != "word" or len(atoms) < 2 or atoms[1].text != ":":
+            return [(a.start, a.end, UNKNOWN) for a in atoms]
+        known = key.text in INSTANCE_KEYS
+        out = [(key.start, key.end, KEYWORD if known else UNKNOWN), (atoms[1].start, atoms[1].end, PUNCTUATION)]
+        rest = atoms[2:]
+        if not rest:
+            return out
+        if key.text != "location":
+            if len(rest) == 1 and rest[0].kind == "string":
+                return out + [(rest[0].start, rest[0].end, STRING)]
+            return out + [(rest[0].start, rest[-1].end, TEXT if known else UNKNOWN)]
+        after_eq = False
+        for a in rest:
+            if a.kind == "punct":
+                after_eq = a.text == "="
+                out.append((a.start, a.end, PUNCTUATION))
+            elif a.kind == "word":
+                out.append((a.start, a.end, _value_type(a.text) if after_eq else AXIS_TAG))
+            else:
+                out.append((a.start, a.end, _default_type(a)))
+        return out
 
     # -- rules ------------------------------------------------------------------
 
@@ -797,18 +838,42 @@ def _complete(text: str, line: int, column: int, font_data=None) -> List[Complet
     if section == "rules":
         return _complete_rules(ctx, atoms, last, offer, font_data)
     if section == "instances":
-        if not atoms and (not ctx.tokenizer.in_skip or indent < 8):
-            return offer([("skip", "")], KEYWORD)
-        if ctx.tokenizer.in_skip or words:
-            listed = set(words)
-            items = [
-                (label, f"{axis.tag}") for axis in ctx.doc.axes
-                for label, _ in ctx.labels(axis) if label not in listed
-            ]
-            return offer(items, LABEL)
-        return []
+        return _complete_instances(ctx, lines, line, atoms, words, last, indent, offer)
     if section in ("avar2", "avar2_matrix"):
         return _complete_avar2(ctx, section, atoms, words, last, offer)
+    return []
+
+
+def _complete_instances(ctx, lines, line, atoms, words, last, indent, offer) -> List[Completion]:
+    """`skip` and its entries (labels); in an instance block its keys, and in
+    `location:` the axes and, after `axis=`, that axis's labels (design values)"""
+    tok = ctx.tokenizer
+    if tok.in_skip and indent > tok.skip_indent:
+        listed = set(words)
+        items = [
+            (label, f"{axis.tag}") for axis in ctx.doc.axes
+            for label, _ in ctx.labels(axis) if label not in listed
+        ]
+        return offer(items, LABEL)
+    if tok.in_instance and indent > tok.instance_indent:
+        if not atoms:
+            used = set()
+            for raw in reversed(lines[:line - 1]):
+                if len(raw) - len(raw.lstrip()) <= tok.instance_indent and raw.strip():
+                    break
+                used.add(raw.strip().split(":", 1)[0].strip())
+            return offer([(k, "") for k in INSTANCE_KEYS if k not in used], KEYWORD)
+        if words[:1] != ["location"] or len(atoms) < 2 or atoms[1].text != ":":
+            return []
+        if last is not None and last.text == "=" and len(atoms) >= 2 and atoms[-2].kind == "word":
+            axis = ctx.axis(atoms[-2].text)
+            return offer(ctx.labels(axis), LABEL) if axis is not None else []
+        if last is not None and last.text in (":", ","):
+            listed = {a.text for a in atoms[2:] if a.kind == "word"}
+            return offer([r for r in ctx.axis_refs(hidden=True) if r[0] not in listed], AXIS_TAG)
+        return []
+    if not atoms:
+        return offer([("skip", "")], KEYWORD)
     return []
 
 

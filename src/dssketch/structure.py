@@ -36,6 +36,7 @@ from .syntax import (
     SOURCE,
     STRING,
     TEXT,
+    UNKNOWN,
     VARIABLE,
     Token,
 )
@@ -86,6 +87,8 @@ MAPPING = "mapping"
 SOURCE_LINE = "source"
 SKIP = "skip"                  # the `skip` keyword line
 SKIP_ENTRY = "skip-entry"
+INSTANCE = "instance"          # an explicit instance block's name line
+INSTANCE_FIELD = "instance-field"  # `key: value` under it
 RULE = "rule"
 AVAR2_VAR = "avar2-var"
 AVAR2_ROW = "avar2-row"        # a linear mapping or a matrix data row
@@ -95,7 +98,7 @@ OTHER = "other"                # not understood (the parser warns or errors)
 
 ITEM_KINDS = frozenset({
     FAMILY, SUFFIX, ELIDED_FALLBACK, PATH, LANG, AXIS, MAPPING, SOURCE_LINE, SKIP, SKIP_ENTRY, RULE,
-    AVAR2_VAR, AVAR2_ROW, AVAR2_HEADER,
+    AVAR2_VAR, AVAR2_ROW, AVAR2_HEADER, INSTANCE, INSTANCE_FIELD,
 })
 
 # Section names (Line.section), as the parser keeps them
@@ -123,6 +126,8 @@ class Line:
       `flag.base`, `flag.sparse`, `flag.layer` (the flag through its value),
       `layer` (the value)
     - skip-entry: `value`
+    - instance: `name` (quotes stripped from the value); instance-field: `key`,
+      `value` and, for `location`, `location.<axis as written>` (the value)
     - rule: `pattern`, `target`, `conditions` (with parentheses),
       `condition.0` …, `name`
     - avar2-var: `name` (with $), `value`
@@ -240,6 +245,7 @@ class _State:
         self.axis_indent: str = ""
         self.in_block: Optional[int] = None  # the avar2 row whose { } is open
         self.in_skip = False
+        self.instance_line: Optional[int] = None  # the explicit instance block open
 
 
 def _code_tokens(tokens: List[Token]) -> List[Token]:
@@ -308,6 +314,7 @@ def _header_line(make, code, section, state) -> Optional[Line]:
     state.axis_line = None
     state.in_block = None
     state.in_skip = False
+    state.instance_line = None
     line = make(SECTION, section)
     line.values["section"] = section
     two_words = section in ("axes_hidden", "avar2_vars", "avar2_matrix") and len(code) > 1
@@ -477,6 +484,7 @@ def _instances_line(make, code, state) -> Line:
     first = code[0]
     if first.type == KEYWORD and first.text == "skip":
         state.in_skip = True
+        state.instance_line = None
         line = make(SKIP)
         line.put("keyword", first)
         return line
@@ -485,6 +493,29 @@ def _instances_line(make, code, state) -> Line:
         line.put("value", code[0], code[-1])
         return line
     state.in_skip = False
+    if (state.instance_line is not None and len(code) > 1 and first.type in (KEYWORD, UNKNOWN)
+            and code[1].type == PUNCTUATION and code[1].text == ":"):
+        line = make(INSTANCE_FIELD)
+        line.parent = state.instance_line
+        line.put("key", first)
+        rest = code[2:]
+        if rest:
+            line.put("value", rest[0], rest[-1])
+            if len(rest) == 1 and rest[0].type == STRING:
+                line.values["value"] = rest[0].text[1:-1] if len(rest[0].text) > 1 else ""
+        if first.text == "location":
+            for k, t in enumerate(rest):
+                if t.type == AXIS_TAG and k + 2 < len(rest) and rest[k + 1].text == "=":
+                    line.put(f"location.{t.text}", rest[k + 2])
+        return line
+    if first.column > 0 and len(code) == 1 and first.type in (TEXT, STRING):
+        line = make(INSTANCE)
+        line.put("name", first)
+        if first.type == STRING:
+            line.values["name"] = first.text[1:-1] if len(first.text) > 1 else ""
+        state.instance_line = line.number
+        return line
+    state.instance_line = None
     return make(OTHER)
 
 

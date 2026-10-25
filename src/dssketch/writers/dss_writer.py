@@ -157,20 +157,16 @@ class DSSWriter:
                 lines.extend(self._format_rule(rule, dss_doc.axes))
             lines.append("")
 
-        # Instances section
+        # Instances section: auto, the skip entries, then explicit instances
         if dss_doc.instances_off:
             lines.append("instances off")
-        elif dss_doc.instances_auto:
-            lines.append("instances auto")
-        elif dss_doc.instances:
-            if self.optimize:
-                # When optimizing with explicit instances, use instances auto
-                # (assumes instances can be regenerated from axis labels)
-                lines.append("instances auto")
-            else:
-                lines.append("instances")
-                for instance in dss_doc.instances:
-                    lines.append(self._format_instance(instance, dss_doc.axes))
+        elif dss_doc.instances_auto or dss_doc.instances:
+            lines.append("instances auto" if dss_doc.instances_auto else "instances")
+            if dss_doc.instances_auto and dss_doc.instances_skip:
+                lines.append("    skip")
+                lines.extend(f"        {entry}" for entry in dss_doc.instances_skip)
+            for instance in dss_doc.instances:
+                lines.extend(self._format_instance(instance, dss_doc))
 
         return "\n".join(lines).strip()
 
@@ -740,14 +736,36 @@ class DSSWriter:
 
         return None
 
-    def _format_instance(self, instance: DSSInstance, axes: List[DSSAxis]) -> str:
-        """Format instance definition"""
+    def _format_instance(self, instance: DSSInstance, dss_doc: DSSDocument) -> List[str]:
+        """An explicit instance block, every key it has written out"""
         coords = []
-        for axis in axes:
-            value = instance.location.get(axis.name, 0)
-            coords.append(self._format_number(value))
+        for axis in dss_doc.axes + dss_doc.hidden_axes:
+            if axis.name not in instance.location:
+                continue
+            value = instance.location[axis.name]
+            label = self._get_label_for_coordinate(axis, value) if self.use_label_coordinates else None
+            coords.append(f"{axis.tag}={label or self._format_number(value)}")
+        lines = [f"    {self._instance_value(instance.name)}"]
+        keys = (
+            ("location", ", ".join(coords)),
+            ("family", instance.familyname),
+            ("style", instance.stylename),
+            ("postscript", instance.postscriptname),
+            ("filename", instance.filename),
+            ("stylemapfamily", instance.stylemapfamilyname),
+            ("stylemapstyle", instance.stylemapstylename),
+        )
+        for key, value in keys:
+            if value:
+                lines.append(f"        {key}: {value if key == 'location' else self._instance_value(value)}")
+        return lines
 
-        return f"    {instance.stylename} [{', '.join(coords)}]"
+    @staticmethod
+    def _instance_value(text: str) -> str:
+        """Quoted when the plain form would read differently (a #, edge spaces, quotes)"""
+        if "#" in text or text != text.strip() or text[:1] in "\"'" or not text:
+            return '"' + text + '"' if '"' not in text else "'" + text + "'"
+        return text
 
     def _get_axis_tag(self, axis_name: str) -> str:
         """Convert axis name to standard tag format, supporting both short and long forms"""

@@ -6,11 +6,11 @@ Clean version with separated validation concerns.
 
 import re
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from ..core.mappings import Standards
 from ..core.translations import LANGUAGE_CODE
-from ..core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
+from ..core.models import INSTANCE_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
 from ..utils.comments import comment_start, strip_comment
 from ..utils.discrete import DiscreteAxisHandler
 from ..utils.dss_validator import DSSValidationError, DSSValidator
@@ -44,6 +44,10 @@ class DSSParser:
         self.current_axis = None
         self.source_axis_order = None  # Explicit axis order from sources section
         self.in_skip_subsection = False  # Track if we're parsing skip subsection
+        self.skip_indent = 0
+        self.current_instance = None  # the explicit instance block being read
+        self.instance_indent = 0
+        self.instance_keys = set()
         self.discrete_labels = DiscreteAxisHandler.load_discrete_labels()
         self.validator = DSSValidator(strict_mode=strict_mode)
         # Note: Rule names now handled via @name syntax instead of comments
@@ -149,7 +153,7 @@ class DSSParser:
     def _stamp_line(self, line_no: int):
         """Give what this line declared its line number (new objects are appended)"""
         doc = self.document
-        lists = [doc.axes, doc.hidden_axes, doc.sources, doc.rules, doc.avar2_mappings]
+        lists = [doc.axes, doc.hidden_axes, doc.sources, doc.rules, doc.avar2_mappings, doc.instances]
         if self.current_axis is not None:
             lists.append(self.current_axis.mappings)
         for items in lists:
@@ -268,6 +272,7 @@ class DSSParser:
         elif line == "instances" or line.startswith("instances "):
             self.current_section = "instances"
             self.in_skip_subsection = False  # Reset skip subsection flag
+            self.current_instance = None
             if "off" in line:
                 self.document.instances_off = True
             elif "auto" in line:
@@ -276,6 +281,7 @@ class DSSParser:
         elif line == "rules" or line.startswith("rules "):
             self.current_section = "rules"
             self.in_skip_subsection = False  # Reset skip subsection flag
+            self.current_instance = None
             mode = line[len("rules"):].strip()
             if mode == "last":
                 self.document.rules_processing_last = True
@@ -1110,41 +1116,133 @@ class DSSParser:
         self.document.sources.append(source)
 
     def _parse_instance_line(self, line: str):
-        """Parse instance definition line
+        """Parse a line of the instances section
 
-        Handles:
-        - skip subsection: collects instance combinations to skip
-        - explicit instances (not implemented yet)
+        Indentation decides, as in the tokenizer: `skip` and an instance name
+        open a subsection; a line indented deeper belongs to it (a skip entry,
+        an instance's `key: value`).
         """
-        # Check if this is the start of skip subsection
-        if line.strip().startswith("skip"):
+        indent = len(line) - len(line.lstrip())
+        text = line.strip()
+        words = text.split()
+        if words and words[0] == "skip":
             self.in_skip_subsection = True
+            self.skip_indent = indent
+            self.current_instance = None
             return
 
-        # If we're in skip subsection, collect skip combinations
         if self.in_skip_subsection:
-            # Skip combinations should be indented
-            if line.startswith("    ") or line.startswith("\t"):
-                combination = line.strip()
-                if combination:  # Ignore empty lines
-                    self.document.instances_skip.append(combination)
-                    self.document.instances_skip_lines.append(self.current_line_no)
-            else:
-                # Non-indented line means we're exiting skip subsection
-                self.in_skip_subsection = False
-                # Don't return - let it fall through to process this line
+            if indent > self.skip_indent:
+                self.document.instances_skip.append(text)
+                self.document.instances_skip_lines.append(self.current_line_no)
+                return
+            self.in_skip_subsection = False
 
-        # Anything else is an explicit instance, which DSSketch does not describe:
-        # instances come from labeled axis mappings via `instances auto` (+ `skip`).
-        # Say so instead of dropping the line without a word
-        line = line.strip()
-        if line and line != "auto" and not self.in_skip_subsection:
+        if self.current_instance is not None and indent > self.instance_indent:
+            self._parse_instance_field(text)
+            return
+        self.current_instance = None
+
+        if not text or text == "auto":
+            return
+        if indent == 0:
             self.validator.warnings.append(
-                f"Instance line ignored: '{line}'. DSSketch does not list instances one "
-                f"by one; they are generated from the labeled axis mappings by "
-                f"'instances auto' (use 'skip' to leave combinations out, or "
-                f"'instances off' for none)."
+                f"Instance line ignored: '{text}'. Explicit instances are blocks indented "
+                f"under 'instances' (a name, then 'location: …' below it); most come from "
+                f"the labeled axis mappings by 'instances auto' ('skip' leaves some out)."
             )
+            return
+        instance = DSSInstance(name=self._extract_quoted_or_plain_value(text), familyname="", stylename="")
+        self.document.instances.append(instance)
+        self.current_instance = instance
+        self.instance_indent = indent
+        self.instance_keys = set()
+
+    def _parse_instance_field(self, text: str):
+        """`key: value` of the instance block being read"""
+        instance = self.current_instance
+        key, colon, value = text.partition(":")
+        key = key.strip()
+        if not colon or " " in key:
+            self.validator.errors.append(
+                f"Instance '{instance.name}': expected 'key: value', got '{text}'"
+            )
+            return
+        if key not in INSTANCE_KEYS:
+            close = [k for k in INSTANCE_KEYS if DSSValidator.levenshtein_distance(key, k) <= 2]
+            hint = f" Did you mean '{close[0]}'?" if close else ""
+            self.validator.errors.append(
+                f"Instance '{instance.name}': unknown key '{key}'.{hint} "
+                f"Keys: {', '.join(INSTANCE_KEYS)}"
+            )
+            return
+        if key in self.instance_keys:
+            self.validator.errors.append(f"Instance '{instance.name}': key '{key}' given twice")
+            return
+        self.instance_keys.add(key)
+        value = self._extract_quoted_or_plain_value(value)
+        if not value:
+            self.validator.errors.append(f"Instance '{instance.name}': key '{key}' has no value")
+            return
+        if key == "location":
+            instance.location = self._parse_instance_location(instance, value)
+        elif key == "family":
+            instance.familyname = value
+        elif key == "style":
+            instance.stylename = value
+        elif key == "postscript":
+            instance.postscriptname = value
+        elif key == "filename":
+            instance.filename = value
+        elif key == "stylemapfamily":
+            instance.stylemapfamilyname = value
+        elif key == "stylemapstyle":
+            instance.stylemapstylename = value
+
+    def _parse_instance_location(self, instance: DSSInstance, value: str) -> Dict[str, float]:
+        """`wght=Bold, opsz=144`: design space, a label for its design value"""
+        location = {}
+        axes = self.document.axes + self.document.hidden_axes
+        for part in value.split(","):
+            name, eq, raw = part.partition("=")
+            name, raw = name.strip(), raw.strip()
+            if not eq or not name or not raw:
+                self.validator.errors.append(
+                    f"Instance '{instance.name}': location expects 'axis=value', got '{part.strip()}'"
+                )
+                continue
+            axis = next((a for a in axes if name in (a.tag, a.name, a.display_name)), None)
+            if axis is None:
+                lowered = name.lower()
+                axis = next(
+                    (a for a in axes if lowered in (a.tag.lower(), a.name.lower(), (a.display_name or "").lower())),
+                    None,
+                )
+            if axis is None:
+                self.validator.errors.append(
+                    f"Instance '{instance.name}': unknown axis '{name}' in location. "
+                    f"Available axes: {', '.join(a.tag for a in axes)}"
+                )
+                continue
+            try:
+                number = float(raw)
+            except ValueError:
+                mapping = next((m for m in axis.mappings if m.label == raw), None)
+                if mapping is None:
+                    labels = [m.label for m in axis.mappings if m.label]
+                    self.validator.errors.append(
+                        f"Instance '{instance.name}': unknown label '{raw}' for axis '{axis.tag}'"
+                        + (f". Available labels: {', '.join(labels)}" if labels else "")
+                    )
+                    continue
+                number = mapping.design_value
+            if axis.name in location:
+                self.validator.errors.append(
+                    f"Instance '{instance.name}': axis '{axis.tag}' given twice in location"
+                )
+                continue
+            location[axis.name] = number
+        return location
 
     def _parse_condition_string(self, condition_str: str) -> List[dict]:
         """Parse condition string like 'weight >= 480' or 'weight >= Bold'
@@ -1305,34 +1403,6 @@ class DSSParser:
                 DSSketchLogger.warning(f"Invalid rule syntax: {line}")
                 DSSketchLogger.warning('Expected format: pattern > target (condition) "name"')
                 return
-
-    def _generate_auto_instances(self):
-        """Generate instances automatically from axes mappings"""
-        # Generate all meaningful combinations
-        if not self.document.axes:
-            return
-
-        # For now, generate from axis mappings
-        axis_values = {}
-        for axis in self.document.axes:
-            if axis.mappings:
-                axis_values[axis.name] = [
-                    (m.user_value, m.label, m.design_value) for m in axis.mappings
-                ]
-
-        # Generate combinations (simplified)
-        if axis_values:
-            # Generate a few key instances
-            for axis_name, values in axis_values.items():
-                for _, label, design_val in values:
-                    if label in ["Regular", "Bold", "Light"]:
-                        instance = DSSInstance(
-                            name=label,
-                            familyname=self.document.family,
-                            stylename=label,
-                            location={axis_name: design_val},
-                        )
-                        self.document.instances.append(instance)
 
     # ============================================================
     # avar2 PARSING METHODS

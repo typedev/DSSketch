@@ -75,22 +75,22 @@ SEVERITY_NAMES = {
 # Issue codes — CATEGORY_INSTANCES
 # =============================================================================
 
-#: A declared instance sits at a position `instances auto` never generates, so
-#: the sketch cannot describe the design space completely.
+#: A declared instance sits at a position `instances auto` never generates.
+#: No longer emitted since explicit instance blocks carry it (1.5.x); reserved.
 INSTANCE_UNREACHABLE = 0
 
-#: The generator reaches the position but names it differently. Usually means
-#: the source document predates a change in the elidable naming rules.
+#: The generator reaches the position but names it differently. No longer
+#: emitted since such an instance becomes an explicit block (1.5.x); reserved.
 INSTANCE_RENAMED = 1
 
-#: The generator produces positions the source document does not declare — the
-#: document was filtered. Expected; an `instances auto` / `skip` block is how a
-#: sketch expresses that, and it cannot be recovered from a DesignSpace.
+#: The generator produces positions the source document does not declare. Since
+#: 1.5.x they become `skip` entries; reported (warning) only for one a `skip`
+#: entry cannot remove: its name is also an instance the document keeps.
 INSTANCE_EXTRA = 2
 
-#: DS -> DSS: per-instance data `instances auto` does not generate (custom
-#: PostScript names, style-map names, localized names, instance lib, glyph
-#: instances). Out of scope for a sketch by design; reported so the loss is seen.
+#: DS -> DSS: per-instance data an explicit instance block has no key for
+#: (localized names, instance lib, glyph instances, location label). PostScript
+#: and style-map names are carried by blocks since 1.5.x.
 INSTANCE_FIELDS_DROPPED = 3
 
 #: DSS -> DS: the axes order makes `instances auto` write a word after the
@@ -195,8 +195,8 @@ APPLY_REFUSED = 0
 #: The avar2 mappings differ; avar2 is not edited (yet), the text keeps its own.
 APPLY_AVAR2_NOT_APPLIED = 1
 
-#: The instances differ from what the sketch generates; instances and `skip`
-#: are DSSketch-level and never rewritten from a DesignSpace.
+#: The instances still differ from what the sketch generates after writing
+#: `instances auto/off`, `skip` and the explicit blocks (an edit was refused).
 APPLY_INSTANCES_NOT_APPLIED = 2
 
 #: A pattern rule (`a* > .ss01`) kept as written although the DesignSpace's

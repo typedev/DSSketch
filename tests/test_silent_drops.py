@@ -3,7 +3,8 @@ Two inputs DSSketch used to accept and quietly mishandle.
 
 - Two mappings at one user value on one axis: the axis map got two outputs for
   one input and `instances auto` dropped one label and misplaced the other.
-- Explicit instance lines: the parser dropped them without a word.
+- Explicit instance lines: the parser dropped them without a word (now an
+  indented line opens an explicit instance block).
 """
 
 from dssketch import DSSParser
@@ -42,7 +43,10 @@ def test_distinct_user_values_are_fine():
 
 
 def test_explicit_instance_line_is_reported():
+    # an indented line opens an explicit instance block, which needs a location
     v = _parse(AXIS.format(extra="Light > 300") + "instances\n    Bold [Black]\n")
+    assert [e for e in v.errors if e.startswith("Instance 'Bold [Black]' has no location")]
+    v = _parse(AXIS.format(extra="Light > 300") + "instances\nBold [Black]\n")
     warnings = [w for w in v.warnings if "Instance line ignored" in w]
     assert warnings and "'Bold [Black]'" in warnings[0]
 

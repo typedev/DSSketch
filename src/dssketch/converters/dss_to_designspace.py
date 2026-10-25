@@ -26,7 +26,7 @@ from fontTools.designspaceLib import (
 )
 
 # Import instances module
-from ..core.instances import createInstances, dss_axis_labels, dss_axis_map
+from ..core.instances import createInstance, createInstances, dss_axis_labels, dss_axis_map, dss_axis_name
 
 # Import models from core
 from ..core.translations import Translations
@@ -179,11 +179,9 @@ class DSSToDesignSpace:
                 )
                 # Copy the generated instances back to our document
                 doc.instances = enhanced_doc.instances
-            else:
-                # Use explicit instances from DSS document
-                for dss_instance in dss_doc.instances:
-                    instance = self._convert_instance(dss_instance, dss_doc)
-                    doc.addInstance(instance)
+            # Explicit instances: what `instances auto` does not reproduce
+            for dss_instance in dss_doc.instances:
+                doc.addInstance(self._convert_instance(dss_instance, dss_doc, doc))
 
         # Convert rules
         for dss_rule in dss_doc.rules:
@@ -592,20 +590,23 @@ class DSSToDesignSpace:
         return source
 
     def _convert_instance(
-        self, dss_instance: DSSInstance, dss_doc: DSSDocument
+        self, dss_instance: DSSInstance, dss_doc: DSSDocument, doc: DesignSpaceDocument
     ) -> InstanceDescriptor:
-        """Convert DSS instance to DesignSpace instance"""
+        """An explicit instance; what it leaves out is derived as `instances auto` does"""
+        default = doc.findDefault() if doc.sources else None
+        family = dss_instance.familyname or (default.familyName if default else None) or dss_doc.family
+        style = dss_instance.stylename or dss_instance.name
+        generated = createInstance({}, family, style)  # the PostScript name
+
         instance = InstanceDescriptor()
-        instance.familyName = dss_instance.familyname or dss_doc.family
-        instance.styleName = dss_instance.stylename
-        instance.filename = dss_instance.filename
-        instance.location = dss_instance.location.copy()
-
-        # Generate PostScript name
-        ps_family = instance.familyName.replace(" ", "").replace("-", "")
-        ps_style = instance.styleName.replace(" ", "").replace("-", "")
-        instance.postScriptFontName = f"{ps_family}-{ps_style}"
-
+        instance.familyName = family
+        instance.styleName = style
+        instance.postScriptFontName = dss_instance.postscriptname or generated.postScriptFontName
+        instance.filename = dss_instance.filename or f"instances/{instance.postScriptFontName}.ufo"
+        instance.styleMapFamilyName = dss_instance.stylemapfamilyname
+        instance.styleMapStyleName = dss_instance.stylemapstylename
+        names = {axis.name: dss_axis_name(axis) for axis in dss_doc.axes + dss_doc.hidden_axes}
+        instance.location = {names.get(k, k): v for k, v in dss_instance.location.items()}
         return instance
 
     def _convert_rule(
