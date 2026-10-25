@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-10-25
+
 ### Fixed
 - **An axis written by name with a numeric range crashed the parser**: `weight 100:450:900` (instead of `wght 100:450:900`) raised `AttributeError: 'DSSParser' object has no attribute 'NAME_TO_TAG'`. The name now resolves to the tag (`weight` → `wght`, other names → first four letters uppercased, as before)
 
