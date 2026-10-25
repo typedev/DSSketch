@@ -222,3 +222,55 @@ def test_hover_without_font_data_and_off_code(sk):
     unused = Sketch.parse(SKETCH.replace("        Thin Italic", "        Regular Upright"))
     assert "matches no generated instance" in hover_at(unused, 23, "Regular")
     assert dssketch.hover(SKETCH, 6, 12) == "Bold (Weight): user 700, design 600"
+
+
+# -- outline ----------------------------------------------------------------------
+
+
+def walk(symbols):
+    for symbol in symbols:
+        yield symbol
+        yield from walk(symbol.children)
+
+
+def test_outline(sk):
+    tree = sk.outline()
+    assert [(s.kind, s.name) for s in tree] == [
+        ("family", "Q"), ("section", "axes"), ("section", "sources"), ("section", "rules"), ("section", "instances"),
+    ]
+    axes = tree[1]
+    wght = axes.children[0]
+    assert (wght.kind, wght.name, wght.detail, wght.path) == ("axis", "wght", "Weight 100:400:900", ("axis", "wght"))
+    assert [m.name for m in wght.children] == ["Thin", "Regular", "Bold", "Black"]
+    assert wght.children[2].detail == "user 700 → design 600"
+    assert (wght.span.line, wght.span.end_line) == (3, 7)  # with its mappings
+    assert (axes.span.line, axes.span.end_line) == (2, 10)
+    sources = tree[2]
+    assert sources.detail == "[wght, ital]"
+    assert sources.children[1].detail == "[Regular, Upright] @base"
+    assert tree[3].children[1].detail == "a* > .ss01 (450 <= weight <= Bold)"
+    assert [(s.kind, s.name) for s in tree[4].children] == [("skip", "Thin Italic")]
+
+
+def test_outline_paths_match_spans(sk):
+    for symbol in walk(sk.outline()):
+        if symbol.path and symbol.kind not in ("family", "section"):
+            span = sk.span(symbol.path)
+            assert span is not None and span.line == symbol.span.line, symbol
+
+
+@pytest.mark.parametrize("path", sorted(EXAMPLES.glob("*.dssketch")), ids=lambda p: p.name)
+def test_outline_covers_every_item(path):
+    from dssketch import structure as st
+
+    sk = Sketch.parse(path.read_text(encoding="utf-8"))
+    lines = {s.span.line for s in walk(sk.outline())}
+    kinds = {st.AXIS, st.MAPPING, st.SOURCE_LINE, st.RULE, st.SKIP_ENTRY, st.AVAR2_VAR, st.AVAR2_ROW, st.SECTION}
+    wanted = {ln.number for ln in sk.structure.lines if ln.kind in kinds}
+    assert wanted <= lines
+
+
+def test_outline_never_raises():
+    for text in ["", "axes\n    wght\n", "sources\n    [x\n", "family\n", "rules\n    > (\n", "    stray\n"]:
+        assert isinstance(Sketch.parse(text).outline(), list)
+    assert dssketch.outline(SKETCH) == Sketch.parse(SKETCH).outline()

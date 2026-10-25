@@ -1746,7 +1746,7 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 
 **`queries.py`** - What a sketch means, in numbers (1.5.1, for Font-Rover's panels)
 - `Sketch.user_to_design / design_to_user / source_locations / rule_regions /
-  substitutions_at / instances / hover`, and free functions taking a Sketch or
+  substitutions_at / instances / hover / outline`, and free functions taking a Sketch or
   a text (`expand_instances(text)` = `Sketch.instances()`). Doc-level work is in
   the `_name(doc, ...)` functions. Never raise; light
 - **Axes are keyed by their DesignSpace name** (`dss_axis_name`: display name,
@@ -1755,6 +1755,9 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
 - `instances()` runs the **same generator as DSS → DS** (`core/instances.py`
   `plan_instances` on `AxisSpec`s) and is checked against the converter on
   every example with `instances auto` (`tests/test_queries.py`)
+- `outline()` is built from `structure` lines (works on broken text): header
+  lines, then sections with items, an axis with its mappings. Each `Symbol` has
+  `span` (item + what it owns), `name_span`, `detail` and the item `path`
 - `substitutions_at()` mirrors fontTools' `processRules` (rules in order, each
   on the result of the earlier ones); checked against it on MegaFont
 - Tests: `tests/test_queries.py`

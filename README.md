@@ -1580,6 +1580,7 @@ for i in sk.instances():               # what `instances auto` generates, and wh
 sk.rule_regions()                      # RuleRegion(index, name, {'Weight': (625.0, 1000.0)})
 sk.substitutions_at({"Weight": 700}, glyph_names, space="user")   # {'dollar': 'dollar.alt'}
 sk.hover(line, col)                    # "Bold (Weight): user 700, design 625"
+sk.outline()                           # Symbol tree: sections > axes > mappings, sources, rules …
 ```
 
 `instances()` gives the same names, order and locations as DSS → DS (one
@@ -1588,7 +1589,7 @@ generator serves both); a skipped instance has `index=None` and the span of the
 as fontTools does; pattern rules expand against `glyph_names`, or the font
 data's default master. The free functions `dssketch.expand_instances(text)`,
 `source_locations`, `rule_regions`, `substitutions_at`, `user_to_design`,
-`design_to_user` and `hover` take a `Sketch` or a text. None of them raises.
+`design_to_user`, `hover` and `outline` take a `Sketch` or a text. None of them raises.
 
 **Comments**: a comment starts at the first `#` outside quotes (`"Sans #1"` is a
 name). When a line is removed, the comments directly above it (no blank line

@@ -13,6 +13,7 @@ or the sketch's own name for an axis.
 - `rule_regions()`: each rule's region as design-space intervals per axis
 - `substitutions_at(location, glyph_names)`: what the rules swap there
 - `instances()`: what `instances auto` generates, with what `skip` removed
+- `outline()`: the tree of sections and items, for a structure panel
 - `hover(line, column)`: a line of explanation for what is under the cursor
 
 `Sketch` has them as methods (on its cached parse); the functions here take
@@ -314,6 +315,160 @@ def _instances(doc: DSSDocument, structure=None, family_name: Optional[str] = No
         return []
 
 
+# -- outline --------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Symbol:
+    """One entry of the structure panel
+
+    kind: family, suffix, elidedfallback, path, lang, section, axis, mapping,
+    source, rule, skip, avar2-var, avar2-row. `span` covers the item with what
+    it owns (an axis with its mappings, a section with its items); `name_span`
+    the word to select. `path` is the item path `Sketch.span()` / `item_at()`
+    use (None where there is none)."""
+
+    kind: str
+    name: str
+    span: "object"
+    name_span: Optional["object"] = None
+    detail: str = ""
+    path: Optional[tuple] = None
+    children: Tuple["Symbol", ...] = ()
+
+
+_HEADER_KINDS = ("family", "suffix", "elidedfallback", "path", "lang")
+
+
+def _outline(sketch) -> List[Symbol]:
+    """The tree of a text: header lines, then sections with their items"""
+    from . import structure as st
+    from .structure import Span
+
+    structure = sketch.structure
+    doc = sketch.document
+    lines = structure.lines
+
+    def whole(first: st.Line, last_no: int) -> Span:
+        last = lines[last_no - 1]
+        end = last.span if last.span is not None else first.span
+        return Span(first.number, first.span.col, end.end_line, end.end_col)
+
+    def by_line(objects):
+        return {o.line: o for o in objects if getattr(o, "line", None)}
+
+    axes = by_line(all_axes(doc))
+    mappings = {m.line: (a, m) for a in all_axes(doc) for m in a.mappings if m.line}
+    sources = by_line(doc.sources)
+    rules = {r.line: i for i, r in enumerate(doc.rules) if r.line}
+    avar2 = {m.line: i for i, m in enumerate(doc.avar2_mappings) if m.line}
+
+    def item(line: st.Line) -> Optional[Symbol]:
+        v = line.values
+        if line.kind in _HEADER_KINDS:
+            return Symbol(line.kind, v.get("value", ""), line.span, line.fields.get("value"),
+                          path=(line.kind,))
+        if line.kind == st.AXIS:
+            axis = axes.get(line.number)
+            children = tuple(
+                c for c in (item(ch) for ch in structure.children(line.number) if ch.kind == st.MAPPING) if c
+            )
+            name = v.get("tag") or v.get("name", "")
+            detail = v.get("range", "")
+            if axis is not None:
+                detail = f"{axis_name(axis)} {detail}".strip()
+            _, last = structure.owned_lines(line.number)
+            return Symbol("axis", name, whole(line, last), line.fields.get("tag") or line.fields.get("name"),
+                          detail, ("axis", axis.tag) if axis is not None else None, children)
+        if line.kind == st.MAPPING:
+            found = mappings.get(line.number)
+            if found is None:
+                return Symbol("mapping", v.get("label") or v.get("user", ""), line.span, line.fields.get("label"))
+            axis, mapping = found
+            key = mapping.label if mapping.label else mapping.user_value
+            detail = f"user {_g(mapping.user_value)} → design {_g(mapping.design_value)}"
+            if mapping.elidable:
+                detail += " @elidable"
+            return Symbol("mapping", mapping.label or _g(mapping.user_value), line.span,
+                          line.fields.get("label") or line.fields.get("user"), detail,
+                          ("mapping", axis.tag, key))
+        if line.kind == st.SOURCE_LINE:
+            from .sketch import SourceKey
+
+            source = sources.get(line.number)
+            flags = " ".join(v[f] for f in ("flag.base", "flag.sparse", "flag.layer") if f in v)
+            coords = line.fields.get("coords")
+            detail = " ".join(x for x in (structure.text_lines[line.number - 1][coords.col:coords.end_col] if coords else "", flags) if x)
+            path = ("source", SourceKey(source.filename, source.layer)) if source is not None else None
+            return Symbol("source", v.get("name", ""), line.span, line.fields.get("name"), detail, path)
+        if line.kind == st.RULE:
+            index = rules.get(line.number)
+            detail = f"{v.get('pattern', '')} > {v.get('target', '')}"
+            conditions = [v[k] for k in sorted(v) if k.startswith("condition.")]
+            if conditions:
+                detail += f" ({' && '.join(conditions)})"
+            name = v.get("name") or v.get("pattern", "")
+            return Symbol("rule", name, line.span, line.fields.get("name") or line.fields.get("pattern"),
+                          detail, ("rule", index) if index is not None else None)
+        if line.kind == st.SKIP_ENTRY:
+            entry = " ".join(v.get("value", "").split())
+            return Symbol("skip", entry, line.span, line.fields.get("value"), path=("skip", entry))
+        if line.kind == st.AVAR2_VAR:
+            return Symbol("avar2-var", v.get("name", ""), line.span, line.fields.get("name"), v.get("value", ""),
+                          ("avar2_var", v.get("name", "").lstrip("$")))
+        if line.kind == st.AVAR2_ROW:
+            index = avar2.get(line.number)
+            inputs = ", ".join(f"{k[6:]}={v[k]}" for k in v if k.startswith("input."))
+            outputs = ", ".join(f"{k[7:]}={v[k]}" for k in v if k.startswith("output."))
+            _, last = structure.owned_lines(line.number)
+            return Symbol("avar2-row", v.get("name") or f"[{inputs}]", whole(line, last),
+                          line.fields.get("name") or line.fields.get("inputs"), outputs,
+                          ("avar2", index) if index is not None else None)
+        return None
+
+    out: List[Symbol] = []
+    current = None  # (header line, children list)
+
+    def close():
+        if current is None:
+            return
+        header, children = current
+        last = header.number
+        for child in children:
+            last = max(last, child.span.end_line)
+        end = lines[last - 1].span or header.span
+        detail = header.values.get("mode", "") or header.values.get("order", "")
+        out.append(Symbol("section", header.values.get("keyword", ""), Span(header.number, header.span.col,
+                          end.end_line, end.end_col), header.fields.get("keyword"), detail,
+                          ("section", header.values.get("section")), tuple(children)))
+
+    for line in lines:
+        if line.span is None:
+            continue
+        if line.kind == st.SECTION:
+            close()
+            current = (line, [])
+            continue
+        if line.kind in _HEADER_KINDS:
+            close()
+            current = None
+            symbol = item(line)
+            if symbol is not None:
+                out.append(symbol)
+            continue
+        if line.kind == st.MAPPING or line.parent is not None:
+            continue  # inside its axis / avar2 block
+        symbol = item(line)
+        if symbol is None:
+            continue
+        if current is None:
+            out.append(symbol)
+        else:
+            current[1].append(symbol)
+    close()
+    return out
+
+
 # -- hover ----------------------------------------------------------------------
 
 
@@ -502,6 +657,11 @@ def rule_regions(sketch_or_text) -> List[RuleRegion]:
 def substitutions_at(sketch_or_text, location, glyph_names=None, space: str = "design") -> Dict[str, str]:
     """`Sketch.substitutions_at()` on a Sketch or a text"""
     return _sketch(sketch_or_text).substitutions_at(location, glyph_names, space)
+
+
+def outline(sketch_or_text) -> List[Symbol]:
+    """`Sketch.outline()` on a Sketch or a text"""
+    return _sketch(sketch_or_text).outline()
 
 
 def hover(sketch_or_text, line: int, column: int) -> Optional[str]:

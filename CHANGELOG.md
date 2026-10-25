@@ -4,6 +4,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **`Sketch.outline()` / `dssketch.outline(text)`** — the tree for a structure panel: header lines (family, suffix …), then each section with its items, an axis with its mappings. A `Symbol` has `kind`, `name`, `span` (the item with what it owns), `name_span`, `detail` (`Weight 100:400:900`, `user 700 → design 600`, a source's coordinates and flags, a rule's pattern and condition) and the item `path` that `Sketch.span()` / `item_at()` use. Built from the line structure, so it works on text with errors; never raises
+
 ### Fixed
 - **`remove_axis()` on the last hidden axis left an empty `axes hidden` header**: the header goes too (unless it carries a comment), with one of the blank lines around it. Changing the range and removing a hidden axis are now covered by tests
 

@@ -598,6 +598,16 @@ class Sketch:
             self._instances = queries._instances(self.document, self.structure, family)
         return list(self._instances)
 
+    def outline(self) -> list:
+        """queries.Symbol tree: header lines, then each section with its items
+        (an axis with its mappings), with spans and item paths. Never raises"""
+        from . import queries
+
+        try:
+            return queries._outline(self)
+        except Exception:
+            return []
+
     def hover(self, line: int, col: int) -> Optional[str]:
         """A line of explanation for the word under the cursor (1-based line,
         0-based column), or None: a label's user and design value, an axis's
