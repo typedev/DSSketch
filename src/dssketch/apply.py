@@ -411,8 +411,19 @@ class _Applier:
 
         current = keyed(self.doc.rules)
         wanted = keyed(self.target.rules)
+        kept = set()
         for key in reversed(list(current)):
             if key not in wanted:
+                rule = current[key]
+                if rule.pattern and rule.to_pattern and not self.substitutes(rule):
+                    # absent from the DesignSpace because it expanded to nothing
+                    # (no or partial font data), not because it was removed
+                    kept.add(key)
+                    self.note(APPLY_RULE_KEPT, SEVERITY_WARNING,
+                              f"Rule '{rule.name}' kept as written ({rule.pattern} > {rule.to_pattern}): the "
+                              f"DesignSpace has no such rule, and with the font data at hand it substitutes nothing",
+                              rule=rule.name)
+                    continue
                 index = list(keyed(self.doc.rules)).index(key)
                 self.run(f"remove rule {key[0]}", lambda sk, i=index: sk.remove_rule(i))
         for key, rule in wanted.items():
@@ -425,14 +436,28 @@ class _Applier:
             if self.conditions(self.doc, mine) != self.conditions(self.target, rule):
                 self.set_conditions(index, rule)
             self.update_glyphs(index, mine, rule)
+        # the order of the rules the DesignSpace has; kept ones stay where they are
         order = list(wanted)
         for position, key in enumerate(order):
             keys = list(keyed(self.doc.rules))
-            if key in keys and keys.index(key) != position:
-                self.run(f"move rule {key[0]}", lambda sk, i=keys.index(key), p=position: sk.move_rule(i, p))
+            others = [k for k in keys if k not in kept]
+            if key in others and others.index(key) != position:
+                target_index = keys.index(others[position])
+                self.run(f"move rule {key[0]}", lambda sk, i=keys.index(key), p=target_index: sk.move_rule(i, p))
         last = self.target.rules_processing_last
         if self.target.rules and self.doc.rules_processing_last != last:
             self.run("rules last" if last else "rules", lambda sk: sk.set_rules_processing(last))
+
+    def substitutes(self, rule: DSSRule) -> bool:
+        """Whether a pattern rule makes a substitution with the sketch's font
+        data (unknown without font data: taken as no)"""
+        from .fontdata import default_master_glyphs, expand_rule
+
+        provider = self.sketch.font_data
+        glyphs = default_master_glyphs(provider, self.doc) if provider is not None else None
+        if not glyphs:
+            return False
+        return any(exists for _, _, exists in expand_rule(rule, glyphs))
 
     def add_rule(self, rule: DSSRule):
         name = None if (rule.name.startswith("rule") and rule.name[4:].isdigit()) else rule.name

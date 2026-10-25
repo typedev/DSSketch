@@ -1832,6 +1832,10 @@ and after the refactor
   one per discrete value; the text need not)
 - A pattern rule is kept while the DS substitutions fit it (`APPLY_RULE_KEPT`
   otherwise); conditions are written with the text's axis names
+- A pattern rule missing from the DS is removed only if it substitutes
+  something with the sketch's font data (`_Applier.substitutes`); otherwise it
+  was absent because it expanded to nothing — kept, `APPLY_RULE_KEPT`. Rule
+  moves skip kept rules
 - Instances: written as DS -> DSS describes them (mode, `skip`, blocks keyed by
   name + occurrence; a block's left-out keys compared as derived), but only
   when the DS instances differ (names, positions, family, PostScript,

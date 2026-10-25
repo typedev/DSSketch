@@ -4,6 +4,9 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`apply_designspace` deleted a pattern rule that had expanded to nothing**: with no or partial font data a rule like `x* > .alt` makes no substitution, so the DesignSpace has no such rule, and apply took that for a deletion. Such a rule is now kept as written and reported (`APPLY_RULE_KEPT`); a pattern rule that does substitute with the font data at hand and is gone from the DesignSpace is still removed
+
 ## [1.6.1] - 2026-10-25
 
 ### Added

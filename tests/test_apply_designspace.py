@@ -339,3 +339,22 @@ def test_a_rule_the_designspace_left_behind_gets_numbers():
     result, _ = apply(ds)
     # the rule still starts at design 400, which is no longer Regular
     assert '    a* > .ss01 (400 <= weight <= Black) "alternates"' in result.text
+
+
+def test_pattern_rule_absent_because_it_expanded_to_nothing_is_kept():
+    # no font data: the DesignSpace has no `x* > .alt` rule because it expanded
+    # to nothing, not because it was removed
+    text = TEXT.replace('    a* > .ss01 (Regular <= weight <= Black) "alternates"\n',
+                        '    a* > .ss01 (Regular <= weight <= Black) "alternates"\n'
+                        '    x* > .alt (weight >= Black) "nothing yet"\n')
+    ds = to_ds(text)
+    assert "nothing yet" not in [r.name for r in ds.rules]
+    result, report = apply(ds, text)
+    assert result.edits == [] and [c for c, _ in applied(report)] == [APPLY_RULE_KEPT]
+
+
+def test_pattern_rule_removed_in_the_designspace_goes():
+    ds = to_ds()
+    ds.rules = [r for r in ds.rules if r.name != "alternates"]  # Host has a.ss01: it did substitute
+    result, report = Sketch.parse(TEXT, font_data=Host()).apply_designspace(ds)
+    assert '"alternates"' not in result.text and applied(report) == []
