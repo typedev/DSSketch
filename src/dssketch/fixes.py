@@ -24,7 +24,11 @@ Fixes exist for:
   closest glyph it has), and a pattern rule that swaps nothing (remove it).
 - in an explicit instance block, a misspelt key, an unknown axis or label in
   the location (the closest one), and a block where `instances auto` puts an
-  instance too (skip that one).
+  instance too (skip that one);
+- avar2: an unknown axis (the close one the message names), a row at the
+  default location that moves an output (set it to `$`, or remove the row),
+  an output outside the axis range (the clamped value), a row that repeats
+  an output at one location or reads a hidden axis (remove it).
 
 Never raises: a fix that cannot be built is left out. Light: stdlib + PyYAML.
 """
@@ -335,6 +339,54 @@ def _instance_shadows_auto(sk: Sketch, d, quoted):
     return [_fix(f"Add '{quoted[1]}' to skip", lambda: sk.add_skip(quoted[1]))] if len(quoted) >= 2 else []
 
 
+def _avar2_index(sk: Sketch, line_no: Optional[int]) -> Optional[int]:
+    return next((i for i, m in enumerate(sk.document.avar2_mappings) if line_no is not None and m.line == line_no), None)
+
+
+def _avar2_unknown_axis(sk: Sketch, d, quoted):
+    # avar2 mapping names axis 'XOCU', which is not defined. Did you mean 'XOUC'?
+    if not quoted:
+        return []
+    doc = sk.document
+    suggestion = quoted[1] if len(quoted) > 1 else _closest(quoted[0], {a.tag for a in doc.axes + doc.hidden_axes})
+    index = _avar2_index(sk, d.line)
+    if suggestion is None or index is None:
+        return []
+    mapping = doc.avar2_mappings[index]
+    for number in range(mapping.line, (sk.structure.line(mapping.line).end_line or mapping.line) + 1):
+        edits = _replace_word(sk, number, quoted[0], suggestion)
+        if edits:
+            return [Fix(f"Change to '{suggestion}'", edits)]
+    return []
+
+
+def _avar2_default_input(sk: Sketch, d, quoted):
+    index = _avar2_index(sk, d.line)
+    if index is None or not quoted:
+        return []
+    return [
+        _fix(f"Set {quoted[0]} to its default ($)", lambda: sk.set_avar2_output(index, quoted[0], "$")),
+        _fix("Remove the row", lambda: sk.remove_avar2_mapping(index)),
+    ]
+
+
+_OUT_OF_RANGE = re.compile(r"^avar2 output (\S+)=\S+ is outside the axis range .* clamps it to (\S+)\.")
+
+
+def _avar2_output_out_of_range(sk: Sketch, d, quoted):
+    index = _avar2_index(sk, d.line)
+    match = _OUT_OF_RANGE.match(d.message)
+    if index is None or match is None:
+        return []
+    axis, value = match.group(1), float(match.group(2))
+    return [_fix(f"Set {axis} to {value:g}", lambda: sk.set_avar2_output(index, axis, value))]
+
+
+def _avar2_remove_row(sk: Sketch, d, quoted):
+    index = _avar2_index(sk, d.line)
+    return [_fix("Remove the row", lambda: sk.remove_avar2_mapping(index))] if index is not None else []
+
+
 _HANDLERS: Dict[str, Callable] = {
     "KEYWORD_TYPO": _keyword_typo,
     "AXIS_TAG_TYPO": _axis_tag_typo,
@@ -357,4 +409,9 @@ _HANDLERS: Dict[str, Callable] = {
     "INSTANCE_FIELD_INVALID": _instance_field,
     "INSTANCE_LOCATION_INVALID": _instance_location,
     "INSTANCE_SHADOWS_AUTO": _instance_shadows_auto,
+    "AVAR2_UNKNOWN_AXIS": _avar2_unknown_axis,
+    "AVAR2_DEFAULT_INPUT": _avar2_default_input,
+    "AVAR2_OUTPUT_OUT_OF_RANGE": _avar2_output_out_of_range,
+    "AVAR2_DUPLICATE_INPUT": _avar2_remove_row,
+    "AVAR2_HIDDEN_INPUT": _avar2_remove_row,
 }

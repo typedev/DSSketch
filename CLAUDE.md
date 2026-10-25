@@ -1414,6 +1414,16 @@ that is how `[wght=550]` used to reach the font as 550 instead of 512.5.
 (`_avar2_input_out_of_range`, error); any other input outside the range is a
 warning (clamped).
 
+**Rows at one input location combine (1.5.x)**: the key is the input with axes
+at their default dropped; DSS → DS merges outputs (`DSSToDesignSpace.convert`),
+the validator errors only when two rows set the same output (5.56). Rows at the
+default location (empty key) never combine — fontTools allows several. The
+writer splits a matrix wider than `DSSWriter.MATRIX_COLUMNS` (8) into sections,
+writes default-location rows linear after them, and turns a linear row longer
+than `LINEAR_WIDTH` (100) into a `{ }` block. Matrix rows take a name
+(`"n" [..]`); the first section a row appears in carries it. Tests:
+`tests/test_avar2_matrix_groups.py`. Quick fixes for 5.42/5.54/5.55/5.56/5.58.
+
 **avar2 checks (1.5.x, `DSSValidator._validate_avar2()`)**, placed on the row:
 unknown axis in an input or output (error, once per name, with a close tag);
 input outside the user range (warning, or the design-value error above); output
@@ -1728,6 +1738,15 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   keeps at least one condition (`not-applicable`): without `( )` the parser
   drops the line with only a log message
 - Removing the last hidden axis removes the `axes hidden` header too
+- avar2 (1.5.x), rows by index in `document.avar2_mappings`:
+  `add_avar2_mapping(inputs, outputs, name=None)` (a matrix row where one
+  matrix has every output as a column, else linear), `remove_avar2_mapping`,
+  `set_avar2_name`, `set_avar2_input(i, axis, value|None)`,
+  `set_avar2_output(i, axis, value|None)` (edits the row at the same input
+  location that sets the axis, in any matrix section; else this row's cell /
+  assignment / `{ }` block; else a new linear row at that location; removing a
+  row's only output removes the row), `set_avar2_var(name, value|None)`.
+  Tests: `tests/test_avar2_edits.py`
 - Visible axes only in positional coordinates without `sources [order]` (as
   the parser reads them); `add_axis` adds the column, `remove_axis` drops it,
   `move_axis` writes the old order into `sources [..]`
@@ -1810,7 +1829,11 @@ and after the refactor
   style-map) from what the ORIGINAL text generates: a label added in the DS
   then makes new instances instead of skip entries. A skip entry that skips
   nothing is kept. Still different afterwards → `APPLY_INSTANCES_NOT_APPLIED`
-- Not written, reported in `CATEGORY_APPLY` (6): avar2, hidden <-> visible moves
+- avar2 by combining key (tags, user values, defaults left out): outputs set via
+  `set_avar2_output` (lands where the location already sets the axis),
+  locations added/removed, default-location rows replaced as a whole. Still
+  different → `APPLY_AVAR2_NOT_APPLIED`
+- Not written, reported in `CATEGORY_APPLY` (6): hidden <-> visible moves
 - The final EditResult has whole-line edits (`line_edits`, difflib) from the
   original text to the final one. Every example round-trips with no edits and
   no report (`tests/test_apply_designspace.py`)

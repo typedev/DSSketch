@@ -7,7 +7,6 @@ from fontTools.designspaceLib import AxisLabelDescriptor, InstanceDescriptor, Ru
 
 import dssketch
 from dssketch import (
-    APPLY_AVAR2_NOT_APPLIED,
     APPLY_REFUSED,
     APPLY_RULE_KEPT,
     CATEGORY_APPLY,
@@ -264,13 +263,43 @@ def test_added_and_edited_instance_blocks():
 # -- not written ------------------------------------------------------------------
 
 
-def test_avar2_is_reported():
+def avar2_of(ds):
+    """Mappings modulo inputs at their axis default (left out = default)"""
+    defaults = {a.name: a.map_forward(a.default) for a in ds.axes}
+
+    def side(loc, drop=False):
+        return sorted((k, float(v)) for k, v in loc.items() if not (drop and abs(v - defaults[k]) < 1e-9))
+    return sorted(str((side(m.inputLocation, True), side(m.outputLocation))) for m in ds.axisMappings)
+
+
+def test_avar2_is_written():
     path = EXAMPLES / "avar2.dssketch"
     text = path.read_text(encoding="utf-8")
     ds = dssketch.convert_to_designspace(str(path))
     ds.axisMappings[1].outputLocation["Weight"] = 333
     result, report = Sketch.parse(text).apply_designspace(ds)
-    assert result.edits == [] and [c for c, _ in applied(report)] == [APPLY_AVAR2_NOT_APPLIED]
+    assert len(result.edits) == 1 and applied(report) == []
+    assert "333" in result.text.split("\n")[result.edits[0].line - 1]
+    back = dssketch.convert_dss_string_to_designspace(result.text, font_data=FontData())
+    assert avar2_of(back) == avar2_of(ds)
+
+
+def test_avar2_locations_added_and_removed():
+    from fontTools.designspaceLib import AxisMappingDescriptor
+
+    path = EXAMPLES / "avar2-RobotoDelta-Roman.dssketch"
+    text = path.read_text(encoding="utf-8")
+    ds = dssketch.convert_to_designspace(str(path))
+    removed = ds.axisMappings.pop(3)
+    added = AxisMappingDescriptor()
+    added.inputLocation = dict(removed.inputLocation, wght=500)
+    added.outputLocation = {"XOPQ": 120, "YTUC": 700}
+    ds.axisMappings.append(added)
+    ds.axisMappings[0].outputLocation["XOPQ"] = 77
+    result, report = Sketch.parse(text).apply_designspace(ds)
+    assert applied(report) == []
+    back = dssketch.convert_dss_string_to_designspace(result.text, font_data=FontData())
+    assert avar2_of(back) == avar2_of(ds)
 
 
 def test_refused_edits_are_reported_and_the_rest_applied():

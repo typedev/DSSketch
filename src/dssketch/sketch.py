@@ -2041,6 +2041,227 @@ class Sketch:
             after = line.number
         return self._result([self._insert_lines(after, [f"{indent}{key}: {text}"])])
 
+    # -- avar2 --------------------------------------------------------------------
+
+    def _avar2_line(self, index: int):
+        mappings = self.document.avar2_mappings
+        if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(mappings):
+            raise EditError("unknown-key", f"No avar2 mapping {index}")
+        mapping = mappings[index]
+        line = self._line_of(mapping)
+        if line is None or line.kind != st.AVAR2_ROW:
+            raise EditError("target-has-errors", f"avar2 mapping {index} has no line")
+        self._check_target(line)
+        return mapping, line
+
+    def _avar2_axis(self, axis) -> DSSAxis:
+        tag = self._axis_ref_tag(axis) if isinstance(axis, str) else None
+        found = next((a for a in self._all_axes() if a.tag == tag), None)
+        if found is None:
+            raise EditError("unknown-key", f"No axis '{axis}'")
+        return found
+
+    @staticmethod
+    def _avar2_text(value) -> str:
+        """An avar2 value as written: a number, a label, `$` or a variable"""
+        if isinstance(value, str):
+            if not value.strip() or any(c in value for c in " ,=[]{}#\"'"):
+                raise EditError("invalid-value", f"Not an avar2 value: {value!r}")
+            return value.strip()
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise EditError("invalid-value", f"Not an avar2 value: {value!r}")
+        return format_number(value)
+
+    def _avar2_key(self, mapping) -> tuple:
+        """The input location rows combine on: by tag, axes at their default left out"""
+        out = []
+        for key, value in mapping.input.items():
+            tag = self._axis_ref_tag(key) or key
+            axis = next((a for a in self._all_axes() if a.tag == tag), None)
+            if axis is not None and abs(value - axis.default) < 1e-9:
+                continue
+            out.append((tag, round(float(value), 6)))
+        return tuple(sorted(out))
+
+    def _matrix_header(self, row: st.Line) -> Optional[st.Line]:
+        for number in range(row.number - 1, 0, -1):
+            line = self.structure.line(number)
+            if line.kind == st.AVAR2_HEADER:
+                return line
+            if line.kind == st.SECTION:
+                return None
+        return None
+
+    def _matrix_columns(self, header: st.Line) -> Dict[str, str]:
+        """tag -> the column as written"""
+        out = {}
+        for name in header.fields:
+            if name.startswith("cell."):
+                out[self._axis_ref_tag(name[5:]) or name[5:]] = name[5:]
+        return out
+
+    def _set_cell(self, row: st.Line, column: str, text: str) -> TextEdit:
+        """Replace a matrix cell, padded to its width unless it ends the line"""
+        span = row.fields[f"output.{column}"]
+        last = max(s.end_col for n, s in row.fields.items() if n.startswith("output."))
+        if span.end_col < last and len(text) < span.end_col - span.col:
+            text = text.ljust(span.end_col - span.col)
+        return self._replace(span, text)
+
+    def _assignment_edit(self, line: st.Line, ref: str) -> TextEdit:
+        """Remove `ref=value` with the comma that joins it to its neighbours"""
+        tokens = [t for t in line.tokens if t.type != "comment"]
+        k = next(i for i, t in enumerate(tokens) if t.text == ref and i + 2 < len(tokens) and tokens[i + 1].text == "=")
+        start, end = tokens[k].column, tokens[k + 2].column + tokens[k + 2].length
+        if k > 0 and tokens[k - 1].text == ",":
+            start = tokens[k - 1].column
+        elif k + 3 < len(tokens) and tokens[k + 3].text == ",":
+            nxt = tokens[k + 4] if k + 4 < len(tokens) else tokens[k + 3]
+            end = nxt.column if nxt is not tokens[k + 3] else tokens[k + 3].column + 1
+        return TextEdit(line.number, start, line.number, end, "")
+
+    def add_avar2_mapping(self, inputs: Dict[str, Any], outputs: Dict[str, Any], name: Optional[str] = None) -> EditResult:
+        """Add an avar2 mapping: inputs in user space (numbers or labels), outputs
+        in design space (numbers, `$`, `$var`). A matrix row where one matrix has
+        every output as a column, else a linear row (rows at one location
+        combine, so either is the same mapping)"""
+        if not inputs or not outputs:
+            raise EditError("invalid-value", "An avar2 mapping needs inputs and outputs")
+        tags_in = {self._avar2_axis(a).tag: self._avar2_text(v) for a, v in inputs.items()}
+        tags_out = {self._avar2_axis(a).tag: self._avar2_text(v) for a, v in outputs.items()}
+        prefix = '"' + name.replace('"', "'") + '" ' if name else ""
+        input_text = "[" + ", ".join(f"{t}={v}" for t, v in tags_in.items()) + "]"
+        for header in self.structure.of_kind(st.AVAR2_HEADER):
+            columns = self._matrix_columns(header)
+            if not set(tags_out) <= set(columns):
+                continue
+            starts = [(header.fields[f"cell.{col}"].col, tags_out.get(tag, "-")) for tag, col in columns.items()]
+            text = header.indent + prefix + input_text
+            for col, cell in sorted(starts):
+                text = text.ljust(col) if len(text) + 2 <= col else text + "  "
+                text += cell
+            rows = [ln for ln in self.structure.lines
+                    if ln.kind == st.AVAR2_ROW and self._matrix_header(ln) is header]
+            after = rows[-1].end_line if rows else header.number
+            return self._result([self._insert_lines(after, [text])])
+        rows = [ln for ln in self.structure.of_kind(st.AVAR2_ROW) if ln.section == "avar2"]
+        text = (rows[0].indent if rows else self.structure.indent_unit) + prefix + input_text + " > " + \
+            ", ".join(f"{t}={v}" for t, v in tags_out.items())
+        if self.structure.section_header("avar2") is None:
+            return self._result([self._new_section("avar2", "avar2", [text])])
+        return self._result([self._insert_lines(self._section_end("avar2"), [text])])
+
+    def remove_avar2_mapping(self, index: int) -> EditResult:
+        """Remove an avar2 row (a linear row with its { } block)"""
+        _, line = self._avar2_line(index)
+        return self._result([self._remove_item(line)])
+
+    def set_avar2_name(self, index: int, name: Optional[str]) -> EditResult:
+        _, line = self._avar2_line(index)
+        quoted = '"' + name.replace('"', "'") + '"' if name else None
+        if "name" in line.fields:
+            span = line.fields["name"]
+            if quoted is None:
+                return self._result([TextEdit(line.number, span.col, line.number, line.fields["inputs"].col, "")])
+            return self._result([self._replace(span, quoted)])
+        if quoted is None:
+            return EditResult([], self._text, self)
+        col = line.fields["inputs"].col
+        return self._result([TextEdit(line.number, col, line.number, col, quoted + " ")])
+
+    def set_avar2_input(self, index: int, axis, value) -> EditResult:
+        """Set (None: remove) one input of an avar2 row; user space, a number or label"""
+        mapping, line = self._avar2_line(index)
+        tag = self._avar2_axis(axis).tag
+        written = next((n[6:] for n in line.fields if n.startswith("input.") and self._axis_ref_tag(n[6:]) == tag), None)
+        if value is None:
+            if written is None:
+                return EditResult([], self._text, self)
+            return self._result([self._assignment_edit(line, written)])
+        text = self._avar2_text(value)
+        if written is not None:
+            return self._result([self._replace(line.fields[f"input.{written}"], text)])
+        inputs = line.fields["inputs"]
+        sep = ", " if any(n.startswith("input.") for n in line.fields) else ""
+        return self._result([TextEdit(line.number, inputs.end_col - 1, line.number, inputs.end_col - 1, f"{sep}{tag}={text}")])
+
+    def set_avar2_output(self, index: int, axis, value) -> EditResult:
+        """Set (None: remove) one output of the mapping at row `index`'s input
+        location; design space, a number, `$` or `$var`. The value is edited
+        where the location already sets that axis (any row at it, in any matrix
+        section), else in this row: a matrix cell, a linear assignment, or a
+        new linear row at the same location when this matrix has no column"""
+        mapping, line = self._avar2_line(index)
+        tag = self._avar2_axis(axis).tag
+        doc = self.document
+        key = self._avar2_key(mapping)
+        rows = [i for i, m in enumerate(doc.avar2_mappings) if i == index or (key and self._avar2_key(m) == key)]
+
+        def sets(i):
+            return any((self._axis_ref_tag(k) or k) == tag for k in doc.avar2_mappings[i].output)
+
+        def edit_in(i, text):
+            row = self._line_of(doc.avar2_mappings[i])
+            if text is None and len(doc.avar2_mappings[i].output) == 1:
+                return self._remove_item(row)  # its only output: the row goes
+            if row.section == "avar2_matrix":
+                header = self._matrix_header(row)
+                column = self._matrix_columns(header).get(tag) if header else None
+                if column is None or f"output.{column}" not in row.fields:
+                    return None
+                return self._set_cell(row, column, text if text is not None else "-")
+            for number in range(row.number, row.end_line + 1):
+                part = self.structure.line(number)
+                for name in part.fields:
+                    if name.startswith("output.") and self._axis_ref_tag(name[7:]) == tag:
+                        if text is None:
+                            return self._assignment_edit(part, name[7:])
+                        return self._replace(part.fields[name], text)
+            return None
+
+        if value is None:
+            edits = [e for e in (edit_in(i, None) for i in rows if sets(i)) if e is not None]
+            return self._result(edits) if edits else EditResult([], self._text, self)
+        text = self._avar2_text(value)
+        for i in sorted(rows, key=lambda i: (not sets(i), i != index)):
+            if sets(i) or self._line_of(doc.avar2_mappings[i]).section == "avar2_matrix":
+                edit = edit_in(i, text)
+                if edit is not None:
+                    return self._result([edit])
+        if line.section == "avar2":
+            last = self.structure.line(line.end_line)
+            if last.number != line.number:  # a { } block: a line before the closing brace
+                inner = next((self.structure.line(n).indent for n in range(line.number + 1, line.end_line)), line.indent * 2)
+                return self._result([self._insert_lines(last.number - 1, [f"{inner}{tag}={text}"])])
+            sep = ", " if any(n.startswith("output.") for n in line.fields) else " "
+            return self._result([self._append_to_line(line, f"{sep}{tag}={text}")])
+        inputs = {self._axis_ref_tag(k) or k: v for k, v in mapping.input.items()}
+        written = line.raw[line.fields["inputs"].col + 1:line.fields["inputs"].end_col - 1]
+        text_row = (self.structure.indent_unit + f"[{written}] > {tag}={text}")
+        if self.structure.section_header("avar2") is None:
+            return self._result([self._new_section("avar2", "avar2", [text_row])])
+        return self._result([self._insert_lines(self._section_end("avar2"), [text_row])])
+
+    def set_avar2_var(self, name: str, value) -> EditResult:
+        """Set (None: remove) an `avar2 vars` variable; removing one in use is refused"""
+        name = name.lstrip("$")
+        if not name or not all(c.isalnum() or c == "_" for c in name):
+            raise EditError("invalid-value", f"Not a variable name: {name!r}")
+        line = self._var_line(name)
+        if value is None:
+            if line is None:
+                raise EditError("unknown-key", f"No variable ${name}")
+            return self._result([self._remove_item(line)])
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise EditError("invalid-value", "A variable holds a number")
+        text = format_number(value)
+        if line is not None:
+            return self._result([self._replace(line.fields["value"], text)])
+        entry = f"{self.structure.indent_unit}${name} = {text}"
+        if self.structure.section_header("avar2_vars") is None:
+            return self._result([self._new_section("avar2_vars", "avar2 vars", [entry])])
+        return self._result([self._insert_lines(self._section_end("avar2_vars"), [entry])])
+
     def set_rules_processing(self, last: bool) -> EditResult:
         """`rules last` (substitutions after the other features) or plain `rules`"""
         header = self.structure.section_header("rules")

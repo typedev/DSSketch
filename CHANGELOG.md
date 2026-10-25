@@ -4,6 +4,11 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Editing avar2**: `Sketch.add_avar2_mapping(inputs, outputs, name=None)`, `remove_avar2_mapping`, `set_avar2_name`, `set_avar2_input`, `set_avar2_output` and `set_avar2_var`. A row is addressed by its position; `set_avar2_output` edits the value where that input location already sets the axis, in whichever matrix section, else the row's cell, assignment or `{ }` block, else a new linear row at the same location. Removing a row's only output removes the row; removing a variable in use is refused
+- **Quick fixes for avar2**: an unknown axis (the closest one), a row at the default location that moves an output (set it to `$`, or remove the row), an output outside the axis range (the clamped value), a row repeating an output at one location or reading a hidden axis (remove it)
+- **`apply_designspace` writes avar2**: by input location — outputs set where the text has them, locations added and removed. It used to only report a difference
+
 ### Changed
 - **Wide avar2 matrices are written in sections** of 8 output columns (`DSSWriter.MATRIX_COLUMNS`), each repeating the input rows it needs; rows with one input location combine into one mapping when parsed and converted, so the split changes nothing. AmstelvarA2 went from 527 to under 130 characters a line, RobotoDelta from 285. Rows at the default location never combine (fontTools allows several) and are written linear after the sections. A linear row longer than 100 characters becomes a `{ }` block with 8 outputs a line. Two rows at one location that set the same output are still an error (5.56); with different outputs they now combine
 - The example sketches `AmstelvarA2-Roman_avar2` and `avar2-RobotoDelta-Roman` are regenerated from their DesignSpaces

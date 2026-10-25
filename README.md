@@ -1395,7 +1395,21 @@ avar2 matrix
     [opsz=1, wght=100, wdth=25, slnt=0, GRAD=0]   2     2     2     278   2     2
 ```
 
-Each row: `[input conditions]` → values for all output columns. `$` = axis default, `-` = no output.
+Each row: `[input conditions]` → values for all output columns. `$` = axis default, `-` = no output. A row may start with its own name, as a linear one does: `"opsz144" [opsz=144]  84  78`.
+
+**Rows at one input location combine.** A matrix wider than 8 output columns is written as several `avar2 matrix` sections, each repeating the input rows it needs, so a line stays readable:
+
+```dssketch
+avar2 matrix
+    outputs       XOUC  XOLC  XOFI  XTUC  XTUR  XTUD  XTLC  XTLR
+    [opsz=144]    84    78    79    348   470   $     224   308
+
+avar2 matrix
+    outputs       YOUC  YOLC  YOFI  YTUC  YTLC  YTAS  YTDE  YTFI
+    [opsz=144]    $     $     $     $     500   $     $     $
+```
+
+The two `[opsz=144]` rows are one mapping. Two rows at one location may not set the same output (an error). Rows at the default location never combine — fontTools allows several — so the writer puts them in a linear section after the matrices. A linear row longer than 100 characters is written as a `{ }` block, 8 outputs a line.
 
 Both formats produce identical results. Matrix is default for output, linear is easier to read for simple cases.
 
@@ -1579,6 +1593,9 @@ sk.add_rule_condition(0, "italic == 1")       # also set_rule_condition / remove
 sk.add_instance("Display Bold", {"opsz": "Display", "wght": 700}, family="MyFont Display")
 sk.set_instance_field(0, "postscript", "MyFontDisplay-Bold")   # None removes a key
 sk.set_rules_processing(True)                 # `rules last`
+sk.add_avar2_mapping({"opsz": 144}, {"XOUC": 84, "YTUC": "$"})
+sk.set_avar2_output(0, "XOUC", 86)            # where that input location sets it, in any matrix
+sk.set_avar2_var("XO", 91)                    # avar2 vars; None removes one not in use
 
 sk.item_at(18, 20)   # ("source", SourceKey("Font-Bold.ufo"), "coord", "wght")
 sk.span(("mapping", "wght", "Bold", "design"))   # Span(line, col, end_line, end_col)
@@ -1586,7 +1603,7 @@ sk.span(("mapping", "wght", "Bold", "design"))   # Span(line, col, end_line, end
 
 Objects are addressed by stable keys — an axis by its tag, a mapping by axis and
 label, a source by `SourceKey(filename, layer)` (or a name that is unique), a
-rule or an explicit instance by its position, a `skip` entry by its text. Values follow the document's own spelling
+rule, an explicit instance or an avar2 row by its position, a `skip` entry by its text. Values follow the document's own spelling
 (`prefer="keep"`: a label where the neighbouring lines write labels), or
 `prefer="label"` / `"number"`.
 
@@ -1655,7 +1672,7 @@ and spelling kept:
 result, report = sk.apply_designspace(ds_doc)   # or dssketch.apply_designspace(text, ds_doc)
 result.edits      # minimal TextEdits; result.text, result.sketch
 for issue in report.warnings:                   # what was not written
-    print(issue.id, issue.description)          # "6.1" The avar2 mappings differ …
+    print(issue.id, issue.description)          # "6.0" Not applied: …
 ```
 
 Axes (range, name, mappings — a renamed label follows into its uses), sources
@@ -1665,9 +1682,10 @@ glyphs, added, removed, order, `rules last`) are written. A pattern rule
 Instances are written as a conversion would describe them (`instances
 auto/off`, `skip` entries, explicit blocks), but only when the DesignSpace's
 instances differ from what the text generates: an axis label added in the
-DesignSpace makes new instances, not `skip` entries. avar2 is not rewritten:
-the report (category 6, "Apply") says where it differs, as it does for an edit
-the sketch refuses.
+DesignSpace makes new instances, not `skip` entries. avar2 is written by input
+location: an output is set where that location already has it (a matrix cell
+or a linear assignment), new locations are added and removed ones removed. The
+report (category 6, "Apply") lists an edit the sketch refuses.
 
 **Comments**: a comment starts at the first `#` outside quotes (`"Sans #1"` is a
 name). When a line is removed, the comments directly above it (no blank line

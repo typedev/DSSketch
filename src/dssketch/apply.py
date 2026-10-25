@@ -18,9 +18,12 @@ a sketch (DS -> DSS); the two documents are compared item by item:
   entries for generated positions the DesignSpace lacks, explicit blocks (by
   name and occurrence) for what the generator does not reproduce
 
-Not written, and said so in the report: avar2 (not edited yet), an axis that
-moved between `axes` and `axes hidden`, an edit the sketch refuses (the rest is
-applied). What DS -> DSS itself cannot carry (document lib, …) is reported as
+- avar2 by input location (rows at one location combine): outputs set in the
+  row that has them (a matrix cell or a linear assignment), locations added
+  and removed; rows at the default location replaced as a whole
+
+Not written, and said so in the report: an axis that moved between `axes` and
+`axes hidden`, an edit the sketch refuses (the rest is applied). What DS -> DSS itself cannot carry (document lib, …) is reported as
 the converter reports it.
 
 Needs fontTools (it reads a DesignSpaceDocument); imported only when called.
@@ -457,32 +460,86 @@ class _Applier:
 
     # -- what is not written ------------------------------------------------------
 
-    def avar2(self):
-        def normal(doc):
-            """The mappings as DSS -> DS builds them: rows at one input combine"""
-            merged, at_default = {}, []
-            for mapping in doc.avar2_mappings:
-                inputs = []
-                for key, value in mapping.input.items():
-                    axis = self.axis_of(doc, key)
-                    if axis is not None and _same(value, axis.default):
-                        continue  # left out = at the default
-                    inputs.append((axis.tag if axis is not None else key, round(float(value), 4)))
-                outputs = {}
-                for key, value in mapping.output.items():
-                    axis = self.axis_of(doc, key)
-                    outputs[axis.tag if axis is not None else key] = round(float(value), 4)
-                key = tuple(sorted(inputs))
-                if not key:
-                    at_default.append(((), tuple(sorted(outputs.items()))))
-                else:
-                    merged.setdefault(key, {}).update(outputs)
-            return sorted([(k, tuple(sorted(v.items()))) for k, v in merged.items()] + at_default)
+    def avar2_rows(self, doc: DSSDocument):
+        """Each row's combining key (tags, user values; axes at their default left
+        out) and outputs by tag"""
+        rows = []
+        for mapping in doc.avar2_mappings:
+            inputs = []
+            for key, value in mapping.input.items():
+                axis = self.axis_of(doc, key)
+                if axis is not None and _same(value, axis.default):
+                    continue
+                inputs.append((axis.tag if axis is not None else key, round(float(value), 4)))
+            outputs = {}
+            for key, value in mapping.output.items():
+                axis = self.axis_of(doc, key)
+                outputs[axis.tag if axis is not None else key] = round(float(value), 4)
+            rows.append((tuple(sorted(inputs)), outputs))
+        return rows
 
-        if normal(self.doc) != normal(self.target):
+    def avar2_normal(self, doc: DSSDocument):
+        """The mappings as DSS -> DS builds them: rows at one input combine"""
+        merged, at_default = {}, []
+        for key, outputs in self.avar2_rows(doc):
+            if key:
+                merged.setdefault(key, {}).update(outputs)
+            else:
+                at_default.append(tuple(sorted(outputs.items())))
+        return merged, sorted(at_default)
+
+    def avar2(self):
+        """Mappings by input location: outputs set where that location already
+        has them, locations added and removed; rows at the default location are
+        replaced as a whole when they differ"""
+        mine, mine_default = self.avar2_normal(self.doc)
+        theirs, theirs_default = self.avar2_normal(self.target)
+        if mine == theirs and mine_default == theirs_default:
+            return
+
+        def rows_at(key):
+            return [i for i, (k, _) in enumerate(self.avar2_rows(self.doc)) if k == key]
+
+        def text(tag, value):
+            axis = self.axis_of(self.doc, tag)
+            return "$" if axis is not None and _same(value, axis.design_default) else value
+
+        for key in [k for k in mine if k not in theirs]:
+            for i in reversed(rows_at(key)):
+                self.run(f"remove avar2 mapping {key}", lambda sk, i=i: sk.remove_avar2_mapping(i))
+        for key, outputs in theirs.items():
+            rows = rows_at(key)
+            if not rows:
+                self.run(f"add avar2 mapping {key}",
+                         lambda sk, k=key, o=outputs: sk.add_avar2_mapping(dict(k), {t: text(t, v) for t, v in o.items()}))
+                continue
+            have = self.avar2_normal(self.doc)[0].get(key, {})
+            for tag in [t for t in have if t not in outputs]:
+                self.run(f"avar2 {key} {tag}", lambda sk, i=rows[0], t=tag: sk.set_avar2_output(i, t, None))
+                rows = rows_at(key) or rows
+            for tag, value in outputs.items():
+                if tag not in have or not _same(have[tag], value):
+                    self.run(f"avar2 {key} {tag}={value:g}",
+                             lambda sk, k=key, t=tag, v=value: sk.set_avar2_output(rows_at(k)[0], t, text(t, v)))
+        if mine_default != theirs_default:
+            for i in reversed(rows_at(())):
+                self.run("remove avar2 mapping at the default", lambda sk, i=i: sk.remove_avar2_mapping(i))
+            for mapping in self.target.avar2_mappings:
+                if self.avar2_rows_one(mapping) == ():
+                    self.run("add avar2 mapping at the default",
+                             lambda sk, m=mapping: sk.add_avar2_mapping(
+                                 dict(m.input), {k: text(k, v) for k, v in m.output.items()}, name=m.name))
+        self.finish()
+        mine, mine_default = self.avar2_normal(self.doc)
+        if (mine, mine_default) != (theirs, theirs_default):
             self.note(APPLY_AVAR2_NOT_APPLIED, SEVERITY_WARNING,
-                      "The avar2 mappings differ; avar2 is not edited, the text keeps its own",
+                      "Some avar2 mappings still differ from the DesignSpace (an edit was refused)",
                       current=len(self.doc.avar2_mappings), designspace=len(self.target.avar2_mappings))
+
+    def avar2_rows_one(self, mapping) -> tuple:
+        doc = DSSDocument(family="", axes=self.target.axes, hidden_axes=self.target.hidden_axes,
+                          avar2_mappings=[mapping])
+        return self.avar2_rows(doc)[0][0]
 
     def instances(self, ds_doc, original: Sketch):
         """`instances auto/off`, the `skip` entries and the explicit blocks, as
