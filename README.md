@@ -226,6 +226,14 @@ instances auto
 
 ### 4. **Advanced Features Made Simple**
 
+Beyond axes, sources and rules, a sketch also carries what a DesignSpace 5
+build needs — each covered below: OR in rule conditions (`||`) and `rules last`;
+explicit instances next to `instances auto` / `skip`, with localized names;
+`variable-fonts` (one per discrete value, plus sub-ranges); avar2 mappings with
+hidden axes; `lang` and `elidedfallback`. Editors get positioned diagnostics with
+quick fixes, completion, an outline, and minimal-edit operations
+(`dssketch.Sketch`, see "Editing a Sketch").
+
 #### Discrete Axes
 ```dssketch
 # Instead of complex XML values="0 1" attributes:
@@ -328,6 +336,9 @@ sources [wght, wdth, CONTRAST]   # Coordinates follow this order: [weight, width
 ## Installation & Usage
 
 ### Installation
+
+DSSketch needs Python 3.11 or newer (as current fontTools does); on older
+Pythons pip installs the last 1.5.x release.
 
 #### Using uv (recommended)
 ```bash

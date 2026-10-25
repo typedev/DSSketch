@@ -109,8 +109,10 @@ dssketch.convert_designspace_to_dss_string(designspace, optimize=True, vars_thre
 # Convert DSSketch string to DesignSpace object
 dssketch.convert_dss_string_to_designspace(dss_content: str, base_path: str = None) -> DesignSpaceDocument
 
-# Convert DesignSpace object to DSSketch string
-dssketch.convert_designspace_to_dss_string(designspace: DesignSpaceDocument, optimize: bool = True) -> str
+# All of them take return_report=True (-> (result, ConversionReport)); the
+# DSS -> DS ones take font_data= (a FontDataProvider) instead of reading UFOs.
+# Editors work on dssketch.Sketch (sketch.py): immutable snapshot, operations
+# returning minimal TextEdits, queries, diagnostics with quick fixes
 ```
 
 ### Integration Examples
@@ -193,7 +195,7 @@ The API functions include robust error handling and validation:
 ```python
 import dssketch
 from pathlib import Path
-from src.dssketch.parsers.dss_parser import DSSParser
+from dssketch import DSSParser
 
 # Basic error handling
 try:
@@ -372,9 +374,11 @@ sources [wght, ital]  # explicit axis order for coordinates
     # Sparse master support - correction layers with reduced glyph coverage:
     Font-PosterBold-sparse [700, 0] @sparse    # marked as sparse master
 
-rules
+rules  # `rules last`: after the other OpenType features (rclt)
     # Label-based conditions (more readable!)
     dollar > dollar.heavy (weight >= Bold) "heavy dollar"
+    # OR: condition groups joined by || (each a DesignSpace conditionset)
+    a > a.alt (weight >= Bold) || (width <= Condensed && weight >= 600)
     ampersand > ampersand.fancy (weight >= Bold && width <= Wide) "compound condition"
     g > g.alt (Regular <= weight <= Bold) "range condition"
 
@@ -399,6 +403,14 @@ instances auto  # instances follow axes section order
 
         Bold Italic  # skip this specific combination
         Thin Italic  # skip another combination
+    Display Bold     # an explicit instance: what auto does not make
+        location: wght=700, wdth=Condensed   # design space, labels allowed
+        family: FontName Display
+        style.de: Fett                       # localized names per language
+
+variable-fonts auto  # one VF per discrete value; blocks for sub-ranges
+    FontName-Text
+        axes: wght=Light:Bold, ital=Upright  # user space
 
 instances off  # completely disable instance generation (useful for avar2 fonts)
 
@@ -739,7 +751,7 @@ sources [wght, wdth]
 - **Order determines naming**: First axis appears first in names (e.g., `wdth, wght` → "Condensed Light" vs `wght, wdth` → "Light Condensed")
 - **Instance Skip Support**: Optionally exclude specific combinations via `skip` subsection
 - Generates proper PostScript names and file paths
-- Integration: `dss_to_designspace.py:67` calls `createInstances()` when `instances_auto=True`
+- Integration: `DSSToDesignSpace.convert()` calls `createInstances()` when `instances_auto=True`
 - **Custom axis ordering**: Change axes order in DSS to control instance name generation
 
 **`instances auto` is capped at 1000** (`MAX_AUTO_INSTANCES`, `core/instances.py`):
@@ -913,7 +925,7 @@ error); queries/apply see an empty list. Tests: `tests/test_instances_limit.py`
 - **Logging**: All skip operations logged at INFO level for visibility
 - **Example**: `instances auto skip` → `Bold Italic` → `Thin Italic`
 - **Use cases**: Skip impractical combinations (e.g., Thin Italic too fragile, Extended Black Slant distorted)
-- **Implementation**: `instances.py:230-233` checks skip rules after elidable cleanup
+- **Implementation**: `plan_instances()` checks skip rules after elidable cleanup
 - **Testing**: See `examples/MegaFont-WithSkip.dssketch` (315 → 301 instances)
 
 **Algorithm Steps (core/instances.py):**
@@ -967,9 +979,9 @@ DSSketch validates skip rules at two levels to ensure correctness:
    - Example: `Bold Upright` where Upright is @elidable → WARNING "never used"
 
 **Implementation Details:**
-- Validation function: `_validate_skip_labels()` in `instances.py:151-187`
+- Validation function: `_validate_skip_labels()` in `core/instances.py` (and `DSSValidator._validate_skip_labels`)
 - Simple split-based validation: each space-separated word must be valid label
-- Unused tracking: Set-based tracking of `used_skip_rules` (lines 259, 280, 306-315)
+- Unused tracking: set-based tracking of `used_skip_rules` in `createInstances()`
 - Error messages include full list of available labels for easy correction
 
 **Test Coverage:**
@@ -982,30 +994,9 @@ DSSketch validates skip rules at two levels to ensure correctness:
 ### Implementation Notes for Rules
 
 **Code Location:**
-- Rule parsing: `src/dssketch/parsers/dss_parser.py:402` (_parse_rule_line)
-- Wildcard expansion: `src/dssketch/converters/dss_to_designspace.py:247` (_expand_wildcard_pattern)
+- Rule parsing: `DSSParser._parse_rule_line()`
+- Wildcard expansion: `DSSToDesignSpace._convert_rule()` / `fontdata.expand_rule()`
 - Pattern matching: `src/dssketch/utils/patterns.py` (PatternMatcher class)
-
-**Recent Fix (important!):**
-- Fixed wildcard detection for single patterns like `A*` without spaces
-- Changed condition from `if ' ' in from_part and ('*' in from_part...)`
-- To: `if '*' in from_part or (' ' in from_part...)`
-- This ensures patterns like `A*` are properly recognized as wildcards
-
-**OR: condition groups (1.6.0):** `(a) || (b && c)`. `DSSRule.conditions` is
-the first group, `DSSRule.alternatives` the rest, `condition_sets` all of them
-(code that reads `conditions` alone sees only the first group — use
-`condition_sets` for meaning). Each group = one DesignSpace conditionset both
-ways (DS → DSS used to write one rule per conditionset). Parser regex takes
-`( … )( || ( … ))*`; text left after it is an error with a `||` hint (two
-groups without `||` used to drop the second silently). Tokenizer/.lang:
-`||` is an operator. Structure: `conditions` spans every group, `group.G`
-each, `condition.N` numbered across groups. Sketch: `add_rule_group`,
-`remove_rule_group`, `set_rule_conditions`, `add_rule_condition(group=)`,
-`add_rule(alternatives=)`; removing a group's last condition removes the
-group. `RuleRegion.alternatives`; `substitutions_at` applies a rule where any
-group holds. The writer writes bounds exactly as stored (it used to read a
-lower bound of 0 / upper >= 1000 as open). Tests: `tests/test_rule_or_groups.py`
 
 **One-sided Rule Conditions Stay Open:**
 - `weight >= Bold` is stored as `{"minimum": 725, "maximum": None}`, and
@@ -1025,9 +1016,9 @@ lower bound of 0 / upper >= 1000 as open). Tests: `tests/test_rule_or_groups.py`
 ### Implementation Notes for Explicit Axis Order
 
 **Code Location:**
-- Writer axis order output: `src/dssketch/writers/dss_writer.py:66` (_get_axis_tag method)
-- Parser axis order parsing: `src/dssketch/parsers/dss_parser.py:115` (sources section parsing)
-- Coordinate parsing with axis order: `src/dssketch/parsers/dss_parser.py:330` (_parse_source_line)
+- Writer axis order output: `DSSWriter._get_axis_tag()`
+- Parser axis order parsing: the `sources [..]` header in `DSSParser._parse_line()`
+- Coordinate parsing with axis order: `DSSParser._parse_source_line()`
 
 **Key Implementation Details:**
 - `DSSWriter._get_axis_tag()` converts axis names to standard tags for output
@@ -1041,8 +1032,7 @@ lower bound of 0 / upper >= 1000 as open). Tests: `tests/test_rule_or_groups.py`
 
 **Code Location:**
 - Core instance logic: `src/dssketch/core/instances.py` (full module)
-- Integration point: `src/dssketch/converters/dss_to_designspace.py:67` (createInstances call)
-- DSS parsing: `src/dssketch/parsers/dss_parser.py:486` (_generate_auto_instances fallback)
+- Integration point: `DSSToDesignSpace.convert()` (createInstances call); the same generator runs for `Sketch.instances()` (`plan_instances`)
 
 **Key Functions:**
 - `createInstances(dssource, defaultFolder, skipFilter, filter)` - Main function for generating all combinations
@@ -1174,27 +1164,26 @@ def _resolve_axis_range_value(self, value_str: str, axis_name: str) -> float:
 ### Implementation Notes for Axis Mapping Formats
 
 **Code Location:**
-- Axis mapping parsing: `src/dssketch/parsers/dss_parser.py:_parse_axis_mapping()` (lines 491-560)
-- Format detection: Lines 503-527 (three-way format detection logic)
+- Axis mapping parsing: `DSSParser._parse_axis_mapping()` (four-way format detection)
 
 **Three Supported Formats:**
 
 **1. Standard Label Format** (`Light > 300`):
 - **Detection**: Line contains `>`, left side is non-numeric string
-- **Logic**: Parser checks if label exists in `Standards` mappings (lines 522-524)
+- **Logic**: Parser checks if label exists in `Standards` mappings
 - **User-space value**: Retrieved from standard mappings (e.g., Light=300, Bold=700)
 - **Code path**: `Standards.has_mapping()` → `Standards.get_user_value_for_name()`
 - **Example**: `Light > 300` → user=300 (from Standards), label="Light", design=300
 
 **2. Custom Label Format** (`MyCustom > 500`):
 - **Detection**: Line contains `>`, left side is non-numeric string, label NOT in Standards
-- **Logic**: Unknown labels use design-space value as user-space value (lines 526-527)
+- **Logic**: Unknown labels use design-space value as user-space value
 - **User-space value**: Equals design-space value (user=design)
 - **Code path**: Falls through to `user = design` assignment
 - **Example**: `MyCustom > 500` → user=500, label="MyCustom", design=500
 
 **3. Explicit User-Space Format** (`300 Light > 295`):
-- **Detection**: Line contains `>`, left side starts with numeric value (lines 512-517)
+- **Detection**: Line contains `>`, left side starts with numeric value
 - **Logic**: `left_parts[0].replace(".", "").replace("-", "").isdigit()` check
 - **Parsing**: `user = float(left_parts[0])`, `label = " ".join(left_parts[1:])`, `design = float(parts[1])`
 - **User-space value**: Explicitly provided (overrides any standard mappings)
@@ -1266,35 +1255,6 @@ inside the master envelope rather than landing on a raw master.
 - `_validate_mapping_label_consistency()` returns early for `label == ""`.
 - Tests: `tests/test_unnamed_map_points.py` (10 tests)
 
-**Key Implementation Code (dss_parser.py:503-527):**
-```python
-if ">" in line:
-    # Traditional format: "300 Light > 295" or "0.0 Upright > 0.0"
-    parts = line.split(">")
-    left = parts[0].strip()
-    design = float(parts[1].strip())
-
-    # Parse left side
-    left_parts = left.split()
-
-    if left_parts[0].replace(".", "").replace("-", "").isdigit():
-        # Format: "300 Light" or "0.0 Upright" - EXPLICIT USER-SPACE
-        user = float(left_parts[0])
-        label = " ".join(left_parts[1:]) if len(left_parts) > 1 else ""
-        if not label:
-            label = Standards.get_name_for_user_value(user, self.current_axis.name)
-    else:
-        # Format: "Light > 295" or "XX > 60" - infer user value
-        label = left
-        # Check if this label exists in standard mappings
-        if Standards.has_mapping(label, self.current_axis.name):
-            # Use standard mapping for known labels
-            user = Standards.get_user_value_for_name(label, self.current_axis.name)
-        else:
-            # For unknown labels, use design_value as user_value
-            user = design
-```
-
 **Real-World Usage:**
 - **Standard format**: Most common for standard weight/width scales
 - **Custom format**: Useful for custom axes (CONTRAST, CUSTOM, etc.)
@@ -1329,15 +1289,15 @@ axes
 - All three formats are actively used in production examples (`examples/MegaFont-3x5x7x3-Variable.dssketch`)
 - Format detection is automatic - no flags or configuration needed
 - Supports negative values: `-20 Reverse > -20`
-- No tests currently cover explicit user-space format (test gap identified)
+- Explicit user-space format is covered by `tests/test_dss_to_dss.py` and `tests/test_syntax.py`
 
 ### Implementation Notes for New Validations (2025-01)
 
 **1. Label-Based Range Validation**
 
 **Code Location:**
-- Validation logic: `src/dssketch/parsers/dss_parser.py:_resolve_axis_range_value()` (lines 510-554)
-- Key validation check: `Standards.has_mapping()` (lines 542-546)
+- Validation logic: `DSSParser._resolve_axis_range_value()`
+- Key validation check: `Standards.has_mapping()`
 - Test suite: `tests/test_label_range_validation.py` (8 tests)
 
 **Key Implementation:**
@@ -1375,8 +1335,7 @@ def _resolve_axis_range_value(self, value_str: str, axis_name: str) -> float:
 **2. Rule Axis Validation**
 
 **Code Location:**
-- Validation logic: `src/dssketch/converters/dss_to_designspace.py:_find_axis_name_in_designspace()` (lines 298-302)
-- Changed from warning to error when axis not found
+- Validation logic: `DSSValidator._validate_rule_axes()` (error 5.38 in `diagnose()`, every condition group), and `DSSToDesignSpace._find_axis_name_in_designspace()` still raises on conversion
 - Test suite: `tests/test_rule_axis_validation.py` (5 tests)
 
 **Key Implementation:**
@@ -1401,7 +1360,7 @@ def _find_axis_name_in_designspace(self, dss_axis_name: str, doc: DSSDocument) -
 **3. Mapping Range Validation**
 
 **Code Location:**
-- Validation logic: `src/dssketch/utils/dss_validator.py:_validate_content()` (lines 185-192)
+- Validation logic: `DSSValidator._validate_content()`
 - Checks during document validation phase
 - Test suite: `tests/test_mapping_range_validation.py` (8 tests)
 
@@ -1414,7 +1373,7 @@ def _validate_content(self, document: DSSDocument):
             # Check that mapping user_value is within axis range
             if mapping.user_value is not None:
                 if mapping.user_value < axis.minimum or mapping.user_value > axis.maximum:
-                    self.errors.append(
+                    self._error(  # never validator.errors.append(): lines must stay in step
                         f"Axis '{axis.name}': mapping '{mapping.label}' has user_value {mapping.user_value} "
                         f"which is outside the axis range [{axis.minimum}, {axis.maximum}]. "
                         f"All mappings must be within the axis min/max range."
@@ -1574,9 +1533,9 @@ Instance names: `wght400 opsz16` format (tag + value).
 
 **Code Locations:**
 - Model: `src/dssketch/core/models.py` - `DSSDocument.instances_off: bool`
-- Parser: `src/dssketch/parsers/dss_parser.py:203` - parses `instances off`
-- Converter: `src/dssketch/converters/dss_to_designspace.py:78` - skips instance generation
-- Writer: `src/dssketch/writers/dss_writer.py:150` - outputs `instances off`
+- Parser: the `instances` header in `DSSParser._parse_line()`
+- Converter: `DSSToDesignSpace.convert()` skips instance generation
+- Writer: `DSSWriter.write()` outputs `instances off`
 
 **Usage:**
 ```dssketch
@@ -1606,7 +1565,7 @@ instances off
    - Falls back to "Unknown" if UFO not found or has no familyName
    - Logs a warning (non-critical)
 
-**Key Implementation (`dss_to_designspace.py`):**
+**Key Implementation (`dss_to_designspace.py`, simplified; the UFO is read through the font data provider, `_font_data(doc).family_name()`, never defcon directly):**
 ```python
 def _detect_family_name(self, dss_doc: DSSDocument) -> str:
     """Detect family name from UFO if not specified in DSS document."""
@@ -1652,28 +1611,12 @@ sources [wght]
     Regular [400] @base  # Family detected from this UFO
 ```
 
-### Implementation Notes for Instances Roundtrip (2025-12)
+### Implementation Notes for Instances Roundtrip
 
-**Purpose:** Preserve zero-instance state during DesignSpace → DSSketch → DesignSpace roundtrip.
-
-**Problem:** Original DesignSpace files with 0 instances were getting thousands of auto-generated instances after roundtrip conversion (due to `instances auto` default).
-
-**Fix:** When converting DesignSpace → DSSketch, if original has 0 instances, set `instances_off=True`.
-
-**Code Location:** `src/dssketch/converters/designspace_to_dss.py`
-
-```python
-# Convert instances (optional - can be auto-generated)
-if ds_doc.instances:
-    for instance in ds_doc.instances:
-        dss_instance = self._convert_instance(instance, ds_doc)
-        dss_doc.instances.append(dss_instance)
-else:
-    # No instances in original - set instances_off to preserve this
-    dss_doc.instances_off = True
-```
-
-**Result:** Files with 0 instances now correctly roundtrip to 0 instances.
+A DesignSpace without instances converts to `instances off`, so it stays at
+zero instances. With instances, `DesignSpaceToDSS._split_instances()` writes
+`instances auto` + `skip` + explicit blocks (see "Explicit instances" above);
+every example round-trips its instances exactly.
 
 ### Module Reference
 
@@ -2133,8 +2076,10 @@ and after the refactor
 - `tests/test_discrete_axis_no_warning.py` - Discrete axis warning tests
 - `tests/test_human_axis_names.py` - Human-readable axis name tests
 - Tests cover: keyword typos, axis tag typos, mapping label typos, duplicate labels, empty values, coordinate validation, bracket detection, axis ranges, rule syntax, label validation, axis references, mapping bounds, label-based conditions
-- **Total**: 85 tests passing
-- Run with: `python -m pytest tests/ -v`
+- **Total**: ~865 tests (`uv run python -m pytest tests/ -q`). `tests/` is in
+  `.gitignore`: add new files with `git add -f`. `tests/test_corpus.py` runs the
+  avar2/HOI corpus in `tests/corpus/` (not in git, see `notes/corpus.md`) and
+  skips without it; run any bulk sweep under `ulimit -v` and a timeout
 
 ### File Extensions
 
@@ -2179,7 +2124,7 @@ When adding features:
 3. Verify complex rules with compound conditions
 4. Check handling of both standard and custom axes
 5. Validate wildcard expansion with UFO files
-6. Add validation logic to `src/dssketch/utils/validation.py`
+6. Add validation logic to `src/dssketch/utils/dss_validator.py` (through `_error` / `_warning`, with a code in `codes.py`)
 7. Test both strict and non-strict parsing modes
 8. Add test cases to `tests/test_parser_validation.py`
 
@@ -2386,7 +2331,7 @@ Tests: `tests/test_build_checks.py`
 
 **Strict Mode (Default):**
 ```python
-from src.dssketch.parsers.dss_parser import DSSParser
+from dssketch import DSSParser
 
 parser = DSSParser(strict_mode=True)  # Stops on first error
 try:
