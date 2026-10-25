@@ -149,3 +149,36 @@ def test_fixes_never_break_diagnose():
     for text in ["", "familly", "axes\n    wgth 1:2:3\n", "sources\n    A @base @base\n", "instances auto\n    skip\n        X"]:
         for d in diagnose(text):
             assert isinstance(d.fixes, tuple)
+
+
+@pytest.mark.parametrize("condition", ["(wieght >= Black)", "(wieght >= 900)"])
+def test_rule_on_an_unknown_axis(condition):
+    broken = variant("(weight >= Black)", condition)
+    d = find(broken, "RULE_CONDITION")
+    assert d.severity == "error" and "'wieght'" in d.message
+    assert [f.title for f in d.fixes] == ["Change to 'weight'"]
+    assert "(weight >= " in apply(broken, d.fixes[0]) and not errors(apply(broken, d.fixes[0]))
+
+
+
+
+def test_rule_glyph_fixes_with_font_data():
+    from dssketch import FontData
+
+    class Host(FontData):
+        def glyph_names(self, source):
+            return ["dollar", "dollar.alt", "a", "a.ss01"]
+
+    broken = variant("dollar > dollar.alt", "dolar > dollar.alt")
+    found = [d for d in diagnose(broken, font_data=Host()) if d.code == codes.CODES["RULE_GLYPH_MISSING"].id]
+    assert [f.title for f in found[0].fixes] == ["Change to 'dollar'"]
+    assert apply(broken, found[0].fixes[0]) == GOOD
+
+    target = variant("dollar > dollar.alt", "dollar > dollar.atl")
+    found = [d for d in diagnose(target, font_data=Host()) if d.code == codes.CODES["RULE_TARGET_MISSING"].id]
+    assert apply(target, found[0].fixes[0]) == GOOD
+
+    nothing = variant("dollar > dollar.alt", "q* > .ss01")
+    found = [d for d in diagnose(nothing, font_data=Host()) if d.code == codes.CODES["RULE_MATCHES_NOTHING"].id]
+    assert [f.title for f in found[0].fixes] == ["Remove the rule"]
+    assert "q*" not in apply(nothing, found[0].fixes[0])

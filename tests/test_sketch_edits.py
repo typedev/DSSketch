@@ -518,3 +518,79 @@ def test_a_commented_hidden_section_header_stays():
     text = HIDDEN.replace("axes hidden\n", "axes hidden  # parametric\n").replace("    XOLC 0:50:100\n", "")
     text = text.replace("\navar2\n    [wght=Black] > XOUC=150\n", "\n")
     assert "axes hidden  # parametric\n" in Sketch.parse(text).remove_axis("XOUC").text
+
+
+# -- rules ----------------------------------------------------------------------
+
+RULES = DEMO.replace(
+    '    dollar > dollar.alt (weight >= Black) "heavy dollar"\n',
+    '    # heavy forms\n'
+    '    dollar > dollar.alt (weight >= Black) "heavy dollar"\n'
+    '    a* > .ss01 (Regular <= weight <= Black)  # alternates\n'
+    '    g > g.alt (italic == 1 && weight >= Regular) "italic g"\n',
+)
+
+
+@pytest.fixture
+def rk():
+    return Sketch.parse(RULES)
+
+
+def rules_of(text):
+    return text.split("rules\n", 1)[1].split("\n\ninstances", 1)[0]
+
+
+def test_add_rule(rk):
+    result = rk.add_rule("b", "b.alt", "weight >= Black", name="b alt")
+    assert rules_of(result.text).endswith('    b > b.alt (weight >= Black) "b alt"')
+    first = rk.add_rule("c*", ".ss02", ["weight >= Regular", "italic == 1"], index=0)
+    assert rules_of(first.text).startswith("    c* > .ss02 (weight >= Regular && italic == 1)\n    # heavy forms\n")
+    assert first.sketch.document.rules[0].pattern == "c*"
+
+
+def test_add_rule_creates_the_section():
+    text = DEMO.replace('rules\n    dollar > dollar.alt (weight >= Black) "heavy dollar"\n\n', "")
+    result = Sketch.parse(text).add_rule("b", "b.alt", "weight >= Black")
+    assert "\nrules\n    b > b.alt (weight >= Black)\n" in result.text
+    assert result.text.index("rules") < result.text.index("instances auto")
+
+
+def test_remove_and_move_rule(rk):
+    removed = rk.remove_rule(0).text
+    assert "heavy" not in rules_of(removed)  # with its leading comment
+    moved = rk.move_rule(2, 0)
+    assert [r.name for r in moved.sketch.document.rules] == ["italic g", "heavy dollar", moved.sketch.document.rules[2].name]
+    assert rules_of(moved.text).splitlines()[0] == '    g > g.alt (italic == 1 && weight >= Regular) "italic g"'
+    back = rk.move_rule(0, 2)
+    assert rules_of(back.text).splitlines()[-2:] == [
+        "    # heavy forms", '    dollar > dollar.alt (weight >= Black) "heavy dollar"',
+    ]
+    assert rk.move_rule(1, 1).edits == []
+
+
+def test_set_rule_fields(rk):
+    assert '    dollar cent > dollar.alt (weight >= Black) "heavy dollar"' in rk.set_rule_pattern(0, "dollar  cent").text
+    assert '    dollar > dollar.heavy (weight >= Black)' in rk.set_rule_target(0, "dollar.heavy").text
+    assert '(weight >= Black) "dollar alternates"' in rk.set_rule_name(0, "dollar alternates").text
+    assert '    dollar > dollar.alt (weight >= Black)\n' in rk.set_rule_name(0, None).text
+    assert '    a* > .ss01 (Regular <= weight <= Black) "a"  # alternates' in rk.set_rule_name(1, "a").text
+
+
+def test_rule_conditions(rk):
+    added = rk.add_rule_condition(0, "italic == 0")
+    assert "(weight >= Black && italic == 0)" in added.text
+    assert "(500 <= weight <= Black)" in rk.set_rule_condition(1, 0, "500 <= weight <= Black").text
+    assert "(weight >= Regular)" in rk.remove_rule_condition(2, 0).text
+    assert "(italic == 1)" in rk.remove_rule_condition(2, 1).text
+
+
+def test_rule_ops_refuse(rk):
+    refused("unknown-key", lambda: rk.remove_rule(3))
+    refused("unknown-key", lambda: rk.set_rule_condition(0, 4, "weight >= Black"))
+    refused("not-applicable", lambda: rk.remove_rule_condition(0, 0))
+    refused("invalid-value", lambda: rk.add_rule("a > b", "x", "weight >= Black"))
+    refused("invalid-value", lambda: rk.add_rule("a", "b c", "weight >= Black"))
+    refused("invalid-value", lambda: rk.add_rule("a", "b", []))
+    refused("invalid-value", lambda: rk.set_rule_name(0, 'say "hi"'))
+    refused("rejected", lambda: rk.set_rule_condition(0, 0, "weight >= Bolt"))
+    refused("rejected", lambda: rk.add_rule_condition(0, "wdth >= 100"))  # no such axis

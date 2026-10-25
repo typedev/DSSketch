@@ -79,7 +79,7 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
     (36, "SOURCE_EXTREME_MISSING", r"^No source at (minimum|maximum) mapping", "No master at an end of the axis"),
     # -- rules -----------------------------------------------------------------
     (37, "RULE_SYNTAX", r"^Invalid rule syntax", "A rule that does not parse"),
-    (38, "RULE_CONDITION", r"^Invalid condition value", "A condition with an unknown axis or label"),
+    (38, "RULE_CONDITION", r"^Invalid condition value|^Rule references axis '.*' which is not defined", "A condition with an unknown axis or label"),
     # -- instances -------------------------------------------------------------
     (39, "INSTANCE_LINE_IGNORED", r"^Instance line ignored", "An explicit instance line"),
     # -- avar2 -----------------------------------------------------------------

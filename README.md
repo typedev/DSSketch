@@ -1524,6 +1524,9 @@ sk.add_mapping("wght", "Bold", 700)           # "        Bold > 700", in user or
 sk.rename_label("wght", "Black", "Heavy")     # also in sources, rules, skip, avar2
 sk.add_axis("wdth", 75, 100, 125)             # adds the column to every source
 sk.add_skip("Thin Italic")
+sk.add_rule("dollar", "dollar.alt", "weight >= Bold", name="heavy dollar")
+sk.move_rule(2, 0)                            # rules apply in order
+sk.add_rule_condition(0, "italic == 1")       # also set_rule_condition / remove_rule_condition
 
 sk.item_at(18, 20)   # ("source", SourceKey("Font-Bold.ufo"), "coord", "wght")
 sk.span(("mapping", "wght", "Bold", "design"))   # Span(line, col, end_line, end_col)
@@ -1531,7 +1534,7 @@ sk.span(("mapping", "wght", "Bold", "design"))   # Span(line, col, end_line, end
 
 Objects are addressed by stable keys — an axis by its tag, a mapping by axis and
 label, a source by `SourceKey(filename, layer)` (or a name that is unique), a
-`skip` entry by its text. Values follow the document's own spelling
+rule by its position in the rules section, a `skip` entry by its text. Values follow the document's own spelling
 (`prefer="keep"`: a label where the neighbouring lines write labels), or
 `prefer="label"` / `"number"`.
 

@@ -18,7 +18,10 @@ Fixes exist for:
 - an axis without an @elidable label (mark the one at the default);
 - a missing mapping at an end of the axis;
 - a label used on two axes (remove the second use);
-- `en` listed in `lang`.
+- `en` listed in `lang`;
+- a rule condition on an unknown axis (the closest axis);
+- with font data, a rule glyph or target the default master lacks (the
+  closest glyph it has), and a pattern rule that swaps nothing (remove it).
 
 Never raises: a fix that cannot be built is left out. Light: stdlib + PyYAML.
 """
@@ -139,6 +142,16 @@ def _label_typo(sk: Sketch, d, quoted):
 def _unknown_label(sk: Sketch, d, quoted):
     """"Label 'Bolt' not found in axis 'weight' …", "unknown label 'Bolt' for axis 'weight'" """
     message = d.message
+    # "Rule references axis 'wdth' …" (a number) or, with a label, the parser's
+    # "Invalid condition value: Axis 'wdth' not found in document"
+    axis_match = re.search(r"(?:^Rule references axis|Invalid condition value: Axis) '([^']*)'", message)
+    if axis_match:
+        word = axis_match.group(1)
+        names = {a.tag for a in sk._all_axes()} | {a.name for a in sk._all_axes()}
+        suggestion = _closest(word, names)
+        if suggestion is None:
+            return []
+        return [Fix(f"Change to '{suggestion}'", _replace_word(sk, d.line, word, suggestion))]
     match = re.search(r"[Ll]abel '([^']*)' (?:not found in axis|for axis) '([^']*)'", message)
     if not match:
         return []
@@ -263,6 +276,33 @@ def _lang_en(sk: Sketch, d, quoted):
     return [_fix("Remove 'en'", lambda: sk.set_lang(codes or None))]
 
 
+def _rule_index(sk: Sketch, line_no: Optional[int]) -> Optional[int]:
+    return next((i for i, r in enumerate(sk.document.rules) if line_no is not None and r.line == line_no), None)
+
+
+def _rule_glyph_missing(sk: Sketch, d, quoted):
+    """A glyph the default master lacks: the closest one it has (font data)"""
+    from .fontdata import default_master_glyphs
+
+    if sk.font_data is None or not quoted:
+        return []
+    glyphs = default_master_glyphs(sk.font_data, sk.document)
+    if not glyphs:
+        return []
+    word = quoted[0]
+    suggestion = _closest(word, glyphs)
+    if suggestion is None or suggestion == word:
+        return []
+    return [Fix(f"Change to '{suggestion}'", _replace_word(sk, d.line, word, suggestion)[:1])]
+
+
+def _rule_matches_nothing(sk: Sketch, d, quoted):
+    index = _rule_index(sk, d.line)
+    if index is None:
+        return []
+    return [_fix("Remove the rule", lambda: sk.remove_rule(index))]
+
+
 _HANDLERS: Dict[str, Callable] = {
     "KEYWORD_TYPO": _keyword_typo,
     "AXIS_TAG_TYPO": _axis_tag_typo,
@@ -279,4 +319,7 @@ _HANDLERS: Dict[str, Callable] = {
     "MAPPING_EXTREME_MISSING": _extreme_missing,
     "DUPLICATE_LABEL": _duplicate_label,
     "LANG_EN": _lang_en,
+    "RULE_GLYPH_MISSING": _rule_glyph_missing,
+    "RULE_TARGET_MISSING": _rule_glyph_missing,
+    "RULE_MATCHES_NOTHING": _rule_matches_nothing,
 }

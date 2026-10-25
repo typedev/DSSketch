@@ -39,7 +39,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 from . import structure as st
 from .core.mappings import Standards
-from .core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSSource
+from .core.models import DSSAxis, DSSAxisMapping, DSSDocument, DSSRule, DSSSource
 from .structure import Span
 
 Number = Union[int, float]
@@ -1681,6 +1681,170 @@ class Sketch:
     # =========================================================================
     # Instances and skip
     # =========================================================================
+
+    # -- rules ------------------------------------------------------------------
+    # A rule is addressed by its index in the rules section (from 0). A rule
+    # is `pattern > target (condition && condition) "name"`: it needs at least
+    # one condition, and its name is optional
+
+    def _rule_line(self, index: int) -> Tuple[DSSRule, st.Line]:
+        rules = self.document.rules
+        if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(rules):
+            raise EditError("unknown-key", f"No rule {index}")
+        rule = rules[index]
+        line = self._line_of(rule)
+        if line is None or line.kind != st.RULE:
+            raise EditError("target-has-errors", f"Rule {index} has no line")
+        self._check_target(line)
+        return rule, line
+
+    @staticmethod
+    def _rule_conditions(conditions) -> List[str]:
+        if isinstance(conditions, str):
+            conditions = [part for part in conditions.split("&&")]
+        out = [" ".join(str(c).split()) for c in conditions]
+        if not out or any(not c or any(ch in c for ch in "()\"#") for c in out):
+            raise EditError("invalid-value", "A rule needs conditions like 'weight >= Bold' (no brackets or quotes)")
+        return out
+
+    @staticmethod
+    def _rule_glyphs(text: str, what: str) -> str:
+        words = str(text).split()
+        if not words or any(ch in " ".join(words) for ch in '<>()"#&='):
+            raise EditError("invalid-value", f"Not a rule {what}: {text!r}")
+        return " ".join(words)
+
+    @staticmethod
+    def _rule_name(name: str) -> str:
+        if not name or '"' in name or "\n" in name:
+            raise EditError("invalid-value", f"Not a rule name: {name!r}")
+        return '"' + name + '"'
+
+    def add_rule(
+        self,
+        pattern: str,
+        target: str,
+        conditions,
+        name: Optional[str] = None,
+        index: Optional[int] = None,
+    ) -> EditResult:
+        """Add a rule: `pattern` (glyphs, `a*`, `*`), `target` (a glyph or a
+        `.suffix`), `conditions` ("weight >= Bold", several as a list or joined
+        with &&; design-space values or labels). At the end of the rules
+        section, or before rule `index`; the section is created if needed"""
+        pattern = self._rule_glyphs(pattern, "pattern")
+        target = self._rule_glyphs(target, "target")
+        if " " in target:
+            raise EditError("invalid-value", f"A rule has one target: {target!r}")
+        text = f"{pattern} > {target} ({' && '.join(self._rule_conditions(conditions))})"
+        if name is not None:
+            text += " " + self._rule_name(name)
+        header = self.structure.section_header("rules")
+        if header is None:
+            return self._result([self._new_section("rules", "rules", [self.structure.indent_unit + text])])
+        lines = [ln for ln in (self._line_of(r) for r in self.document.rules) if ln is not None]
+        text = self._item_indent("rules") + text
+        if index is None or index >= len(lines):
+            after = self.structure.owned_lines(lines[-1].number)[1] if lines else self._section_end("rules")
+            return self._result([self._insert_lines(after, [text])])
+        target_line = lines[max(index, 0)]
+        first = target_line.leading[0] if target_line.leading else target_line.number
+        return self._result([self._insert_lines(first - 1, [text])])
+
+    def remove_rule(self, index: int) -> EditResult:
+        """Remove a rule with its leading comments"""
+        _, line = self._rule_line(index)
+        return self._result([self._remove_item(line)])
+
+    def move_rule(self, index: int, new_index: int) -> EditResult:
+        """Move a rule (with its comments) to position `new_index`: the order
+        rules apply in"""
+        _, line = self._rule_line(index)
+        lines = [ln for ln in (self._line_of(r) for r in self.document.rules) if ln is not None]
+        new_index = max(0, min(new_index, len(lines) - 1))
+        if new_index == index:
+            return EditResult([], self._text, self)
+        first, last = self.structure.owned_lines(line.number)
+        block = self.structure.text_lines[first - 1: last]
+        remaining = [ln for ln in lines if ln.number != line.number]
+        edits = [self._delete_lines(first, last)]
+        if new_index >= len(remaining):
+            edits.append(self._insert_lines(self.structure.owned_lines(remaining[-1].number)[1], block))
+        else:
+            edits.append(self._insert_lines(self.structure.owned_lines(remaining[new_index].number)[0] - 1, block))
+        return self._result(_merge_line_moves(edits, self.structure.text_lines))
+
+    def set_rule_pattern(self, index: int, pattern: str) -> EditResult:
+        _, line = self._rule_line(index)
+        return self._result([self._replace(line.fields["pattern"], self._rule_glyphs(pattern, "pattern"))])
+
+    def set_rule_target(self, index: int, target: str) -> EditResult:
+        _, line = self._rule_line(index)
+        target = self._rule_glyphs(target, "target")
+        if " " in target:
+            raise EditError("invalid-value", f"A rule has one target: {target!r}")
+        return self._result([self._replace(line.fields["target"], target)])
+
+    def set_rule_name(self, index: int, name: Optional[str]) -> EditResult:
+        """Set or (None) remove a rule's name"""
+        _, line = self._rule_line(index)
+        span = line.fields.get("name")
+        if name is None:
+            if span is None:
+                return EditResult([], self._text, self)
+            quoted = line.fields["name"]
+            raw = line.raw
+            start, end = quoted.col, quoted.end_col
+            # the field is the text inside the quotes: take the quotes and the space before
+            if start > 0 and raw[start - 1] == '"':
+                start -= 1
+            if end < len(raw) and raw[end] == '"':
+                end += 1
+            while start > 0 and raw[start - 1] in " \t":
+                start -= 1
+            return self._result([TextEdit(line.number, start, line.number, end, "")])
+        quoted = self._rule_name(name)
+        if span is None:
+            return self._result([self._append_to_line(line, " " + quoted)])
+        raw = line.raw
+        start, end = span.col, span.end_col
+        if start > 0 and raw[start - 1] == '"' and end < len(raw) and raw[end] == '"':
+            return self._result([TextEdit(line.number, start, line.number, end, name)])
+        return self._result([self._replace(span, quoted)])
+
+    def _condition_count(self, line: st.Line) -> int:
+        return sum(1 for f in line.fields if f.startswith("condition."))
+
+    def add_rule_condition(self, index: int, condition: str) -> EditResult:
+        """Add a condition (joined with &&)"""
+        _, line = self._rule_line(index)
+        (text,) = self._rule_conditions([condition])
+        last = line.fields[f"condition.{self._condition_count(line) - 1}"]
+        return self._result([TextEdit(line.number, last.end_col, line.number, last.end_col, f" && {text}")])
+
+    def set_rule_condition(self, index: int, position: int, condition: str) -> EditResult:
+        """Replace condition `position` (from 0)"""
+        _, line = self._rule_line(index)
+        span = line.fields.get(f"condition.{position}")
+        if span is None:
+            raise EditError("unknown-key", f"Rule {index} has no condition {position}")
+        (text,) = self._rule_conditions([condition])
+        return self._result([self._replace(span, text)])
+
+    def remove_rule_condition(self, index: int, position: int) -> EditResult:
+        """Remove condition `position` (from 0); a rule keeps at least one"""
+        _, line = self._rule_line(index)
+        count = self._condition_count(line)
+        span = line.fields.get(f"condition.{position}")
+        if span is None:
+            raise EditError("unknown-key", f"Rule {index} has no condition {position}")
+        if count == 1:
+            raise EditError("not-applicable", "A rule needs at least one condition; remove the rule instead")
+        nxt = line.fields.get(f"condition.{position + 1}")
+        if nxt is not None:
+            return self._result([TextEdit(line.number, span.col, line.number, nxt.col, "")])
+        prev = line.fields[f"condition.{position - 1}"]
+        return self._result([TextEdit(line.number, prev.end_col, line.number, span.end_col, "")])
 
     def set_instances_mode(self, mode: str) -> EditResult:
         """`instances auto` or `instances off` (adds the section if missing)"""

@@ -5,9 +5,12 @@ All notable changes to DSSketch will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Editing rules**: `Sketch.add_rule(pattern, target, conditions, name=None, index=None)` (creates the rules section if needed), `remove_rule`, `move_rule` (the order rules apply in), `set_rule_pattern`, `set_rule_target`, `set_rule_name` (None removes it), `add_rule_condition`, `set_rule_condition`, `remove_rule_condition`. A rule is addressed by its position; it keeps at least one condition. All or nothing, like the other operations
+- **Quick fixes for rules**: a condition on an unknown axis (the closest axis); with font data, a glyph or target the default master lacks (the closest glyph it has) and a pattern rule that swaps nothing (remove it)
 - **`Sketch.outline()` / `dssketch.outline(text)`** — the tree for a structure panel: header lines (family, suffix …), then each section with its items, an axis with its mappings. A `Symbol` has `kind`, `name`, `span` (the item with what it owns), `name_span`, `detail` (`Weight 100:400:900`, `user 700 → design 600`, a source's coordinates and flags, a rule's pattern and condition) and the item `path` that `Sketch.span()` / `item_at()` use. Built from the line structure, so it works on text with errors; never raises
 
 ### Fixed
+- **A rule condition on an axis the sketch does not have was not diagnosed** when its value was a number (`(wdth >= 100)` without a `wdth` axis): only the conversion failed. It is now an error on the rule (`RULE_CONDITION`, 5.38)
 - **`remove_axis()` on the last hidden axis left an empty `axes hidden` header**: the header goes too (unless it carries a comment), with one of the blank lines around it. Changing the range and removing a hidden axis are now covered by tests
 
 ## [1.5.1] - 2026-10-24

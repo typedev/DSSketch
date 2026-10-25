@@ -293,6 +293,25 @@ class DSSValidator:
                     at=axis,
                 )
 
+    def _validate_rule_axes(self, document: DSSDocument):
+        """A rule condition names an axis the sketch has (by tag, name or display
+        name, any case). DSS -> DS fails on any other, so say it before"""
+        known = set()
+        for axis in document.axes + document.hidden_axes:
+            known |= {axis.tag.lower(), axis.name.lower(), (axis.display_name or "").lower()}
+        known.discard("")
+        tags = [axis.tag for axis in document.axes + document.hidden_axes]
+        for rule in document.rules:
+            for condition in rule.conditions or ():
+                name = condition.get("axis")
+                if not isinstance(name, str) or name.lower() in known:
+                    continue
+                self._error(
+                    f"Rule references axis '{name}' which is not defined in the document. "
+                    f"Available axes: {', '.join(tags)}",
+                    at=rule,
+                )
+
     def _unknown_avar2_axis(self, axis_key: str, axes, mapping):
         from difflib import get_close_matches
 
@@ -377,6 +396,7 @@ class DSSValidator:
         self._validate_duplicate_mapping_labels(document)
 
         self._validate_avar2(document)
+        self._validate_rule_axes(document)
         self._validate_skip_labels(document)
 
         # Validate axes content

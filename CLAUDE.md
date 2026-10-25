@@ -1709,6 +1709,11 @@ Complete reference of all modules in the DSSketch project. **IMPORTANT: Always c
   (a label where most of that column writes labels)
 - A label rename keeps the point: `_relabel()` writes the user value
   explicitly when the new label would infer another one (`900 Heavy > 900`)
+- Rules (1.5.x): `add_rule`, `remove_rule`, `move_rule`, `set_rule_pattern /
+  target / name`, `add / set / remove_rule_condition`; keyed by index. A rule
+  keeps at least one condition (`not-applicable`): without `( )` the parser
+  drops the line with only a log message
+- Removing the last hidden axis removes the `axes hidden` header too
 - Visible axes only in positional coordinates without `sources [order]` (as
   the parser reads them); `add_axis` adds the column, `remove_axis` drops it,
   `move_axis` writes the old order into `sources [..]`
