@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.4] - 2026-10-25
+
 ### Added
 - **Checks for what fontTools cannot build or quietly changes**, each placed on its line:
   - an axis map whose design values fall as user values grow (error, 5.67; varLib requires ascending outputs);
