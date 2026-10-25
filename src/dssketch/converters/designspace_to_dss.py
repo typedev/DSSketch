@@ -21,6 +21,7 @@ from ..core.instances import TooManyInstances, createInstances
 from ..core.models import elided_fallback_name
 from ..core.translations import Translations
 from ..core.report import (
+    AXIS_AVAR2_NAMED_BY_TAG,
     AXIS_DISCRETE_DEFAULT_INVALID,
     AXIS_HIDDEN_DATA_DROPPED,
     AXIS_LABEL_DATA_DROPPED,
@@ -115,6 +116,7 @@ class DesignSpaceToDSS:
             for mapping in ds_doc.axisMappings:
                 dss_mapping = self._convert_avar2_mapping(mapping, ds_doc)
                 dss_doc.avar2_mappings.append(dss_mapping)
+            self._report_avar2_tags(ds_doc)
 
             # Generate variables for repeated values (named $axis1 to avoid confusion with axis.default)
             if self.vars_threshold > 0:
@@ -772,6 +774,25 @@ class DesignSpaceToDSS:
                     output_axes.add(axis_name)
 
         return output_axes
+
+    def _report_avar2_tags(self, ds_doc: DesignSpaceDocument) -> None:
+        """avar2 rows that name an axis by its tag: a DesignSpace names axes by
+        name, and fontTools rejects the row; the sketch takes the tag's axis"""
+        names = {axis.name for axis in ds_doc.axes}
+        by_tag = {axis.tag: axis.name for axis in ds_doc.axes}
+        found = sorted({
+            key for mapping in ds_doc.axisMappings
+            for key in list(mapping.inputLocation) + list(mapping.outputLocation)
+            if key not in names and key in by_tag
+        })
+        if found:
+            self.report.add(ConversionIssue(
+                category=CATEGORY_AXES, code=AXIS_AVAR2_NAMED_BY_TAG, severity=SEVERITY_WARNING,
+                description="avar2 mappings name axes by tag: " + ", ".join(f"'{t}' ('{by_tag[t]}')" for t in found),
+                details="A DesignSpace names axes by name and fontTools rejects these rows; "
+                        "the sketch reads the tag as that axis.",
+                raw_data={"tags": found},
+            ))
 
     def _report_hidden_axis_data(self, axis: AxisDescriptor, dss_axis: DSSAxis) -> None:
         """A hidden axis with a map or labels: `axes hidden` has a range only"""

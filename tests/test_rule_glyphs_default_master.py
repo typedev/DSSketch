@@ -32,7 +32,7 @@ axes
 sources [wght]
     Regular [Regular] @base
     Bold [Bold]
-    Bold-sparse [Bold] @sparse
+    Bold-sparse [550] @sparse
 rules
     {rule}
 instances off

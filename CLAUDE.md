@@ -2317,6 +2317,16 @@ axes
 - Custom labels (distance > 2 from standards) are accepted without warnings
 - Test suite: `tests/test_typo_validation.py` (13 comprehensive tests)
 
+**14. Build checks (1.5.x, `DSSValidator._validate_map_monotonic / _source_locations / _rule_ranges`):**
+levels follow what fontTools does. Map design values falling as user values
+grow → error 5.67 (varLib: ascending outputs; equal is fine). A master outside
+its axis's design range → warning 5.68 (clamped). Two masters at one location
+after clamping, layers and sparse masters included → error 5.69 (VariationModel:
+"Locations must be unique"); a Sketch edit that collapses masters is refused.
+Rule condition min > max → warning 5.70. Fixes: clamp, remove the later source,
+swap the bounds. On the corpus they fire only on the probes made for them.
+Tests: `tests/test_build_checks.py`
+
 ### Using the Validation Framework
 
 **Strict Mode (Default):**

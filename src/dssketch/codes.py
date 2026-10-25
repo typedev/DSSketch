@@ -118,6 +118,11 @@ _TABLE: Tuple[Tuple[int, str, str, str], ...] = (
      "An instance block where `instances auto` puts an instance too"),
     (66, "INSTANCES_AUTO_TOO_MANY", r"^instances auto would generate [\d,]+ instances",
      "`instances auto` past its limit of 1000 instances"),
+    # -- checks from the Sept 2026 research (1.5.x) -------------------------------
+    (67, "MAP_NOT_MONOTONIC", r"^Axis '.*': design values fall as user values grow", "An axis map whose design values fall"),
+    (68, "SOURCE_OUT_OF_RANGE", r"^Source '.*': .* is outside the axis's design range", "A master outside the axis's design range"),
+    (69, "SOURCE_DUPLICATE_LOCATION", r"^Sources '.*' and '.*' are at the same location", "Two masters at one location"),
+    (70, "RULE_CONDITION_EMPTY", r"condition on '.*' has minimum .* above maximum", "A rule condition with minimum above maximum"),
 )
 
 # Checked before the rest: messages that wrap another one ("Invalid condition

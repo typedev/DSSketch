@@ -26,7 +26,8 @@ PUBLISHED = {
     "AVAR2_OUTPUT_ONLY_VISIBLE": 57, "AVAR2_HIDDEN_INPUT": 58, "RULES_MODE_UNKNOWN": 59,
     "INSTANCE_FIELD_INVALID": 60, "INSTANCE_LOCATION_INVALID": 61, "INSTANCE_NO_LOCATION": 62,
     "INSTANCE_OFF_IGNORED": 63, "INSTANCE_DUPLICATE": 64, "INSTANCE_SHADOWS_AUTO": 65,
-    "INSTANCES_AUTO_TOO_MANY": 66,
+    "INSTANCES_AUTO_TOO_MANY": 66, "MAP_NOT_MONOTONIC": 67, "SOURCE_OUT_OF_RANGE": 68,
+    "SOURCE_DUPLICATE_LOCATION": 69, "RULE_CONDITION_EMPTY": 70,
 }
 
 
@@ -119,6 +120,10 @@ def variant(old, new):
         ("INSTANCE_DUPLICATE", variant("instances auto", "instances\n    Wide\n        location: wght=700\n"
                                        "    Wide\n        location: wght=800")),
         ("INSTANCE_SHADOWS_AUTO", variant("instances auto", "instances auto\n    Wide\n        location: wght=Black")),
+        ("MAP_NOT_MONOTONIC", variant("Black > 900", "Black > 300")),
+        ("SOURCE_OUT_OF_RANGE", variant("T-Black [Black, Upright]", "T-Black [1200, Upright]")),
+        ("SOURCE_DUPLICATE_LOCATION", variant("T-Black [Black, Upright]", "T-Black [Black, Upright]\n    T-Heavy [900, Upright]")),
+        ("RULE_CONDITION_EMPTY", variant("(weight >= Black)", "(700 <= weight <= 600)")),
         ("INSTANCES_AUTO_TOO_MANY", GOOD.replace("axes\n", "axes\n" + "".join(
             f"    X{i:03d} 0:50:100\n" for i in range(7)), 1)),
     ],

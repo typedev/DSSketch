@@ -165,11 +165,11 @@ def test_remove_axis_in_use_is_refused(sk):
 
 def test_remove_axis_drops_its_column():
     text = DEMO.replace("    skip\n        Thin Italic\n", "")
-    text = text.replace("Demo-Italic [Regular, Italic] @base", "Demo-Italic [Regular, Italic]")
+    text = text.replace("Demo-Italic [Regular, Italic] @base", "Demo-Italic [600, Italic]")
     result = Sketch.parse(text).remove_axis("ital")
     assert result.text.count("Upright") == 0 and "sources [wght]" in result.text
     assert "    Demo-Thin [Thin]\n" in result.text
-    assert "    Demo-Italic [Regular]\n" in result.text
+    assert "    Demo-Italic [600]\n" in result.text
     assert not [d for d in result.sketch.diagnostics if d.severity == "error"]
 
 
@@ -331,9 +331,9 @@ def test_add_source_in_the_documents_form(sk):
     assert check(sk.add_source("Demo-BlackItalic", {"wght": "Black", "ital": 1})) == [
         "+    Demo-BlackItalic [Black, Italic]",
     ]
-    assert check(sk.add_source("Demo-X", {"wght": 900}, prefer="number")) == ["+    Demo-X [900, 0]"]
-    assert check(sk.add_source("My Font", {"weight": 900}, sparse=True, layer="fix")) == [
-        '+    "My Font" [Black, Upright] @sparse @layer="fix"',
+    assert check(sk.add_source("Demo-X", {"wght": 850}, prefer="number")) == ["+    Demo-X [850, 0]"]
+    assert check(sk.add_source("My Font", {"weight": 100, "ital": 1}, sparse=True, layer="fix")) == [
+        '+    "My Font" [Thin, Italic] @sparse @layer="fix"',
     ]
 
 
@@ -344,10 +344,10 @@ def test_add_source_named_form():
     text = text.replace("    Demo-Italic [Regular, Italic] @base", "    Demo-Italic ital=Italic @base")
     sk = Sketch.parse(text)
     assert not [d for d in sk.diagnostics if d.severity == "error"]
-    result = sk.add_source("Demo-Bold", {"wght": 900})
-    assert "    Demo-Bold wght=Black\n" in result.text
-    moved = sk.set_source_coordinate("Demo-Black", "wght", 100)
-    assert "    Demo-Black wght=Thin   # heavy" in moved.text
+    result = sk.add_source("Demo-Bold", {"wght": 900, "ital": 1})
+    assert "    Demo-Bold wght=Black, ital=Italic\n" in result.text
+    moved = sk.set_source_coordinate("Demo-Thin", "ital", 1)
+    assert "    Demo-Thin wght=Thin, ital=Italic" in moved.text
     added = sk.set_source_coordinate("Demo-Black", "ital", 1)
     assert "    Demo-Black wght=Black, ital=Italic   # heavy" in added.text
 
@@ -368,9 +368,9 @@ def test_rename_source(sk):
 
 
 def test_set_source_coordinate_spelling(sk):
-    assert check(sk.set_source_coordinate("Demo-Black", "wght", 400))[1] == "+    Demo-Black [Regular, Upright]   # heavy"
+    assert check(sk.set_source_coordinate("Demo-Thin", "ital", 1))[1] == "+    Demo-Thin [Thin, Italic]"
     assert check(sk.set_source_coordinate("Demo-Black", "wght", 850))[1] == "+    Demo-Black [850, Upright]   # heavy"
-    assert check(sk.set_source_coordinate("Demo-Black", "weight", 400, prefer="number"))[1] == "+    Demo-Black [400, Upright]   # heavy"
+    assert check(sk.set_source_coordinate("Demo-Thin", "italic", 1, prefer="number"))[1] == "+    Demo-Thin [Thin, 1]"
     refused("invalid-value", lambda: sk.set_source_coordinate("Demo-Black", "wght", "Bolt"))
     refused("unknown-key", lambda: sk.set_source_coordinate("Demo-Black", "wdth", 100))
     refused("unknown-key", lambda: sk.set_source_coordinate("Nope", "wght", 100))
@@ -464,7 +464,7 @@ def test_target_with_errors_is_refused():
 
 def test_editing_never_touches_other_lines(sk):
     for result in (
-        sk.set_source_coordinate("Demo-Black", "wght", 400),
+        sk.set_source_coordinate("Demo-Black", "wght", 850),
         sk.add_mapping("wght", "Bold", 700),
         sk.set_axis_display_name("wght", "Weight"),
     ):

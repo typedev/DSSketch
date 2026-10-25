@@ -4,6 +4,15 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Checks for what fontTools cannot build or quietly changes**, each placed on its line:
+  - an axis map whose design values fall as user values grow (error, 5.67; varLib requires ascending outputs);
+  - a master outside its axis's design range (warning, 5.68; fontTools clamps it), quick fix: the clamped value;
+  - two masters at one location, compared after clamping, layers and sparse masters included (error, 5.69; varLib: "Locations must be unique"), quick fix: remove the later one;
+  - a rule condition whose minimum is above its maximum (warning, 5.70; the rule never applies), quick fix: swap them.
+  As with any new error, a `Sketch` edit that would create one is refused (removing an axis that collapses two masters onto one location)
+- DS → DSSketch reports avar2 mappings that name an axis by its tag instead of its name (0.4; fontTools rejects them, the sketch reads the tag as that axis)
+
 ### Fixed
 - **`dssketch.lang` made GtkSourceView highlight slowly**: the `skip` and explicit-instance contexts both named their indent group `ind`, and GtkSourceView, which joins sibling start patterns into one regex, could not compile it ("two named subpatterns have the same name") and fell back to slow highlighting. Each context has its own name now; the highlighting test fails on that warning (reported by Font-Rover)
 

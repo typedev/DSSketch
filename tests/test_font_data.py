@@ -165,7 +165,7 @@ def test_rule_glyph_checks():
 def test_sketch_carries_font_data_through_edits():
     host = Host(FONTS)
     sk = Sketch.parse(SKETCH, font_data=host)
-    result = sk.set_source_coordinate("T-Black", "wght", 400)
+    result = sk.set_source_coordinate("T-Black", "wght", 850)
     assert result.sketch.font_data is host
 
 

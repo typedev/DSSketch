@@ -123,6 +123,10 @@ AXIS_HIDDEN_DATA_DROPPED = 2
 #: cannot build it); the sketch takes the smallest value
 AXIS_DISCRETE_DEFAULT_INVALID = 3
 
+#: DS -> DSS: avar2 mappings that name an axis by its tag instead of its name
+#: (fontTools rejects them); the sketch takes the tag's axis
+AXIS_AVAR2_NAMED_BY_TAG = 4
+
 #: DSS -> DS: an avar2 mapping names an axis the sketch does not define. It is
 #: written as is, and fontTools fails on it when building.
 AVAR2_UNKNOWN_AXIS = 2

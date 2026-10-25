@@ -28,7 +28,10 @@ Fixes exist for:
 - avar2: an unknown axis (the close one the message names), a row at the
   default location that moves an output (set it to `$`, or remove the row),
   an output outside the axis range (the clamped value), a row that repeats
-  an output at one location or reads a hidden axis (remove it).
+  an output at one location or reads a hidden axis (remove it);
+- a master outside the axis's design range (the clamped value), two masters
+  at one location (remove the later), a rule condition with minimum above
+  maximum (swap them).
 
 Never raises: a fix that cannot be built is left out. Light: stdlib + PyYAML.
 """
@@ -387,6 +390,42 @@ def _avar2_remove_row(sk: Sketch, d, quoted):
     return [_fix("Remove the row", lambda: sk.remove_avar2_mapping(index))] if index is not None else []
 
 
+_OUTSIDE = re.compile(r"^Source '(.*)': (\S+) \S+ is outside the axis's design range .* clamps it to (\S+)\.")
+
+
+def _source_out_of_range(sk: Sketch, d, quoted):
+    match = _OUTSIDE.match(d.message)
+    if match is None:
+        return []
+    name, tag, value = match.group(1), match.group(2), float(match.group(3))
+    source = next((s for s in sk.document.sources if s.line == d.line), None)
+    if source is None:
+        return []
+    key = Sketch.source_key(source)
+    return [_fix(f"Set {tag} to {value:g}", lambda: sk.set_source_coordinate(key, tag, value, prefer="number"))]
+
+
+def _source_duplicate_location(sk: Sketch, d, quoted):
+    source = next((s for s in sk.document.sources if s.line == d.line), None)
+    if source is None:
+        return []
+    key = Sketch.source_key(source)
+    return [_fix(f"Remove source '{source.name}'", lambda: sk.remove_source(key))]
+
+
+def _rule_condition_empty(sk: Sketch, d, quoted):
+    index = _rule_index(sk, d.line)
+    if index is None:
+        return []
+    rule = sk.document.rules[index]
+    for position, condition in enumerate(rule.conditions or ()):
+        low, high = condition.get("minimum"), condition.get("maximum")
+        if low is not None and high is not None and low > high:
+            text = f"{high:g} <= {condition.get('axis')} <= {low:g}"
+            return [_fix("Swap minimum and maximum", lambda p=position, t=text: sk.set_rule_condition(index, p, t))]
+    return []
+
+
 _HANDLERS: Dict[str, Callable] = {
     "KEYWORD_TYPO": _keyword_typo,
     "AXIS_TAG_TYPO": _axis_tag_typo,
@@ -414,4 +453,7 @@ _HANDLERS: Dict[str, Callable] = {
     "AVAR2_OUTPUT_OUT_OF_RANGE": _avar2_output_out_of_range,
     "AVAR2_DUPLICATE_INPUT": _avar2_remove_row,
     "AVAR2_HIDDEN_INPUT": _avar2_remove_row,
+    "SOURCE_OUT_OF_RANGE": _source_out_of_range,
+    "SOURCE_DUPLICATE_LOCATION": _source_duplicate_location,
+    "RULE_CONDITION_EMPTY": _rule_condition_empty,
 }

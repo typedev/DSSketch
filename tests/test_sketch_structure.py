@@ -276,7 +276,7 @@ def test_edits_keep_every_comment():
         sketch.set_source_coordinate("Font-Bold.ufo", "wght", 900, prefer="number"),
         sketch.add_mapping("wght", "Bold", 700),
         sketch.set_axis_display_name("wght", "W"),
-        sketch.add_source("New", {"wght": 400}),
+        sketch.add_source("New", {"wght": 550}),
         sketch.set_mapping_elidable("wght", "Regular", False),
         sketch.rename_label("CNTR", "Sharp", "Crisp"),
     ):

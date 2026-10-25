@@ -321,6 +321,80 @@ class DSSValidator:
                     at=rule,
                 )
 
+    def _validate_map_monotonic(self, document: DSSDocument):
+        """Design values never fall as user values grow (varLib: "mapping output
+        values must be in ascending order"); equal is allowed"""
+        for axis in document.axes:
+            if axis.is_discrete:
+                continue
+            points = sorted((m for m in axis.mappings if m.user_value is not None and m.design_value is not None),
+                            key=lambda m: m.user_value)
+            for before, after in zip(points, points[1:]):
+                if after.design_value < before.design_value:
+                    def show(m):
+                        return f"{m.label + ' ' if m.label else ''}{m.user_value:g} > {m.design_value:g}"
+
+                    self._error(
+                        f"Axis '{axis.tag}': design values fall as user values grow ({show(before)}, then "
+                        f"{show(after)}). fontTools needs them in ascending order.",
+                        at=after,
+                    )
+                    break
+
+    def _validate_source_locations(self, document: DSSDocument):
+        """A master inside the axis's design range (fontTools clamps it), and no
+        two masters at one location after clamping (varLib: "Locations must be
+        unique")"""
+        axes = list(document.axes) + list(document.hidden_axes)
+
+        def design_range(axis):
+            if axis.is_discrete:
+                values = list(axis.values or ())
+                return (min(values), max(values)) if values else (axis.minimum, axis.maximum)
+            ends = axis.get_design_value(axis.minimum), axis.get_design_value(axis.maximum)
+            return min(ends), max(ends)
+
+        ranges = {axis.name: design_range(axis) for axis in axes}
+        defaults = {axis.name: axis.get_design_value(axis.default) if not axis.is_discrete else axis.default
+                    for axis in axes}
+        seen = {}
+        for source in document.sources:
+            location = dict(defaults)
+            for axis in axes:
+                if axis.name not in (source.location or {}):
+                    continue
+                value = source.location[axis.name]
+                low, high = ranges[axis.name]
+                if not low - 1e-9 <= value <= high + 1e-9:
+                    self._warning(
+                        f"Source '{source.name}': {axis.tag} {value:g} is outside the axis's design range "
+                        f"[{low:g}, {high:g}]; fontTools clamps it to {min(max(value, low), high):g}.",
+                        at=source,
+                    )
+                location[axis.name] = min(max(value, low), high)
+            key = tuple(round(location[a.name], 6) for a in axes)
+            if key in seen:
+                first = seen[key]
+                self._error(
+                    f"Sources '{first.name}' and '{source.name}' are at the same location. fontTools cannot "
+                    f"build two masters at one location.",
+                    at=source,
+                )
+            else:
+                seen[key] = source
+
+    def _validate_rule_ranges(self, document: DSSDocument):
+        """A condition range that contains something (min <= max)"""
+        for rule in document.rules:
+            for condition in rule.conditions or ():
+                low, high = condition.get("minimum"), condition.get("maximum")
+                if low is not None and high is not None and low > high:
+                    self._warning(
+                        f"Rule \"{rule.name}\": condition on '{condition.get('axis')}' has minimum {low:g} above "
+                        f"maximum {high:g}; the rule never applies.",
+                        at=rule,
+                    )
+
     def _unknown_avar2_axis(self, axis_key: str, axes, mapping):
         from difflib import get_close_matches
 
@@ -486,6 +560,9 @@ class DSSValidator:
 
         self._validate_avar2(document)
         self._validate_rule_axes(document)
+        self._validate_map_monotonic(document)
+        self._validate_source_locations(document)
+        self._validate_rule_ranges(document)
         self._validate_skip_labels(document)
         self._validate_instances_auto_size(document)
         self._validate_explicit_instances(document)
