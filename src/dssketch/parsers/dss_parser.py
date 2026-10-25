@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 from ..core.mappings import Standards
 from ..core.translations import LANGUAGE_CODE
-from ..core.models import INSTANCE_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
+from ..core.models import INSTANCE_KEYS, LOCALIZED_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSSource, DSSRule, DSSAvar2Mapping
 from ..utils.comments import comment_start, strip_comment
 from ..utils.discrete import DiscreteAxisHandler
 from ..utils.dss_validator import DSSValidationError, DSSValidator
@@ -1170,6 +1170,24 @@ class DSSParser:
             self.validator.errors.append(
                 f"Instance '{instance.name}': expected 'key: value', got '{text}'"
             )
+            return
+        base, dot, language = key.partition(".")
+        if dot and base in LOCALIZED_KEYS:
+            if not LANGUAGE_CODE.match(language):
+                self.validator.errors.append(
+                    f"Instance '{instance.name}': unknown key '{key}'. '{language}' is not a language code "
+                    f"(e.g. {base}.de, {base}.es-419)"
+                )
+                return
+            if key in self.instance_keys:
+                self.validator.errors.append(f"Instance '{instance.name}': key '{key}' given twice")
+                return
+            self.instance_keys.add(key)
+            value = self._extract_quoted_or_plain_value(value)
+            if not value:
+                self.validator.errors.append(f"Instance '{instance.name}': key '{key}' has no value")
+                return
+            instance.localized.setdefault(base, {})[language] = value
             return
         if key not in INSTANCE_KEYS:
             close = [k for k in INSTANCE_KEYS if DSSValidator.levenshtein_distance(key, k) <= 2]

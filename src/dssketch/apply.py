@@ -619,7 +619,10 @@ class _Applier:
             if self.location_by_tag(self.doc, mine) != self.location_by_tag(target, instance):
                 self.run(f"location of instance {instance.name}",
                          lambda sk, i=index, loc=location: sk.set_instance_field(i, "location", loc))
-            for name, value in self.instance_fields(instance).items():
+            wanted_fields = self.instance_fields(instance)
+            names = list(wanted_fields) + [n for n in self.instance_fields(mine) if n not in wanted_fields]
+            for name in names:
+                value = wanted_fields.get(name)
                 if self.effective(self.doc, mine, name) != self.effective(target, instance, name):
                     self.run(f"{name} of instance {instance.name}",
                              lambda sk, i=index, n=name, v=value: sk.set_instance_field(i, n, v or None))
@@ -628,7 +631,7 @@ class _Applier:
 
     @staticmethod
     def instance_fields(instance) -> Dict[str, Optional[str]]:
-        return {
+        out = {
             "family": instance.familyname or None,
             "style": instance.stylename or None,
             "postscript": instance.postscriptname,
@@ -636,10 +639,23 @@ class _Applier:
             "stylemapfamily": instance.stylemapfamilyname,
             "stylemapstyle": instance.stylemapstylename,
         }
+        for key, names in (instance.localized or {}).items():
+            for language, name in names.items():
+                out[f"{key}.{language}"] = name
+        return out
 
     @staticmethod
     def effective(doc: DSSDocument, instance, name: str) -> Optional[str]:
-        """A block key as DSS -> DS reads it: what the block leaves out derived"""
+        """A block key as DSS -> DS reads it: what the block leaves out derived
+        (`style.de` from the dictionary when `de` is in `lang`)"""
+        base, dot, language = name.partition(".")
+        if dot:
+            own = (instance.localized or {}).get(base, {}).get(language)
+            if own is not None or base != "style" or language not in doc.languages:
+                return own
+            from .core.translations import Translations
+
+            return Translations.style_name(instance.stylename or instance.name, language)[0]
         family = instance.familyname or doc.family
         style = instance.stylename or instance.name
         postscript = instance.postscriptname or f"{family.replace(' ', '')}-{style.replace(' ', '')}"
@@ -689,11 +705,18 @@ class _Applier:
             name, position = self._instance_key(ds_doc, info.style_name, info.design_location)
             if info.explicit:
                 block = next(blocks)
+                localized = {k: v for k, v in self.instance_fields(block).items() if "." in k}
+                for language in doc.languages:
+                    localized.setdefault(f"style.{language}", self.effective(doc, block, f"style.{language}"))
                 names = (self.effective(doc, block, "family"), self.effective(doc, block, "postscript"),
-                         block.stylemapfamilyname or "", block.stylemapstylename or "")
+                         block.stylemapfamilyname or "", block.stylemapstylename or "",
+                         tuple(sorted(localized.items())))
             else:
+                from .core.translations import Translations
+
                 family = info.family_name or ""
-                names = (family, self._postscript(family, name), "", "")
+                localized = {f"style.{lang}": Translations.style_name(name, lang)[0] for lang in doc.languages}
+                names = (family, self._postscript(family, name), "", "", tuple(sorted(localized.items())))
             out.append((name, position) + names)
         return sorted(out)
 
@@ -704,8 +727,13 @@ class _Applier:
         for i in ds_doc.instances:
             name, position = self._instance_key(ds_doc, i.styleName or "", _full_location(ds_doc, i))
             family = i.familyName or default_family
+            localized = {}
+            for key, names in (("family", i.localisedFamilyName), ("style", i.localisedStyleName),
+                               ("stylemapfamily", i.localisedStyleMapFamilyName),
+                               ("stylemapstyle", i.localisedStyleMapStyleName)):
+                localized.update({f"{key}.{lang}": v for lang, v in (names or {}).items() if lang != "en"})
             out.append((name, position, family, i.postScriptFontName or self._postscript(family, name),
-                        i.styleMapFamilyName or "", i.styleMapStyleName or ""))
+                        i.styleMapFamilyName or "", i.styleMapStyleName or "", tuple(sorted(localized.items()))))
         return sorted(out)
 
     @staticmethod

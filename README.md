@@ -988,10 +988,14 @@ instances auto
   ignored (with a warning)
 - A block where `instances auto` puts an instance too is a warning; the quick
   fix adds that instance to `skip`
+- Localized names: the name keys take a language — `style.de: Fett`,
+  `family.de`, `stylemapstyle.de`, `stylemapfamily.de`. With `lang de` a block
+  without `style.de` gets the dictionary's name; a key overrides it for that
+  language only
 
 **Converting a DesignSpace** writes this form: the instances `instances auto`
 reproduces (same position, style and family name, PostScript name, no style-map
-names) are left to it, a generated position the DesignSpace lacks becomes a
+names, localized names as `lang` gives them) are left to it, a generated position the DesignSpace lacks becomes a
 `skip` entry, and every other instance becomes a block. When the generator
 reproduces none of them, the sketch lists them all under a plain `instances`.
 Converting back gives the same instances.
@@ -1178,7 +1182,7 @@ dssketch-data copy font-resources-translations.json
 dssketch-data edit
 ```
 
-Converting a DesignSpace back writes `lang` only when its localized names are exactly the dictionary's. Hand-made translations are never replaced; the differences are reported.
+Converting a DesignSpace back writes `lang` per language: a language goes in when the dictionary gives its axis and label names exactly and the names of most instances; instances with names of their own become explicit blocks with `style.de:` keys. A language that fails is not carried (its instance names still travel in blocks), and the axis and label names in it are reported.
 
 ### Disabling Instance Generation (`instances off`)
 

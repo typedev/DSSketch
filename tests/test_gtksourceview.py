@@ -65,6 +65,8 @@ instances auto
     Display Black  # note
         location: wght=Black, opsz=144, XOUC=80
         family: "Sans Pro Display"
+        family.de: Sans Pro Anzeige
+        style.ru: "Дисплей Чёрный"
         postscript: SansProDisplay-Black  # note
     "Wide # 2"
         location: wght=700

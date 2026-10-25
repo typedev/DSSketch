@@ -39,7 +39,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 from . import structure as st
 from .core.mappings import Standards
-from .core.models import INSTANCE_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSRule, DSSSource
+from .core.models import INSTANCE_KEYS, LOCALIZED_KEYS, DSSAxis, DSSAxisMapping, DSSDocument, DSSInstance, DSSRule, DSSSource
 from .structure import Span
 
 Number = Union[int, float]
@@ -777,7 +777,7 @@ class Sketch:
                 tag = self._axis_ref_tag(name[9:])
                 if tag:
                     return ("instance", index, "location", tag)
-            return ("instance", index, key) if key in INSTANCE_KEYS else ("instance", index)
+            return ("instance", index, key) if key and self._instance_key_ok(key) else ("instance", index)
         if kind == st.AVAR2_VAR:
             name = field_at(line.fields)
             var = line.values.get("name", "")
@@ -2020,8 +2020,21 @@ class Sketch:
             return "'" + value + "'" if '"' in value else '"' + value + '"'
         return value
 
+    @staticmethod
+    def _instance_key_ok(key: str) -> bool:
+        from .core.translations import LANGUAGE_CODE
+
+        base, dot, language = key.partition(".")
+        return key in INSTANCE_KEYS or (bool(dot) and base in LOCALIZED_KEYS and bool(LANGUAGE_CODE.match(language)))
+
+    @staticmethod
+    def _instance_key_rank(key: str) -> tuple:
+        """Where a key goes in a block: after its base key, languages in order"""
+        base, _, language = key.partition(".")
+        return (INSTANCE_KEYS.index(base) if base in INSTANCE_KEYS else len(INSTANCE_KEYS), language)
+
     def _instance_value(self, key: str, value) -> str:
-        if key not in INSTANCE_KEYS:
+        if not self._instance_key_ok(key):
             raise EditError("invalid-value", f"Unknown instance key '{key}'. Keys: {', '.join(INSTANCE_KEYS)}")
         if key == "location":
             if isinstance(value, dict):
@@ -2054,11 +2067,10 @@ class Sketch:
             raise EditError("invalid-value", "An instance needs a name")
         head, inner = self._instance_indents()
         texts = [head + self._instance_text(name.strip()), f"{inner}location: {self._instance_value('location', location)}"]
-        for key in INSTANCE_KEYS[1:]:
-            if keys.get(key) is not None:
-                texts.append(f"{inner}{key}: {self._instance_value(key, keys.pop(key))}")
-        if keys:
-            raise EditError("invalid-value", f"Unknown instance key '{next(iter(keys))}'")
+        for key in sorted((k for k in keys if keys[k] is not None), key=self._instance_key_rank):
+            if key == "location" or not self._instance_key_ok(key):
+                raise EditError("invalid-value", f"Unknown instance key '{key}'")
+            texts.append(f"{inner}{key}: {self._instance_value(key, keys[key])}")
         header = self.structure.section_header("instances")
         if header is None:
             return self._result([self._new_section("instances", "instances", texts)])
@@ -2085,7 +2097,7 @@ class Sketch:
         if value is None:
             if key == "location":
                 raise EditError("not-applicable", "An instance keeps its location")
-            if key not in INSTANCE_KEYS:
+            if not self._instance_key_ok(key):
                 raise EditError("invalid-value", f"Unknown instance key '{key}'")
             if field_line is None:
                 return EditResult([], self._text, self)
@@ -2100,8 +2112,8 @@ class Sketch:
         fields = [c for c in self.structure.children(line.number) if c.kind == st.INSTANCE_FIELD]
         _, inner = self._instance_indents()
         indent = fields[0].indent if fields else inner
-        order = list(INSTANCE_KEYS)
-        before = [c for c in fields if c.values.get("key") in order and order.index(c.values["key"]) < order.index(key)]
+        rank = self._instance_key_rank
+        before = [c for c in fields if c.values.get("key") and rank(c.values["key"]) < rank(key)]
         after = (before[-1] if before else line).number
         if not before and fields and key == "location":
             after = line.number

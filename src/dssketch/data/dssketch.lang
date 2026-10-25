@@ -318,7 +318,7 @@
       </include>
     </context>
     <context id="instance-field">
-      <match>^\s+(family|style|postscript|filename|stylemapfamily|stylemapstyle)\s*(:)\s*(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))?(?=\s*(?:#|$))</match>
+      <match>^\s+(family|style|postscript|filename|stylemapfamily|stylemapstyle|(?:family|style|stylemapfamily|stylemapstyle)\.[A-Za-z0-9-]+)\s*(:)\s*(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))?(?=\s*(?:#|$))</match>
       <include>
         <context sub-pattern="1" style-ref="keyword"/>
         <context sub-pattern="2" style-ref="punctuation"/>

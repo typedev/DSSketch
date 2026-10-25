@@ -20,7 +20,7 @@ from typing import List
 from xml.sax.saxutils import escape
 
 from . import syntax
-from .core.models import INSTANCE_KEYS
+from .core.models import INSTANCE_KEYS, LOCALIZED_KEYS
 
 LANG_PATH = Path(__file__).parent / "data" / "dssketch.lang"
 
@@ -253,8 +253,9 @@ def language_spec() -> str:
     w("      </include>")
     w("    </context>")
     keys = "|".join(k for k in INSTANCE_KEYS if k != "location")
+    localized = "|".join(LOCALIZED_KEYS)
     match(
-        "instance-field", r"^\s+(" + keys + r")\s*(:)\s*(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))?(?=\s*(?:#|$))",
+        "instance-field", r"^\s+(" + keys + r"|(?:" + localized + r")\.[A-Za-z0-9-]+)\s*(:)\s*(?:(\"[^\"]*\"|'[^']*')|([^\s#\"'][^#]*?))?(?=\s*(?:#|$))",
         groups=[(1, "keyword"), (2, "punctuation"), (3, "string"), (4, "text")],
     )
     match("location-axis", r"\b([A-Za-z_][A-Za-z0-9_]*)\s*(=)", groups=[(1, "axis-tag"), (2, "punctuation")])

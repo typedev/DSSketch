@@ -18,7 +18,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
-from .core.models import INSTANCE_KEYS
+from .core.models import INSTANCE_KEYS, LOCALIZED_KEYS
 from .codes import code_id, plain_message
 from .utils.comments import comment_start, strip_comment
 from .utils.dss_validator import DSSValidator
@@ -430,7 +430,8 @@ class _Tokenizer:
         key = atoms[0]
         if key.kind != "word" or len(atoms) < 2 or atoms[1].text != ":":
             return [(a.start, a.end, UNKNOWN) for a in atoms]
-        known = key.text in INSTANCE_KEYS
+        base, dot, language = key.text.partition(".")
+        known = key.text in INSTANCE_KEYS or (bool(dot) and base in LOCALIZED_KEYS and bool(language))
         out = [(key.start, key.end, KEYWORD if known else UNKNOWN), (atoms[1].start, atoms[1].end, PUNCTUATION)]
         rest = atoms[2:]
         if not rest:
@@ -862,7 +863,8 @@ def _complete_instances(ctx, lines, line, atoms, words, last, indent, offer) -> 
                 if len(raw) - len(raw.lstrip()) <= tok.instance_indent and raw.strip():
                     break
                 used.add(raw.strip().split(":", 1)[0].strip())
-            return offer([(k, "") for k in INSTANCE_KEYS if k not in used], KEYWORD)
+            keys = list(INSTANCE_KEYS) + [f"{k}.{lang}" for lang in ctx.doc.languages for k in LOCALIZED_KEYS]
+            return offer([(k, "") for k in keys if k not in used], KEYWORD)
         if words[:1] != ["location"] or len(atoms) < 2 or atoms[1].text != ":":
             return []
         if last is not None and last.text == "=" and len(atoms) >= 2 and atoms[-2].kind == "word":

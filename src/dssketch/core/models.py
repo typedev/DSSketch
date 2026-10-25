@@ -127,6 +127,8 @@ class DSSSource:
 
 # The keys of an explicit instance block, in the order the writer uses
 INSTANCE_KEYS = ("location", "family", "style", "postscript", "filename", "stylemapfamily", "stylemapstyle")
+# Keys that also take a language: `style.de: Fett` (DesignSpace localisedStyleName …)
+LOCALIZED_KEYS = ("family", "style", "stylemapfamily", "stylemapstyle")
 
 
 @dataclass
@@ -145,6 +147,9 @@ class DSSInstance:
     postscriptname: Optional[str] = None
     stylemapfamilyname: Optional[str] = None
     stylemapstylename: Optional[str] = None
+    # `style.de: Fett`: key (LOCALIZED_KEYS) -> {language: name}; a language
+    # in `lang` without a key here is derived from the dictionary
+    localized: Dict[str, Dict[str, str]] = field(default_factory=dict)
     line: Optional[int] = field(default=None, compare=False, repr=False)
 
 

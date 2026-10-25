@@ -101,12 +101,33 @@ def test_designspace_generated_with_lang_roundtrips_to_lang():
 
 
 def test_hand_made_translation_is_not_replaced():
+    # 1.6.0: `lang` stays for the language; the instance with its own name
+    # becomes an explicit block carrying it (`style.ru:`)
     ds, _ = _convert()
     next(i for i in ds.instances if i.styleName == "Bold").localisedStyleName["ru"] = "Полужирный"
     sketch, report = dssketch.convert_designspace_to_dss_string(ds, return_report=True)
-    assert "lang" not in sketch.split("axes")[0]
+    assert "lang de, ru" in sketch.split("axes")[0]
+    assert "        style.ru: Полужирный\n" in sketch
+    assert not report.find(CATEGORY_DOCUMENT, DOCUMENT_TRANSLATIONS_DIFFER)
+    back = dssketch.convert_dss_string_to_designspace(sketch, font_data=dssketch.FontData())
+    names = {i.styleName: dict(i.localisedStyleName) for i in back.instances}
+    assert names == {i.styleName: dict(i.localisedStyleName) for i in ds.instances}
+
+
+def test_a_language_most_instances_disagree_with_is_not_carried():
+    ds, _ = _convert()
+    for instance in ds.instances:
+        instance.localisedStyleName["ru"] = "Свой " + instance.styleName
+    sketch, report = dssketch.convert_designspace_to_dss_string(ds, return_report=True)
+    head = sketch.split("axes")[0]
+    assert "lang" not in head or "ru" not in head.split("lang", 1)[1].splitlines()[0]
     issue = report.find(CATEGORY_DOCUMENT, DOCUMENT_TRANSLATIONS_DIFFER)
-    assert issue and any("Полужирный" in d for d in issue.raw_data["differences"])
+    assert issue and "ru" not in issue.raw_data["carried"]
+    # the instance names travel in blocks; the axis and label names are what is lost
+    assert all(d.startswith("ru ") for d in issue.raw_data["differences"])
+    back = dssketch.convert_dss_string_to_designspace(sketch, font_data=dssketch.FontData())
+    assert {i.styleName: i.localisedStyleName.get("ru") for i in back.instances} == {
+        i.styleName: i.localisedStyleName.get("ru") for i in ds.instances}
 
 
 @pytest.mark.parametrize(

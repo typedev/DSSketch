@@ -740,6 +740,8 @@ class DSSWriter:
         for key, value in keys:
             if value:
                 lines.append(f"        {key}: {value if key == 'location' else self._instance_value(value)}")
+            for language, name in sorted((instance.localized or {}).get(key, {}).items()):
+                lines.append(f"        {key}.{language}: {self._instance_value(name)}")
         return lines
 
     @staticmethod

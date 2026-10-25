@@ -7,8 +7,11 @@ All notable changes to DSSketch will be documented in this file.
 ### Added
 - **OR in rule conditions**: condition groups joined by `||` — `dollar > dollar.alt (weight >= Bold) || (width <= Condensed && weight >= 600)`. Each group is one DesignSpace conditionset, both ways; a converted DesignSpace keeps a rule with several conditionsets as one rule (it used to become one rule per conditionset). Highlighted, completed, placed in the line structure (`group.N`; `condition.N` counted across groups). `DSSRule.alternatives` / `condition_sets`; `Sketch.add_rule_group`, `remove_rule_group`, `set_rule_conditions`, `add_rule_condition(..., group=)`, `add_rule(..., alternatives=)`; `RuleRegion.alternatives`; `substitutions_at` and `apply_designspace` follow every group
 
+- **Localized names in explicit instance blocks**: `style.de: Fett`, `family.de`, `stylemapstyle.de`, `stylemapfamily.de` (DesignSpace `localised*` names). With `lang` a block without the key gets the dictionary's name; a key overrides that language only. Highlighted, completed (keys for the `lang` languages), editable with `set_instance_field(i, "style.de", …)`, carried by `apply_designspace`
+
 ### Changed
 - **Python 3.11 or newer is required** (was 3.8). Current fontTools needs 3.11 already, so on older Pythons DSSketch ran with an old fontTools; 3.8 and 3.9 are past their end of life and 3.10 reaches it this month. pip keeps installing DSSketch 1.5.x on older Pythons. CI tests 3.11–3.14
+- **DS → DSSketch decides `lang` per language**: a language goes in when the dictionary gives its axis and label names exactly and the names of most instances; instances with hand translations become blocks with `style.de:` keys. It used to need an exact match for the whole document, so one hand translation dropped the language everywhere. Localized instance names are no longer reported as dropped (2.3)
 
 ### Fixed
 - **Two condition groups without `||`** (`(a) (b)`) were read as the first group alone, the second dropped without a word; it is an error now, with a hint

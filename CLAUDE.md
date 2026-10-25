@@ -851,8 +851,17 @@ error); queries/apply see an empty list. Tests: `tests/test_instances_limit.py`
   English order and elisions. Missing words stay English → report 4.5
 - Lookup ignores case/spaces/hyphens and follows aliases (Roman→Upright,
   Slant→Slanted, standard width/weight aliases). Stdlib only: parse path
-- DS → DSS (`_detect_languages`) writes `lang` only on an exact match with the
-  dictionary; any difference → report 4.6 and nothing is carried
+- DS → DSS (`_detect_languages`, 1.6.0) decides per language: in `lang` when
+  the dictionary gives that language's axis names and STAT labels exactly and
+  most instances' style names. It runs before `_split_instances`, where an
+  instance is reproduced only if its localized names are what `lang` gives;
+  others become blocks with `style.de:` … keys (`_block_localized` writes only
+  what `lang` does not derive). Report 4.6 = axis/label names in languages left
+  out, and instances without a name in a `lang` language
+- Explicit blocks: `style.de`, `family.de`, `stylemapstyle.de`,
+  `stylemapfamily.de` (`LOCALIZED_KEYS`; `DSSInstance.localized`); DSS → DS
+  sets the four `localised*` dicts from them, `_apply_languages` fills only the
+  languages a block does not set. Tests: `tests/test_instance_localized.py`
 - Tests: `tests/test_lang.py`
 
 **Hidden axes are declared, never inferred:**

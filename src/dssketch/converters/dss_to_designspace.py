@@ -318,6 +318,8 @@ class DSSToDesignSpace:
             for instance in doc.instances:
                 if not instance.styleName:
                     continue
+                if language in instance.localisedStyleName:
+                    continue  # an explicit instance's own name (`style.de:`) wins
                 name, words = Translations.style_name(instance.styleName, language)
                 instance.localisedStyleName[language] = name
                 missing.update(words)
@@ -632,6 +634,11 @@ class DSSToDesignSpace:
         instance.styleMapStyleName = dss_instance.stylemapstylename
         names = {axis.name: dss_axis_name(axis) for axis in dss_doc.axes + dss_doc.hidden_axes}
         instance.location = {names.get(k, k): v for k, v in dss_instance.location.items()}
+        localized = dss_instance.localized or {}
+        instance.localisedFamilyName = dict(localized.get("family", {}))
+        instance.localisedStyleName = dict(localized.get("style", {}))
+        instance.localisedStyleMapFamilyName = dict(localized.get("stylemapfamily", {}))
+        instance.localisedStyleMapStyleName = dict(localized.get("stylemapstyle", {}))
         return instance
 
     def _convert_rule(
