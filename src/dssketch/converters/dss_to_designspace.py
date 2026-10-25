@@ -679,18 +679,19 @@ class DSSToDesignSpace:
             return None
 
         # Add conditions using modern conditionSets format
+        # One conditionset per group: DesignSpace ORs them, as `||` does
         if dss_rule.conditions:
-            rule.conditionSets = [[]]  # Create one condition set
-            for condition in dss_rule.conditions:
-                # Find correct axis name from DesignSpace document
-                axis_name = self._find_axis_name_in_designspace(condition["axis"], doc)
-
-                cond_dict = {
-                    "name": axis_name,
-                    "minimum": condition["minimum"],
-                    "maximum": condition["maximum"],
-                }
-                rule.conditionSets[0].append(cond_dict)
+            rule.conditionSets = [
+                [
+                    {
+                        "name": self._find_axis_name_in_designspace(condition["axis"], doc),
+                        "minimum": condition["minimum"],
+                        "maximum": condition["maximum"],
+                    }
+                    for condition in group
+                ]
+                for group in dss_rule.condition_sets
+            ]
 
         return rule
 

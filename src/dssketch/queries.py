@@ -42,12 +42,14 @@ class SourceLocation:
 @dataclass(frozen=True)
 class RuleRegion:
     """Where a rule applies: per axis it names, the design-space interval
-    (an open end is the axis's end). Axes it does not name are unconstrained"""
+    (an open end is the axis's end). Axes it does not name are unconstrained.
+    A rule with `||` groups applies in `region` or in any of `alternatives`"""
 
     index: int  # position in the rules section (from 0)
     name: str
     region: Dict[str, Tuple[float, float]]  # axis name -> (minimum, maximum), design space
     line: Optional[int] = None
+    alternatives: Tuple[Dict[str, Tuple[float, float]], ...] = ()  # the further `||` groups
 
 
 @dataclass(frozen=True)
@@ -188,9 +190,10 @@ def _source_locations(doc: DSSDocument) -> List[SourceLocation]:
 # -- rules ----------------------------------------------------------------------
 
 
-def _region(doc: DSSDocument, rule) -> Dict[str, Tuple[float, float]]:
+def _region(doc: DSSDocument, rule, conditions=None) -> Dict[str, Tuple[float, float]]:
+    """The region of one condition group (the first when none is given)"""
     region: Dict[str, Tuple[float, float]] = {}
-    for condition in rule.conditions or ():
+    for condition in (rule.conditions if conditions is None else conditions) or ():
         axis = find_axis(doc, condition.get("axis"))
         if axis is None:
             continue
@@ -211,7 +214,8 @@ def _rule_regions(doc: DSSDocument) -> List[RuleRegion]:
     out = []
     try:
         for index, rule in enumerate(doc.rules):
-            out.append(RuleRegion(index, rule.name or "", _region(doc, rule), rule.line))
+            out.append(RuleRegion(index, rule.name or "", _region(doc, rule), rule.line,
+                                  tuple(_region(doc, rule, group) for group in rule.alternatives)))
     except Exception:
         pass
     return out
@@ -258,8 +262,9 @@ def _substitutions_at(
         names = list(glyph_names) if glyph_names is not None else []
         current = {name: name for name in names}
         for rule in doc.rules:
-            region = _region(doc, rule)
-            if not all(low <= design.get(name, low) <= high for name, (low, high) in region.items()):
+            regions = [_region(doc, rule, group) for group in rule.condition_sets]
+            if not any(all(low <= design.get(name, low) <= high for name, (low, high) in region.items())
+                       for region in regions):
                 continue
             swaps = dict(_rule_pairs(rule, glyph_names))
             if glyph_names is None:
@@ -619,8 +624,9 @@ def _hover(sketch, line_no: int, col: int) -> Optional[str]:
         if kind == "rule" and len(path) > 2 and str(path[2]).startswith("condition."):
             rule = doc.rules[path[1]]
             index = int(str(path[2]).split(".")[1])
-            if index < len(rule.conditions):
-                axis = find_axis(doc, rule.conditions[index].get("axis"))
+            flat = [c for group in rule.condition_sets for c in group]
+            if index < len(flat):
+                axis = find_axis(doc, flat[index].get("axis"))
                 if axis is not None:
                     return f"{axis_name(axis)}: design {_g(value)} = user {_g(axis.get_user_value(value))}"
         return None

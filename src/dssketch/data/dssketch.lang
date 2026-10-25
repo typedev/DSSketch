@@ -145,7 +145,7 @@
       <match>(?&lt;![\w.$-])-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?(?![\w.])</match>
     </context>
     <context id="operator" style-ref="operator">
-      <match>&gt;=|&lt;=|==|&amp;&amp;|[&lt;&gt;]</match>
+      <match>&gt;=|&lt;=|==|&amp;&amp;|\|\||[&lt;&gt;]</match>
     </context>
     <context id="punctuation" style-ref="punctuation">
       <match>[\[\](){},:=-]</match>

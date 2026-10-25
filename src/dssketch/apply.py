@@ -337,27 +337,36 @@ class _Applier:
 
     # -- rules --------------------------------------------------------------------
 
-    def conditions(self, doc: DSSDocument, rule: DSSRule) -> List[Tuple[str, Optional[float], Optional[float]]]:
+    def conditions(self, doc: DSSDocument, rule: DSSRule) -> list:
+        """The condition groups by tag, each sorted; the groups sorted too (an
+        `||` is unordered)"""
+        groups = []
+        for group in rule.condition_sets:
+            out = []
+            for condition in group or ():
+                axis = self.axis_of(doc, condition.get("axis"))
+                tag = axis.tag if axis is not None else str(condition.get("axis"))
+                out.append((tag, condition.get("minimum"), condition.get("maximum")))
+            groups.append(tuple(sorted(out, key=lambda c: (c[0], str(c[1]), str(c[2])))))
+        return sorted(groups, key=repr)
+
+    def _spelled_group(self, group) -> list:
         out = []
-        for condition in rule.conditions or ():
-            axis = self.axis_of(doc, condition.get("axis"))
-            tag = axis.tag if axis is not None else str(condition.get("axis"))
-            out.append((tag, condition.get("minimum"), condition.get("maximum")))
-        return sorted(out, key=lambda c: c[0])
+        for condition in group or ():
+            condition = dict(condition)
+            axis = self.axis_of(self.doc, condition.get("axis"))
+            if axis is not None:
+                condition["axis"] = axis.name
+            out.append(condition)
+        return out
 
     def _spelled(self, rule: DSSRule) -> DSSRule:
         """A target rule with its condition axes named as the text names them"""
         import copy
 
         rule = copy.copy(rule)
-        conditions = []
-        for condition in rule.conditions or ():
-            condition = dict(condition)
-            axis = self.axis_of(self.doc, condition.get("axis"))
-            if axis is not None:
-                condition["axis"] = axis.name
-            conditions.append(condition)
-        rule.conditions = conditions
+        rule.conditions = self._spelled_group(rule.conditions)
+        rule.alternatives = [self._spelled_group(group) for group in rule.alternatives]
         return rule
 
     def _format(self, rule: DSSRule) -> List[str]:
@@ -365,11 +374,17 @@ class _Applier:
 
         return DSSWriter()._format_rule(self._spelled(rule), self.doc.axes + self.doc.hidden_axes)
 
-    def condition_texts(self, rule: DSSRule) -> List[str]:
-        """The conditions of a target rule as the writer spells them"""
-        line = self._format(rule)[0]
-        inside = line[line.index("(") + 1: line.rindex(")")]
-        return [part.strip() for part in inside.split("&&")]
+    def condition_texts(self, rule: DSSRule) -> List[List[str]]:
+        """The condition groups of a target rule as the writer spells them"""
+        from .writers.dss_writer import DSSWriter
+
+        writer, axes, spelled = DSSWriter(), self.doc.axes + self.doc.hidden_axes, self._spelled(rule)
+        out = []
+        for group in spelled.condition_sets:
+            text = writer._format_condition_group(group, axes)
+            if text:
+                out.append([part.strip() for part in text[1:-1].split("&&")])
+        return out
 
     @staticmethod
     def fits(rule: DSSRule, pairs) -> bool:
@@ -421,17 +436,22 @@ class _Applier:
 
     def add_rule(self, rule: DSSRule):
         name = None if (rule.name.startswith("rule") and rule.name[4:].isdigit()) else rule.name
-        texts = self.condition_texts(rule)
+        groups = self.condition_texts(rule)
         lines = self._format(rule)
         for line in lines:
             head = line.strip().split(" (", 1)[0]
             pattern, _, target = head.partition(" > ")
             self.run(f"add rule {rule.name}",
-                     lambda sk, p=pattern, t=target: sk.add_rule(p, t, texts, name=name))
+                     lambda sk, p=pattern, t=target: sk.add_rule(p, t, groups[0], name=name, alternatives=groups[1:]))
             name = None  # the name goes on the first line only
 
     def set_conditions(self, index: int, rule: DSSRule):
-        texts = self.condition_texts(rule)
+        groups = self.condition_texts(rule)
+        if len(groups) != 1 or self.doc.rules[index].alternatives:
+            # groups added or removed: the whole condition part
+            self.run(f"conditions of rule {rule.name}", lambda sk: sk.set_rule_conditions(index, groups))
+            return
+        texts = groups[0]
         count = len(self.doc.rules[index].conditions or ())
         for position, text in enumerate(texts):
             if position < count:

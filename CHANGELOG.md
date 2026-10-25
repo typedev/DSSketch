@@ -4,8 +4,15 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **OR in rule conditions**: condition groups joined by `||` — `dollar > dollar.alt (weight >= Bold) || (width <= Condensed && weight >= 600)`. Each group is one DesignSpace conditionset, both ways; a converted DesignSpace keeps a rule with several conditionsets as one rule (it used to become one rule per conditionset). Highlighted, completed, placed in the line structure (`group.N`; `condition.N` counted across groups). `DSSRule.alternatives` / `condition_sets`; `Sketch.add_rule_group`, `remove_rule_group`, `set_rule_conditions`, `add_rule_condition(..., group=)`, `add_rule(..., alternatives=)`; `RuleRegion.alternatives`; `substitutions_at` and `apply_designspace` follow every group
+
 ### Changed
 - **Python 3.11 or newer is required** (was 3.8). Current fontTools needs 3.11 already, so on older Pythons DSSketch ran with an old fontTools; 3.8 and 3.9 are past their end of life and 3.10 reaches it this month. pip keeps installing DSSketch 1.5.x on older Pythons. CI tests 3.11–3.14
+
+### Fixed
+- **Two condition groups without `||`** (`(a) (b)`) were read as the first group alone, the second dropped without a word; it is an error now, with a hint
+- **Rule condition bounds were guessed when written**: a lower bound of 0 was taken as open, and an upper bound of 1000 or more too, so `0 <= wght <= 500` on an axis starting below 0 came back as `wght <= 500`. Bounds are written as stored
 
 ## [1.5.4] - 2026-10-25
 

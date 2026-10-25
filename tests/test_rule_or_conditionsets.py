@@ -3,6 +3,8 @@ A DesignSpace rule with several conditionsets means OR; DS -> DSS must keep it.
 
 It used to merge every conditionset into one AND-ed condition, so
 "(weight >= 700) OR (width <= 80)" became "(weight >= 700) AND (width <= 80)".
+Until 1.6.0 each conditionset became a rule of its own; since then they are
+groups of one rule, joined by `||`.
 """
 
 import pytest
@@ -38,14 +40,13 @@ def _doc():
     return d, r
 
 
-def test_each_conditionset_becomes_its_own_rule():
+def test_conditionsets_become_groups_of_one_rule():
     d, _ = _doc()
     sketch = dssketch.convert_designspace_to_dss_string(d)
     lines = [line.strip() for line in sketch.splitlines() if "a.alt" in line]
-    assert lines == [
-        'a > a.alt (700 <= weight <= 900) "or-rule"',
-        'a > a.alt (75 <= width <= 80) "or-rule"',
-    ]
+    assert lines == ['a > a.alt (700 <= weight <= 900) || (75 <= width <= 80) "or-rule"']
+    back = dssketch.convert_dss_string_to_designspace(sketch)
+    assert len(back.rules) == 1 and len(back.rules[0].conditionSets) == 2
 
 
 @pytest.mark.parametrize(

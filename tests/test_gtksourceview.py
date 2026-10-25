@@ -58,7 +58,7 @@ sources [wght, opsz, CNTR, ital, slnt]
     Font-Bold.ufo [Black, Text, Sharp, Italic, Slant] @layer=fg
 rules last
     dollar cent* > .rvrn (Regular <= weight <= Black && CONTRAST >= 50) "heavy #1"  # note
-    a > a.alt (ital == 1)
+    a > a.alt (ital == 1) || (Regular <= weight <= Black && CONTRAST >= 50)
 instances auto
     skip
         Black Italic

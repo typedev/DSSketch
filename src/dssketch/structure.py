@@ -128,8 +128,8 @@ class Line:
     - skip-entry: `value`
     - instance: `name` (quotes stripped from the value); instance-field: `key`,
       `value` and, for `location`, `location.<axis as written>` (the value)
-    - rule: `pattern`, `target`, `conditions` (with parentheses),
-      `condition.0` …, `name`
+    - rule: `pattern`, `target`, `conditions` (every group with its
+      parentheses), `group.0` …, `condition.0` … (numbered across groups), `name`
     - avar2-var: `name` (with $), `value`
     - avar2-row: `name`, `inputs` (with brackets), `input.<axis>`,
       `output.<axis>` (value; for a matrix, the cell of that column)
@@ -536,29 +536,41 @@ def _rule_line(make, code, state) -> Line:
     if target:
         line.put("target", target[0], target[-1])
     if opening is not None:
-        depth = 0
-        closing = None
-        for k in range(opening, len(code)):
-            if code[k].text == "(":
-                depth += 1
-            elif code[k].text == ")":
-                depth -= 1
-                if depth == 0:
-                    closing = k
-                    break
-        end = code[closing] if closing is not None else code[-1]
+        # condition groups `( … ) || ( … )`: `conditions` spans them all,
+        # `group.G` each, `condition.N` numbers the conditions across groups
+        groups: List[Tuple[int, Optional[int]]] = []
+        k = opening
+        while k is not None and k < len(code) and code[k].text == "(":
+            depth, closing = 0, None
+            for j in range(k, len(code)):
+                if code[j].text == "(":
+                    depth += 1
+                elif code[j].text == ")":
+                    depth -= 1
+                    if depth == 0:
+                        closing = j
+                        break
+            groups.append((k, closing))
+            if closing is None or closing + 2 >= len(code) or code[closing + 1].text != "||":
+                break
+            k = closing + 2
+        last_open, last_close = groups[-1]
+        end = code[last_close] if last_close is not None else code[-1]
         line.set("conditions", _join(code[opening], end), "")
-        inner = code[opening + 1: closing if closing is not None else len(code)]
-        parts: List[List[Token]] = [[]]
-        for t in inner:
-            if t.type == OPERATOR and t.text == "&&":
-                parts.append([])
-            elif t.text in ("(", ")"):
-                continue
-            else:
-                parts[-1].append(t)
-        for i, part in enumerate(p for p in parts if p):
-            line.put(f"condition.{i}", part[0], part[-1])
+        number = 0
+        for g, (start, stop) in enumerate(groups):
+            line.set(f"group.{g}", _join(code[start], code[stop] if stop is not None else code[-1]), "")
+            parts: List[List[Token]] = [[]]
+            for t in code[start + 1: stop if stop is not None else len(code)]:
+                if t.type == OPERATOR and t.text == "&&":
+                    parts.append([])
+                elif t.text in ("(", ")"):
+                    continue
+                else:
+                    parts[-1].append(t)
+            for part in (p for p in parts if p):
+                line.put(f"condition.{number}", part[0], part[-1])
+                number += 1
     name = next((t for t in reversed(code) if t.type == STRING), None)
     if name is not None:
         line.set("name", _token_span(name), name.text.strip("\"'"))

@@ -311,7 +311,7 @@ class DSSValidator:
         known.discard("")
         tags = [axis.tag for axis in document.axes + document.hidden_axes]
         for rule in document.rules:
-            for condition in rule.conditions or ():
+            for condition in (c for group in rule.condition_sets for c in group):
                 name = condition.get("axis")
                 if not isinstance(name, str) or name.lower() in known:
                     continue
@@ -386,7 +386,7 @@ class DSSValidator:
     def _validate_rule_ranges(self, document: DSSDocument):
         """A condition range that contains something (min <= max)"""
         for rule in document.rules:
-            for condition in rule.conditions or ():
+            for condition in (c for group in rule.condition_sets for c in group):
                 low, high = condition.get("minimum"), condition.get("maximum")
                 if low is not None and high is not None and low > high:
                     self._warning(

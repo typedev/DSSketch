@@ -148,7 +148,7 @@ def language_spec() -> str:
         w(f"      <keyword>{escape(label)}</keyword>")
     w("    </context>")
     match("number", _NUMBER, "number")
-    match("operator", r">=|<=|==|&&|[<>]", "operator")
+    match("operator", r">=|<=|==|&&|\|\||[<>]", "operator")
     match("punctuation", r"[\[\](){},:=-]", "punctuation")
     # Inside brackets: never the closing one, which ends the bracket context
     match("inner-punctuation", r"[,:=-]", "punctuation")

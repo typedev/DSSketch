@@ -1136,7 +1136,7 @@ class Sketch:
         refs = []
         names = {axis.name.lower(), axis.tag.lower(), (axis.display_name or "").lower()}
         for i, rule in enumerate(self.document.rules):
-            if any(str(c.get("axis", "")).lower() in names for c in rule.conditions):
+            if any(str(c.get("axis", "")).lower() in names for g in rule.condition_sets for c in g):
                 refs.append(f"rule {i + 1}")
         for i, mapping in enumerate(self.document.avar2_mappings):
             keys = {k.lower() for k in list(mapping.input) + list(mapping.output)}
@@ -1796,16 +1796,18 @@ class Sketch:
         conditions,
         name: Optional[str] = None,
         index: Optional[int] = None,
+        alternatives=None,
     ) -> EditResult:
         """Add a rule: `pattern` (glyphs, `a*`, `*`), `target` (a glyph or a
         `.suffix`), `conditions` ("weight >= Bold", several as a list or joined
-        with &&; design-space values or labels). At the end of the rules
-        section, or before rule `index`; the section is created if needed"""
+        with &&; design-space values or labels), `alternatives` further groups
+        ORed with them (`||`). At the end of the rules section, or before rule
+        `index`; the section is created if needed"""
         pattern = self._rule_glyphs(pattern, "pattern")
         target = self._rule_glyphs(target, "target")
         if " " in target:
             raise EditError("invalid-value", f"A rule has one target: {target!r}")
-        text = f"{pattern} > {target} ({' && '.join(self._rule_conditions(conditions))})"
+        text = f"{pattern} > {target} {self._rule_groups_text([conditions] + list(alternatives or []))}"
         if name is not None:
             text += " " + self._rule_name(name)
         header = self.structure.section_header("rules")
@@ -1884,12 +1886,62 @@ class Sketch:
     def _condition_count(self, line: st.Line) -> int:
         return sum(1 for f in line.fields if f.startswith("condition."))
 
-    def add_rule_condition(self, index: int, condition: str) -> EditResult:
-        """Add a condition (joined with &&)"""
+    def _rule_groups_text(self, groups) -> str:
+        """`(a && b) || (c)` from groups, each a condition string or a list"""
+        return " || ".join(f"({' && '.join(self._rule_conditions(group))})" for group in groups)
+
+    @staticmethod
+    def _condition_groups(line: st.Line) -> List[List[int]]:
+        """The condition positions of each `||` group, in order"""
+        groups = sorted((int(n[6:]), span) for n, span in line.fields.items() if n.startswith("group."))
+        out: List[List[int]] = [[] for _ in groups]
+        for name, span in line.fields.items():
+            if name.startswith("condition."):
+                g = next((i for i, (_, gs) in enumerate(groups) if gs.col <= span.col and span.end_col <= gs.end_col), 0)
+                out[g].append(int(name[10:]))
+        return [sorted(positions) for positions in out]
+
+    def add_rule_condition(self, index: int, condition: str, group: int = 0) -> EditResult:
+        """Add a condition to a group (joined with &&; group 0 = the first)"""
         _, line = self._rule_line(index)
         (text,) = self._rule_conditions([condition])
-        last = line.fields[f"condition.{self._condition_count(line) - 1}"]
+        groups = self._condition_groups(line)
+        if not 0 <= group < len(groups):
+            raise EditError("unknown-key", f"Rule {index} has no condition group {group}")
+        last = line.fields[f"condition.{groups[group][-1]}"]
         return self._result([TextEdit(line.number, last.end_col, line.number, last.end_col, f" && {text}")])
+
+    def add_rule_group(self, index: int, conditions) -> EditResult:
+        """Add a condition group, ORed with the others: ` || (…)`"""
+        _, line = self._rule_line(index)
+        end = line.fields["conditions"]
+        text = self._rule_groups_text([conditions])
+        return self._result([TextEdit(line.number, end.end_col, line.number, end.end_col, f" || {text}")])
+
+    def remove_rule_group(self, index: int, group: int) -> EditResult:
+        """Remove a condition group with the `||` that joins it; a rule keeps one"""
+        _, line = self._rule_line(index)
+        spans = sorted((int(n[6:]), sp) for n, sp in line.fields.items() if n.startswith("group."))
+        if not 0 <= group < len(spans):
+            raise EditError("unknown-key", f"Rule {index} has no condition group {group}")
+        if len(spans) == 1:
+            raise EditError("not-applicable", "A rule needs at least one condition group; remove the rule instead")
+        span = spans[group][1]
+        if group + 1 < len(spans):
+            return self._result([TextEdit(line.number, span.col, line.number, spans[group + 1][1].col, "")])
+        return self._result([TextEdit(line.number, spans[group - 1][1].end_col, line.number, span.end_col, "")])
+
+    def set_rule_conditions(self, index: int, groups) -> EditResult:
+        """Replace every condition: `groups` a list of groups (each a condition
+        string or a list), ORed; one string or flat list = one group"""
+        _, line = self._rule_line(index)
+        if isinstance(groups, str) or (groups and all(isinstance(g, str) for g in groups)):
+            groups = [groups]
+        text = self._rule_groups_text(groups)
+        span = line.fields["conditions"]
+        if line.text("conditions") == text:
+            return EditResult([], self._text, self)
+        return self._result([self._replace(span, text)])
 
     def set_rule_condition(self, index: int, position: int, condition: str) -> EditResult:
         """Replace condition `position` (from 0)"""
@@ -1901,18 +1953,24 @@ class Sketch:
         return self._result([self._replace(span, text)])
 
     def remove_rule_condition(self, index: int, position: int) -> EditResult:
-        """Remove condition `position` (from 0); a rule keeps at least one"""
+        """Remove condition `position` (from 0, counted across groups). The
+        last condition of a group removes the group; a rule keeps at least one"""
         _, line = self._rule_line(index)
-        count = self._condition_count(line)
         span = line.fields.get(f"condition.{position}")
         if span is None:
             raise EditError("unknown-key", f"Rule {index} has no condition {position}")
-        if count == 1:
-            raise EditError("not-applicable", "A rule needs at least one condition; remove the rule instead")
-        nxt = line.fields.get(f"condition.{position + 1}")
-        if nxt is not None:
+        groups = self._condition_groups(line)
+        group = next(g for g, positions in enumerate(groups) if position in positions)
+        members = groups[group]
+        if len(members) == 1:
+            if len(groups) == 1:
+                raise EditError("not-applicable", "A rule needs at least one condition; remove the rule instead")
+            return self.remove_rule_group(index, group)
+        k = members.index(position)
+        if k + 1 < len(members):
+            nxt = line.fields[f"condition.{members[k + 1]}"]
             return self._result([TextEdit(line.number, span.col, line.number, nxt.col, "")])
-        prev = line.fields[f"condition.{position - 1}"]
+        prev = line.fields[f"condition.{members[k - 1]}"]
         return self._result([TextEdit(line.number, prev.end_col, line.number, span.end_col, "")])
 
     def set_instances_mode(self, mode: Optional[str]) -> EditResult:

@@ -632,14 +632,12 @@ class DesignSpaceToDSS:
         )
 
     def _convert_rule(self, rule: RuleDescriptor, ds_doc: DesignSpaceDocument) -> List[DSSRule]:
-        """Convert a DesignSpace rule to DSS rules, one per conditionset.
+        """Convert a DesignSpace rule to a DSS rule.
 
         A DesignSpace rule applies when ANY of its conditionsets matches, and the
-        conditions inside one conditionset are ANDed. A DSS rule holds a single
-        AND-ed condition, so a rule with several conditionsets becomes several
-        DSS rules with the same substitutions and name, one per conditionset.
-        That keeps the OR: the substitution applies wherever any of them matches.
-        Merging the conditions into one rule would turn it into an AND.
+        conditions inside one conditionset are ANDed. Each conditionset becomes
+        a condition group, the groups joined by `||` (1.6.0; before, one DSS
+        rule per conditionset with the same substitutions and name).
         """
         if not rule.subs:
             return []
@@ -673,10 +671,8 @@ class DesignSpaceToDSS:
         if not condition_sets:
             condition_sets = [[]]
 
-        return [
-            DSSRule(name=rule.name or "rule", substitutions=list(substitutions), conditions=conditions)
-            for conditions in condition_sets
-        ]
+        return [DSSRule(name=rule.name or "rule", substitutions=list(substitutions),
+                        conditions=condition_sets[0], alternatives=condition_sets[1:])]
 
     # ============================================================
     # avar2 CONVERSION METHODS

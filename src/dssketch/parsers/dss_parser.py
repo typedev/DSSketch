@@ -1362,17 +1362,28 @@ class DSSParser:
                 self.validator.errors.append(f"Invalid rule syntax: {error_msg} in '{line}'")
                 return
 
-            # Parse parentheses syntax: pattern > target (condition) "name"
-            paren_match = re.match(r'^(.+?)\s*>\s*(.+?)\s*\(([^)]+)\)(?:\s*"([^"]+)")?', line)
+            # pattern > target (condition) || (condition && condition) "name"
+            paren_match = re.match(
+                r'^(.+?)\s*>\s*(.+?)\s*(\([^)]+\)(?:\s*\|\|\s*\([^)]+\))*)(?:\s*"([^"]+)")?(.*)$', line
+            )
 
             if paren_match:
                 from_part = paren_match.group(1).strip()
                 to_part = paren_match.group(2).strip()
-                condition_str = paren_match.group(3).strip()
+                groups = re.findall(r"\(([^)]+)\)", paren_match.group(3))
                 rule_name = paren_match.group(4) if paren_match.group(4) else None
+                rest = strip_comment(paren_match.group(5)).strip()
+                if rest:
+                    hint = (" Join condition groups with `||`: (a) || (b)" if rest.startswith(("(", "|"))
+                            else "")
+                    self.validator.errors.append(
+                        f"Invalid rule syntax: unexpected '{rest}' after the conditions in '{line}'.{hint}"
+                    )
+                    return
 
-                # Parse conditions
-                conditions = self._parse_condition_string(condition_str)
+                # Parse conditions: the first group, then the ones ORed with it
+                condition_sets = [self._parse_condition_string(group.strip()) for group in groups]
+                conditions, alternatives = condition_sets[0], condition_sets[1:]
 
                 # Create rule with auto-generated name if needed
                 if not rule_name:
@@ -1388,6 +1399,7 @@ class DSSParser:
                         conditions=conditions,
                         pattern=from_part,
                         to_pattern=to_part,
+                        alternatives=alternatives,
                     )
                 else:
                     # Single substitution
@@ -1397,6 +1409,7 @@ class DSSParser:
                             (from_part, from_part + to_part if to_part.startswith(".") else to_part)
                         ],
                         conditions=conditions,
+                        alternatives=alternatives,
                     )
 
                 self.document.rules.append(rule)

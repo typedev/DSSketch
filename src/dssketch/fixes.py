@@ -418,7 +418,7 @@ def _rule_condition_empty(sk: Sketch, d, quoted):
     if index is None:
         return []
     rule = sk.document.rules[index]
-    for position, condition in enumerate(rule.conditions or ()):
+    for position, condition in enumerate(c for group in rule.condition_sets for c in group):
         low, high = condition.get("minimum"), condition.get("maximum")
         if low is not None and high is not None and low > high:
             text = f"{high:g} <= {condition.get('axis')} <= {low:g}"

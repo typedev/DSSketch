@@ -650,6 +650,25 @@ rules
     dollar > .heavy (weight >= 362)  # Activates at Regular and heavier
 ```
 
+### OR in Rule Conditions
+
+Inside one pair of parentheses conditions are joined with `&&` (all must
+hold). Several groups joined with `||` make the rule apply where **any** group
+holds — a DesignSpace rule with several conditionsets:
+
+```dssketch
+rules
+    dollar > dollar.alt (weight >= Bold) || (width <= Condensed && weight >= 600) "heavy dollar"
+```
+
+Each group is one conditionset; a converted DesignSpace keeps them in one rule
+(DSSketch 1.5 and earlier wrote one rule per conditionset). The `Sketch`
+editing API addresses conditions by position across the groups and adds
+`add_rule_group`, `remove_rule_group` and `set_rule_conditions(index, groups)`;
+`add_rule_condition(index, condition, group=0)` and
+`add_rule(..., alternatives=[...])` take a group. `rule_regions()` gives the
+further groups as `RuleRegion.alternatives`.
+
 ### Axis Mapping Formats
 
 DSSketch supports three formats for defining axis mappings, giving you full control over user-space and design-space coordinates:

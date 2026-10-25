@@ -153,9 +153,12 @@ class DSSRule:
     """Represents a substitution rule"""
     name: str
     substitutions: List[Tuple[str, str]]  # (from_glyph, to_glyph)
-    conditions: List[Dict[str, Any]]  # axis conditions
+    conditions: List[Dict[str, Any]]  # axis conditions (ANDed): the first group
     pattern: Optional[str] = None  # wildcard pattern like "dollar* cent*"
     to_pattern: Optional[str] = None  # target pattern like ".rvrn"
+    # Further condition groups, ORed with the first: `(a) || (b && c)` has
+    # conditions = [a], alternatives = [[b, c]] (DesignSpace conditionsets)
+    alternatives: List[List[Dict[str, Any]]] = field(default_factory=list)
     # Line of the .dssketch that declared it (from 1), for editors; None when
     # there is no source text (DS -> DSS). Not part of equality or repr
     line: Optional[int] = field(default=None, compare=False, repr=False)
@@ -163,6 +166,11 @@ class DSSRule:
     # sketch.Sketch; None / empty otherwise. Not part of equality or repr
     span: Optional[Any] = field(default=None, compare=False, repr=False)
     spans: Dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
+
+    @property
+    def condition_sets(self) -> List[List[Dict[str, Any]]]:
+        """Every condition group, the rule applying where any of them holds"""
+        return [self.conditions] + list(self.alternatives)
 
 
 @dataclass

@@ -550,6 +550,23 @@ class DSSWriter:
 
         return line
 
+    def _format_condition_group(self, conditions, axes: List[DSSAxis]) -> str:
+        """`(axis >= a && b <= axis <= c)`: one group, exactly as stored (None =
+        open to that end of the axis)"""
+        parts = []
+        for cond in conditions:
+            axis, low, high = cond["axis"], cond.get("minimum"), cond.get("maximum")
+            if low is not None and high is not None and low == high:
+                parts.append(f"{axis} == {self._format_condition_value(low, axis, axes)}")
+            elif low is not None and high is not None:
+                parts.append(f"{self._format_condition_value(low, axis, axes)} <= {axis} <= "
+                             f"{self._format_condition_value(high, axis, axes)}")
+            elif low is not None:
+                parts.append(f"{axis} >= {self._format_condition_value(low, axis, axes)}")
+            elif high is not None:
+                parts.append(f"{axis} <= {self._format_condition_value(high, axis, axes)}")
+        return f"({' && '.join(parts)})" if parts else ""
+
     def _format_rule(self, rule: DSSRule, axes: List[DSSAxis]) -> List[str]:
         """Format rule definition with label-based conditions when possible
 
@@ -559,45 +576,10 @@ class DSSWriter:
         """
         lines = []
 
-        # Get condition string (shared across all substitutions in this rule)
-        condition_str = ""
-        if rule.conditions:
-            cond_parts = []
-            for cond in rule.conditions:
-                axis = cond["axis"]
-                min_val = cond["minimum"]
-                max_val = cond["maximum"]
-
-                if min_val == max_val:
-                    # Exact match: axis == value (try label or number)
-                    formatted_val = self._format_condition_value(min_val, axis, axes)
-                    cond_parts.append(f"{axis} == {formatted_val}")
-                elif min_val is not None and max_val is not None:
-                    # Range condition
-                    if min_val == 0:
-                        # Only upper bound: axis <= max
-                        formatted_max = self._format_condition_value(max_val, axis, axes)
-                        cond_parts.append(f"{axis} <= {formatted_max}")
-                    elif max_val >= 1000:
-                        # Only lower bound: axis >= min
-                        formatted_min = self._format_condition_value(min_val, axis, axes)
-                        cond_parts.append(f"{axis} >= {formatted_min}")
-                    else:
-                        # Full range: min <= axis <= max (try labels or numbers)
-                        formatted_min = self._format_condition_value(min_val, axis, axes)
-                        formatted_max = self._format_condition_value(max_val, axis, axes)
-                        cond_parts.append(f"{formatted_min} <= {axis} <= {formatted_max}")
-                elif min_val is not None:
-                    # Only minimum: axis >= min
-                    formatted_min = self._format_condition_value(min_val, axis, axes)
-                    cond_parts.append(f"{axis} >= {formatted_min}")
-                elif max_val is not None:
-                    # Only maximum: axis <= max
-                    formatted_max = self._format_condition_value(max_val, axis, axes)
-                    cond_parts.append(f"{axis} <= {formatted_max}")
-
-            if cond_parts:
-                condition_str = f"({' && '.join(cond_parts)})"
+        # The condition groups, ORed: (a && b) || (c)
+        groups = [self._format_condition_group(group, axes) for group in rule.condition_sets]
+        groups = [g for g in groups if g]
+        condition_str = " || ".join(groups)
 
         # A rule parsed from DSSketch keeps its pattern as written; it is only
         # expanded against UFO glyphs on the way to DesignSpace. Write it back as is.

@@ -954,6 +954,21 @@ DSSketch validates skip rules at two levels to ensure correctness:
 - To: `if '*' in from_part or (' ' in from_part...)`
 - This ensures patterns like `A*` are properly recognized as wildcards
 
+**OR: condition groups (1.6.0):** `(a) || (b && c)`. `DSSRule.conditions` is
+the first group, `DSSRule.alternatives` the rest, `condition_sets` all of them
+(code that reads `conditions` alone sees only the first group — use
+`condition_sets` for meaning). Each group = one DesignSpace conditionset both
+ways (DS → DSS used to write one rule per conditionset). Parser regex takes
+`( … )( || ( … ))*`; text left after it is an error with a `||` hint (two
+groups without `||` used to drop the second silently). Tokenizer/.lang:
+`||` is an operator. Structure: `conditions` spans every group, `group.G`
+each, `condition.N` numbered across groups. Sketch: `add_rule_group`,
+`remove_rule_group`, `set_rule_conditions`, `add_rule_condition(group=)`,
+`add_rule(alternatives=)`; removing a group's last condition removes the
+group. `RuleRegion.alternatives`; `substitutions_at` applies a rule where any
+group holds. The writer writes bounds exactly as stored (it used to read a
+lower bound of 0 / upper >= 1000 as open). Tests: `tests/test_rule_or_groups.py`
+
 **One-sided Rule Conditions Stay Open:**
 - `weight >= Bold` is stored as `{"minimum": 725, "maximum": None}`, and
   `weight <= Regular` as `{"minimum": None, "maximum": 420}` — design-space values
