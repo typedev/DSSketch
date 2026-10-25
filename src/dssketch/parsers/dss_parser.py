@@ -506,7 +506,7 @@ class DSSParser:
             range_part = parts[1]
 
             # Infer tag from name
-            tag = self.NAME_TO_TAG.get(name.lower(), name.upper()[:4])
+            tag = DSSValidator.AXIS_NAME_TO_TAG.get(name.lower(), name.upper()[:4])
 
             # Check if this might be a label-based range
             is_label_based = ":" in range_part and not all(
