@@ -4,6 +4,8 @@ All notable changes to DSSketch will be documented in this file.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-25
+
 ### Added
 - **OR in rule conditions**: condition groups joined by `||` — `dollar > dollar.alt (weight >= Bold) || (width <= Condensed && weight >= 600)`. Each group is one DesignSpace conditionset, both ways; a converted DesignSpace keeps a rule with several conditionsets as one rule (it used to become one rule per conditionset). Highlighted, completed, placed in the line structure (`group.N`; `condition.N` counted across groups). `DSSRule.alternatives` / `condition_sets`; `Sketch.add_rule_group`, `remove_rule_group`, `set_rule_conditions`, `add_rule_condition(..., group=)`, `add_rule(..., alternatives=)`; `RuleRegion.alternatives`; `substitutions_at` and `apply_designspace` follow every group
 
